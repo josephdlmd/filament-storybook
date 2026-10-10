@@ -17,6 +17,7 @@
         "laravel/boost": "Gives AI agents the patterns, rules and checks as the storybook-list, storybook-show, storybook-instructions, storybook-test and storybook-audit MCP tools."
     },
     "conflict": {
+        "laravel/boost": ">=3.0",
         "laravel/mcp": ">=2.0"
     },
     "autoload": {
