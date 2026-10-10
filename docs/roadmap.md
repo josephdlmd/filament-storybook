@@ -24,6 +24,22 @@ Then, in this order:
 9. Percentages (discounts, tax rates)
 10. A settings page
 
+## Later: everyday business screens
+
+After the documents, in this order. Shared patterns stay generic; anything that depends on one business's rules goes in that app's `app/Stories`, with the rules recorded as business standards.
+
+1. **Turning one document into the next** (quotation, order, delivery, invoice), copying lines and tracking partly fulfilled orders. Shared.
+2. **Stock movements:** receipts against a purchase order (including partial receipts), issues, transfers, and adjustments with a reason; stock on hand per item and location; low-stock warnings. Shared. **Lot and expiry tracking**, and which lot is used first, is a business standard.
+3. **Statements of account and ageing**, for customers and suppliers. Shared screens; the ageing buckets are a business standard.
+4. **Credit-limit warnings or holds** when an order would go over a customer's limit. Shared; warning or hold is a business standard.
+
+Then, as an app needs them:
+
+- **Records:** returns and credit notes; approval history; a change history on each record; notes and attachments on a record; global search. Shared.
+- **Money:** price lists and customer prices; collections and deposits (including post-dated cheques, if used). Shared screens, business rules.
+- **Accounting and tax:** chart of accounts; journal entries (debits equal credits); closing a period; tax reports and certificates. App-specific.
+- **Administration:** roles and permissions; error pages (the rule exists, no pattern); faster data entry ("save and create another", keyboard use on long forms). Shared.
+
 ## Ask the owner first
 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
