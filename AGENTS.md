@@ -19,6 +19,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `resources/instructions/stories.md` | How to write a story. `storybook-instructions` returns it followed by `docs/rules.md`. |
 | `resources/css/house.css` | CSS for rules Filament has no setting for, published by `filament:upgrade`. |
 | `docs/rules.md` | **The rulebook:** every rule with its source and date, where we differ from Carbon, and what was dropped and why. |
+| `docs/roadmap.md` | What is covered, what comes next, and the business facts to ask the owner first. |
 | `eval/` | A headless agent eval: an ordinary feature prompt in a throwaway app, scored on whether the agent used the patterns. |
 
 ## Apps conform to the package
