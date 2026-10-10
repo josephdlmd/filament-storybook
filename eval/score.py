@@ -39,7 +39,7 @@ checks = {
     "money column: alignEnd()": "alignEnd()" in code,
     "status: badge()": "badge()" in code,
     "terms: ToggleButtons": "ToggleButtons" in code,
-    "TIN story added in app/Stories": "app/Stories" in untracked,
+    "TIN: shared pattern's mask reused": "mask('999-999-999-999')" in code,
     "no placeholder() format examples": "->placeholder(" not in code,
     "record form screen: inlineLabel()": "inlineLabel()" in code,
     "list table screen: defaultPaginationPageOption(25)": "defaultPaginationPageOption(25)" in code,
