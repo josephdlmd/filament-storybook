@@ -26,7 +26,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['forms-choice', 'forms-money-input', 'forms-record-form', 'forms-tin', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-money-input', 'forms-record-form', 'forms-tin', 'forms-yes-or-no', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -137,21 +137,31 @@ it('renders a screen story as the resource would, with its sample rows', functio
 
     Livewire::test(StoryCanvas::class, ['stories' => RecordFormStories::class, 'story' => 'default'])
         ->assertSet('data.tin', '123-456-789-000')
-        ->assertSee('Head office branch code is 000.');
+        ->assertSee('with 000 for the head office');
 });
 
 it('loads the house CSS the patterns depend on, on every panel page', function (): void {
     expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->map->getId()->all())->toBe(['house']);
 });
 
+it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
+    $delete = Filament\Actions\DeleteAction::make();
+
+    expect($delete->getColor())->toBe('gray')
+        ->and($delete->getModalSubmitAction()->getColor())->toBe('danger')
+        ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\TextInput::make('name')))->toBe('Enter name')
+        ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\TextInput::make('tin')->label('TIN')))->toBe('Enter TIN')
+        ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\Select::make('payment_terms')))->toBe('Select payment terms');
+});
+
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: forms-choice, forms-money-input, forms-record-form, forms-tin, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-money-input, forms-record-form, forms-tin, forms-yes-or-no, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 10 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 15 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -207,12 +217,20 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 2 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 10 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
+        ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
+        ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
+        ->toContain('- `ListGadgets`: the empty list gives no next step')
+        ->toContain('- `ListGadgets`: `delete` is red before anything is confirmed')
         ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
+        ->toContain('- `CreateGadget`: the field `is_active` is a toggle in a form that is saved')
+        ->toContain('- `CreateGadget`: the date field `released_on` uses `native(false)`')
+        ->toContain('- `CreateGadget`: the upload `manual` does not state its accepted types and largest size')
+        ->toContain('- `CreateGadget`: the error "Please enter the serial" doesn\'t say what to do')
+        ->not->toContain('the error "Enter name"')
         ->not->toContain('25 rows')
-        ->not->toContain('columns are visible')
         ->toContain('- `EditGadget`: no record to open')
         ->toContain('Fix each one, then run storybook-audit again');
 });
@@ -221,6 +239,6 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 3 pages rendered, 0 failing, 3 warnings')
+        ->toStartWith('# 3 pages rendered, 0 failing, 14 warnings')
         ->toContain('- `EditGadget`: the field `code` uses placeholder()');
 });

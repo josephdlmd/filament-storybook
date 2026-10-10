@@ -126,6 +126,26 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: no placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).";
             }
 
+            if (preg_match_all("/->helperText\\('([^']*)'/", $story['snippet'], $hints)) {
+                foreach ($hints[1] as $hint) {
+                    if (preg_match('/\\.(\\s|$)|\\b(e\\.g|i\\.e|etc)\\b/i', $hint)) {
+                        $warnings[] = "{$key}: helper text is one short line with no full stop and no \"e.g.\" or \"etc\"; say \"For example, …\" (GOV.UK text input and style guide).";
+                    }
+                }
+            }
+
+            if (str_contains($story['snippet'], '->native(false)')) {
+                $warnings[] = "{$key}: native(false) makes a date that cannot be typed; use the native picker (USWDS date picker, GOV.UK dates).";
+            }
+
+            if (str_contains($story['snippet'], 'Toggle::make(')) {
+                $warnings[] = "{$key}: a toggle is only for something that applies at once; a yes/no saved with a form is a Checkbox (Carbon toggle and checkbox).";
+            }
+
+            if (str_contains($story['snippet'], 'FileUpload::make(') && (! preg_match('/->(acceptedFileTypes|image)\\(/', $story['snippet']) || ! str_contains($story['snippet'], '->maxSize('))) {
+                $warnings[] = "{$key}: an upload states its accepted types and largest size (USWDS file input).";
+            }
+
             if (str_contains($story['snippet'], '->hiddenLabel(')) {
                 $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen (W3C WAI, GOV.UK).";
             }

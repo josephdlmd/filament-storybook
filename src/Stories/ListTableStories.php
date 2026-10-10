@@ -3,7 +3,10 @@
 namespace Josephdlmd\FilamentStorybook\Stories;
 
 use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\Action;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Josephdlmd\FilamentStorybook\Stories;
 
@@ -16,7 +19,7 @@ class ListTableStories extends Stories
 
     public function description(): string
     {
-        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, the columns follow in order of importance, money is right-aligned and status is a badge. Basis: NN/g data tables 2022 (a human-readable identifier first, columns ordered by importance, easy to hide) and GOV.UK table (right-align numbers).';
+        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, the columns follow in order of importance, money is right-aligned and status is a badge. With more than one filter, the filters sit above the table; the list remembers its filters, search and sort; and an empty list says what goes here and offers the next step (on a resource, `CreateAction::make()`). Basis: NN/g data tables 2022, GOV.UK and USWDS tables (right-align numbers), Carbon filtering, search and empty states (2026).';
     }
 
     public function records(): array
@@ -48,7 +51,18 @@ class ListTableStories extends Stories
             ->filters([
                 SelectFilter::make('status')
                     ->options(['Active' => 'Active', 'On hold' => 'On hold']),
-            ])
-            ->defaultSort('name');
+                TernaryFilter::make('has_credit_limit')
+                    ->label('Has a credit limit'),
+            ], layout: FiltersLayout::AboveContentCollapsible)
+            ->persistFiltersInSession()
+            ->persistSearchInSession()
+            ->persistSortInSession()
+            ->defaultSort('name')
+            ->emptyStateHeading('No suppliers yet')
+            ->emptyStateDescription('Suppliers you add appear here.')
+            ->emptyStateActions([
+                Action::make('add')
+                    ->label('Add supplier'),
+            ]);
     }
 }

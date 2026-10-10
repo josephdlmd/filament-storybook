@@ -28,7 +28,7 @@ class TinInputStories extends Stories
             ->label('TIN')
             ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
             ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
-            ->helperText('For example, 123-456-789-000. Head office branch code is 000.')
+            ->helperText('For example, 123-456-789-000, with 000 for the head office')
             ->maxWidth('xs')
             ->validationMessages(['regex' => 'Enter a TIN in the correct format: 12 digits, including the branch code']);
     }
@@ -40,7 +40,7 @@ class TinInputStories extends Stories
             ->label('TIN')
             ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
             ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
-            ->helperText('For example, 123-456-789-000. Head office branch code is 000.')
+            ->helperText('For example, 123-456-789-000, with 000 for the head office')
             ->maxWidth('xs')
             ->required()
             ->validationMessages([

@@ -3,14 +3,26 @@
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
 use Filament\Facades\Filament;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Forms\Components\BaseFileUpload;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 use Laravel\Mcp\Request;
@@ -133,6 +145,20 @@ class AuditPages extends Tool
     protected static function warnings(string $key, Component $page): array
     {
         $warnings = [];
+        $warn = function (string $message) use (&$warnings, $key): void {
+            $warnings[] = "- `{$key}`: {$message}";
+        };
+
+        $header = method_exists($page, 'getCachedHeaderActions') ? $page->getCachedHeaderActions() : [];
+        $headerActions = static::flatten($header);
+        $tableActions = [];
+
+        $primary = collect($header)
+            ->filter(fn ($action): bool => $action instanceof Action && $action->isVisible() && in_array($action->getColor() ?? 'primary', ['primary'], true));
+
+        if ($primary->count() > 1) {
+            $warn("{$primary->count()} primary actions in the header; keep one primary and make the rest `->color('gray')` or put them in an `ActionGroup` (Carbon button, GOV.UK button).");
+        }
 
         if (method_exists($page, 'getTable') && $page->getTable()->getColumns() !== []) {
             $table = $page->getTable();
@@ -140,8 +166,38 @@ class AuditPages extends Tool
 
             foreach ($visible as $column) {
                 if ($column instanceof TextColumn && $column->isMoney() && ! in_array($column->getAlignment(), [Alignment::End, Alignment::Right], true)) {
-                    $warnings[] = "- `{$key}`: the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (GOV.UK and USWDS tables).";
+                    $warn("the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (GOV.UK and USWDS tables).");
                 }
+            }
+
+            $inline = collect($table->getRecordActions())->filter(fn ($action): bool => $action instanceof Action);
+
+            if ($inline->count() > 2) {
+                $warn("{$inline->count()} row actions are inline; keep at most two and put the rest in an `ActionGroup` (Carbon data table, NN/g data tables).");
+            }
+
+            if (count($table->getFilters()) > 1 && in_array($table->getFiltersLayout(), [FiltersLayout::Dropdown, FiltersLayout::Modal], true)) {
+                $warn('several filters are hidden in a dropdown; put them above the table with `layout: FiltersLayout::AboveContentCollapsible` (Carbon filtering).');
+            }
+
+            if ($page instanceof ListRecords && blank($table->getEmptyStateDescription()) && $table->getEmptyStateActions() === []) {
+                $warn('the empty list gives no next step; add `emptyStateDescription()` and `emptyStateActions()`, as `tables-list-table` does (Carbon empty states).');
+            }
+
+            $tableActions = static::flatten([...$table->getRecordActions(), ...$table->getToolbarActions()]);
+        }
+
+        foreach ([...$headerActions, ...$tableActions] as $action) {
+            if (! $action instanceof DeleteAction && ! $action instanceof ForceDeleteAction && ! $action instanceof DeleteBulkAction && ! $action instanceof ForceDeleteBulkAction) {
+                continue;
+            }
+
+            if (! $action->isConfirmationRequired()) {
+                $warn("`{$action->getName()}` deletes without asking; add `->requiresConfirmation()` (WCAG 3.3.4).");
+            }
+
+            if ($action->getColor() === 'danger') {
+                $warn("`{$action->getName()}` is red before anything is confirmed; make it `->color('gray')` and keep red on the confirm button, as `actions-delete` does (GOV.UK button).");
             }
         }
 
@@ -149,15 +205,67 @@ class AuditPages extends Tool
         $fields = $page instanceof ListRecords ? [] : rescue(fn (): array => $page->form->getFlatFields(withHidden: false), [], report: false);
 
         foreach ($fields as $field) {
+            $name = $field->getName();
+
             if ($field instanceof TextInput && filled($field->getPlaceholder())) {
-                $warnings[] = "- `{$key}`: the field `{$field->getName()}` uses placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).";
+                $warn("the field `{$name}` uses placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).");
             }
 
             if ($field->isLabelHidden()) {
-                $warnings[] = "- `{$key}`: the field `{$field->getName()}` hides its label; keep it visible, above the field (W3C WAI, GOV.UK).";
+                $warn("the field `{$name}` hides its label; keep it visible, above the field (W3C WAI, GOV.UK).");
+            }
+
+            if ($field instanceof Toggle) {
+                $warn("the field `{$name}` is a toggle in a form that is saved; use a `Checkbox`, as `forms-yes-or-no` does (Carbon toggle and checkbox).");
+            }
+
+            if ($field instanceof DateTimePicker && ! $field->isNative()) {
+                $warn("the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (USWDS date picker, GOV.UK dates).");
+            }
+
+            if ($field instanceof BaseFileUpload && (blank($field->getAcceptedFileTypes()) || $field->getMaxSize() === null)) {
+                $warn("the upload `{$name}` does not state its accepted types and largest size; set both and say them in `helperText()`, as `forms-file-upload` does (USWDS file input).");
             }
         }
 
+        foreach (static::errorMessages($page) as $message) {
+            $warn("the error \"{$message}\" doesn't say what to do; word it like \"Enter name\" or \"Select status\" (GOV.UK error message, NN/g 2023).");
+        }
+
         return $warnings;
+    }
+
+    /**
+     * Submits a create page's form empty and keeps the error messages that use wording GOV.UK and NN/g rule out.
+     *
+     * @return list<string>
+     */
+    protected static function errorMessages(Component $page): array
+    {
+        if (! $page instanceof CreateRecord) {
+            return [];
+        }
+
+        try {
+            $page->form->validate();
+        } catch (ValidationException $e) {
+            return collect($e->errors())->flatten()
+                ->filter(fn (string $message): bool => (bool) preg_match('/\b(is required|invalid|incorrect|please|sorry)\b/i', $message))
+                ->unique()->values()->all();
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<Action|ActionGroup>  $actions
+     * @return list<Action>
+     */
+    protected static function flatten(array $actions): array
+    {
+        return collect($actions)
+            ->flatMap(fn ($action): array => $action instanceof ActionGroup ? $action->getFlatActions() : [$action])
+            ->filter(fn ($action): bool => $action instanceof Action)
+            ->values()->all();
     }
 }

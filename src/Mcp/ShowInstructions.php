@@ -12,10 +12,11 @@ class ShowInstructions extends Tool
 {
     protected string $name = 'storybook-instructions';
 
-    protected string $description = 'The rules for writing a Filament story: naming, states to cover, sample data and the test-and-fix loop. Call it before adding or changing a story.';
+    protected string $description = 'How to write a Filament story, and every UI rule with its source (forms, feedback and dialogs, tables, layout, accessibility, sign-in). Call it before adding or changing a story, and when unsure how a screen should behave.';
 
     public function handle(Request $request): Response
     {
-        return Response::text((string) file_get_contents(__DIR__.'/../../resources/instructions/stories.md'));
+        return Response::text(file_get_contents(__DIR__.'/../../resources/instructions/stories.md')
+            ."\n---\n\n".file_get_contents(__DIR__.'/../../docs/rules.md'));
     }
 }

@@ -11,7 +11,7 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |
 | `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule warnings, and WCAG 2.1 AA issues from axe-core |
 | `get-storybook-story-instructions` | `storybook-instructions`: the rules for writing a story and the test-and-fix loop |
-| (no equivalent) | `storybook-audit`: renders the app's real resource pages signed in as a panel user, and reports render errors, page-level house-rule breaks (money not right-aligned, placeholders, hidden labels) and WCAG 2.1 AA issues |
+| (no equivalent) | `storybook-audit`: renders the app's real resource pages signed in as a panel user, and reports render errors, rule breaks (red delete triggers, unconfirmed deletes, more than one primary action, more than two inline row actions, filters hidden in a dropdown, empty states with no next step, toggles in saved forms, untypeable dates, uploads without limits, error messages that don't say what to do, money not right-aligned, placeholders, hidden labels) and WCAG 2.1 AA issues |
 | Storybook Test | A Pest test that renders every story in CI |
 | AGENTS.md instructions | `resources/boost/guidelines/core.blade.php`, loaded by Boost |
 
@@ -21,7 +21,7 @@ Not on Packagist; add the repository first:
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.7
+composer require josephdlmd/filament-storybook:^0.8
 ```
 
 Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
@@ -91,13 +91,17 @@ public function default(Table $table): Table
 
 ## Where the rules come from
 
-Storybook supplies the workshop, not the rules: a design system's guidelines say what good looks like, with their evidence, and Storybook hosts them beside the code. Here every pattern description, instruction and warning names its basis, and a rule is only kept when current, maintained guidance supports it:
+Storybook supplies the workshop, not the rules: a design system's guidelines say what good looks like, with their evidence, and Storybook hosts them beside the code. Here that is **[docs/rules.md](docs/rules.md)**: every rule the patterns and tools apply, with its source and date, how to do it in Filament, and how it is checked, plus the rules that were dropped and why.
 
-- **Standards:** WCAG 2.2 and the W3C WAI tutorials (forms tutorial, 2024).
-- **Maintained design systems with user research:** GOV.UK Design System, U.S. Web Design System (v3.14, 2026) and Carbon.
-- **Research no older than about 2022** where a design system is silent, such as NN/g data tables (2022).
+A rule is kept only when current, maintained guidance supports it: WCAG 2.2 and W3C WAI, GOV.UK, USWDS, Carbon, NIST for sign-in, and research from about 2022 on. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook-instructions` gives agents the whole rulebook.
 
-Rules that rested only on preference (25 rows per page, at most 8 columns) or on old research were removed. Real-app references from Mobbin confirm or question a rule but never justify one: common is not the same as good, and Stripe, for one, still puts examples in placeholders. The accessibility checks are WCAG 2.1 AA, run by axe-core, the engine behind Storybook's own accessibility addon.
+### House defaults
+
+Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
+- Delete actions open with a gray button and only the confirm button is red (GOV.UK button).
+- A required field's error says what to do with its own label, "Enter name" or "Select payment terms", not "The name field is required" (GOV.UK error message).
+
+Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
 ## Render every story in the app's tests
 
