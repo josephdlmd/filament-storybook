@@ -83,3 +83,7 @@ it('renders every stories pattern', function () {
     }
 });
 ```
+
+## Agent eval
+
+`eval/run.sh <app> <out>` gives a headless Claude Code an ordinary feature request ("add Suppliers") in a throwaway app that has this package and Boost, without mentioning Storybook. `eval/score.py` then reports which Storybook tools it called, whether it looked up patterns before writing Filament code, and whether the code reuses them. Run it after changing the tools, the guideline or the instructions. On v0.2.1 the agent looked up all four matching patterns, reused them, added a TIN story with `mask()` and finished with 0 failures and 0 warnings, for $0.70.
