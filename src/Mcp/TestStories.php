@@ -4,8 +4,8 @@ namespace Josephdlmd\FilamentStorybook\Mcp;
 
 use Filament\Facades\Filament;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
+use Josephdlmd\FilamentStorybook\Accessibility;
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 use Josephdlmd\FilamentStorybook\Stories;
@@ -77,7 +77,7 @@ class TestStories extends Tool
             }
         }
 
-        [$issues, $skipped] = $request->get('a11y', true) && $rendered !== [] ? static::accessibility($rendered) : [[], null];
+        [$issues, $skipped] = $request->get('a11y', true) && $rendered !== [] ? Accessibility::check($rendered) : [[], null];
 
         $text = '# '.count($passing).' passing, '.count($failing).' failing, '.count($warnings).' warnings, '.count($issues)." accessibility issues\n"
             .($skipped ? "\n{$skipped}\n" : '');
@@ -99,46 +99,6 @@ class TestStories extends Tool
         }
 
         return Response::text($text.($passing === [] ? '' : "\n## Passing\n\n".implode("\n", array_map(fn (string $story): string => "- `{$story}`", $passing))."\n"));
-    }
-
-    /**
-     * Runs axe-core on the rendered stories with the panel's theme CSS, so contrast is judged on real colours.
-     *
-     * @param  array<string, string>  $rendered  story key => canvas HTML
-     * @return array{0: list<string>, 1: string|null} the issues, and why the check was skipped
-     */
-    protected static function accessibility(array $rendered): array
-    {
-        preg_match_all('/href="([^"]+\.css[^"]*)"/', (string) Storybook::panel()?->getTheme()->getHtml()->toHtml(), $hrefs);
-        $css = array_values(array_unique(array_filter(
-            array_map(fn (string $url): string => public_path(ltrim((string) parse_url($url, PHP_URL_PATH), '/')), $hrefs[1]),
-            'is_file',
-        )));
-
-        $result = Process::path(base_path())->timeout(120)
-            ->env(array_filter(['STORYBOOK_CHROMIUM' => getenv('STORYBOOK_CHROMIUM') ?: env('STORYBOOK_CHROMIUM')]))
-            ->input((string) json_encode(['css' => $css, 'stories' => array_map(
-                fn (string $key, string $html): array => ['key' => $key, 'html' => $html],
-                array_keys($rendered),
-                $rendered,
-            )]))
-            ->run(['node', __DIR__.'/../../resources/a11y/axe.mjs']);
-
-        if ($result->failed()) {
-            $reason = Str::of($result->errorOutput())->explode("\n")->first(fn (string $line): bool => str_contains($line, 'Error')) ?? 'node could not run';
-
-            return [[], 'Accessibility not checked ('.Str::limit(trim($reason), 160).'). To enable it, run `npm install --save-dev playwright-core axe-core` and `npx playwright-core install chromium`.'];
-        }
-
-        $issues = [];
-
-        foreach ((array) json_decode($result->output(), true) as $story => $violations) {
-            foreach ($violations as $violation) {
-                $issues[] = "- `{$story}`: [{$violation['impact']}] {$violation['id']}: {$violation['help']} (".implode(', ', $violation['elements']).')';
-            }
-        }
-
-        return [$issues, null];
     }
 
     /**

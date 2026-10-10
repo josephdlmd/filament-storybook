@@ -6,6 +6,7 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
+use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
 use Josephdlmd\FilamentStorybook\Mcp\ShowInstructions;
 use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
@@ -40,6 +41,7 @@ class FilamentStorybookServiceProvider extends ServiceProvider
                 ShowStories::class,
                 TestStories::class,
                 ShowInstructions::class,
+                AuditPages::class,
             ]]);
         }
     }

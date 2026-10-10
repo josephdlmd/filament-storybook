@@ -62,5 +62,13 @@ abstract class TestCase extends Orchestra
             $table->rememberToken();
             $table->timestamps();
         });
+
+        Schema::create('gadgets', function (Blueprint $table): void {
+            $table->id();
+            $table->string('code');
+            $table->string('name');
+            $table->decimal('price', 12, 2)->default(0);
+            $table->timestamps();
+        });
     }
 }

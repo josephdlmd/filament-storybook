@@ -11,6 +11,7 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |
 | `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule warnings, and WCAG 2.1 AA issues from axe-core |
 | `get-storybook-story-instructions` | `storybook-instructions`: the rules for writing a story and the test-and-fix loop |
+| (no equivalent) | `storybook-audit`: renders the app's real resource pages signed in as a panel user, and reports render errors, page-level house-rule breaks (more than 8 columns, not 25 rows per page, money not right-aligned, placeholder examples, hidden labels) and WCAG 2.1 AA issues |
 | Storybook Test | A Pest test that renders every story in CI |
 | AGENTS.md instructions | `resources/boost/guidelines/core.blade.php`, loaded by Boost |
 
@@ -20,7 +21,7 @@ Not on Packagist; add the repository first:
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.4
+composer require josephdlmd/filament-storybook:^0.5
 ```
 
 Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
@@ -46,7 +47,7 @@ Without them the tool still runs and says the check was skipped. Set `STORYBOOK_
 
 1. `storybook-list`, then `storybook-show`: the agent copies an approved snippet and passes only the arguments its API section shows.
 2. No pattern fits: `storybook-instructions`, then it writes a story in `app/Stories`.
-3. `storybook-test`: failures, house-rule warnings and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
+3. `storybook-test` for stories and `storybook-audit` for the screens built from them: failures, house-rule warnings and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
 
 ## Write a story
 

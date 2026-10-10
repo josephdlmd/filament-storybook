@@ -1,6 +1,7 @@
 <?php
 
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
+use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
 use Josephdlmd\FilamentStorybook\Mcp\ShowInstructions;
 use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
@@ -14,6 +15,7 @@ use Josephdlmd\FilamentStorybook\Stories\RecordFormStories;
 use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
 use Josephdlmd\FilamentStorybook\Stories\TinInputStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
+use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Laravel\Mcp\Request;
 use Livewire\Livewire;
@@ -191,5 +193,31 @@ it('gives agents the story-writing rules', function (): void {
 });
 
 it('joins the Boost MCP server when laravel/mcp is installed', function (): void {
-    expect(config('boost.mcp.tools.include'))->toBe([ListStories::class, ShowStories::class, TestStories::class, ShowInstructions::class]);
+    expect(config('boost.mcp.tools.include'))->toBe([ListStories::class, ShowStories::class, TestStories::class, ShowInstructions::class, AuditPages::class]);
+
+    // A fatal error in any tool class takes down every tool in Boost's server, so each must load.
+    expect(collect(config('boost.mcp.tools.include'))->map(fn (string $tool): string => (new $tool)->name())->all())
+        ->toBe(['storybook-list', 'storybook-show', 'storybook-test', 'storybook-instructions', 'storybook-audit']);
+});
+
+it('audits the real resource screens against the house rules', function (): void {
+    $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
+
+    expect($report)
+        ->toStartWith('# 2 pages rendered, 0 failing, 4 warnings')
+        ->toContain('Signed in as tester@example.com.')
+        ->toContain('- `ListGadgets`: 9 columns are visible; show at most 8')
+        ->toContain('- `ListGadgets`: show 25 rows per page')
+        ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
+        ->toContain('- `CreateGadget`: the field `code` puts an example in placeholder()')
+        ->toContain('- `EditGadget`: no record to open')
+        ->toContain('Fix each one, then run storybook-audit again');
+});
+
+it('audits edit pages against an existing record', function (): void {
+    Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
+
+    expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+        ->toStartWith('# 3 pages rendered, 0 failing, 5 warnings')
+        ->toContain('- `EditGadget`: the field `code` puts an example in placeholder()');
 });

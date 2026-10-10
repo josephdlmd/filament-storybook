@@ -11,6 +11,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Josephdlmd\FilamentStorybook\StorybookPlugin;
+use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource;
 
 class FixturePanelProvider extends PanelProvider
 {
@@ -21,6 +22,7 @@ class FixturePanelProvider extends PanelProvider
             ->id('fixture')
             ->path('fixture')
             ->plugin(StorybookPlugin::make())
+            ->resources([GadgetResource::class])
             ->middleware([
                 EncryptCookies::class,
                 StartSession::class,
