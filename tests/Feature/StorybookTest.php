@@ -147,8 +147,10 @@ it('loads the house CSS the patterns depend on, on every panel page', function (
 it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
     $delete = Filament\Actions\DeleteAction::make();
 
-    expect($delete->getColor())->toBe('gray')
+    expect($delete->getColor())->toBe('danger')
+        ->and($delete->isOutlined())->toBeTrue()
         ->and($delete->getModalSubmitAction()->getColor())->toBe('danger')
+        ->and($delete->getModalSubmitAction()->isOutlined())->toBeFalse()
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\TextInput::make('name')))->toBe('Enter name')
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\TextInput::make('tin')->label('TIN')))->toBe('Enter TIN')
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\Select::make('payment_terms')))->toBe('Select payment terms');
@@ -217,13 +219,12 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 10 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 9 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
-        ->toContain('- `ListGadgets`: `delete` is red before anything is confirmed')
         ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
         ->toContain('- `CreateGadget`: the field `is_active` is a toggle in a form that is saved')
         ->toContain('- `CreateGadget`: the date field `released_on` uses `native(false)`')
@@ -240,5 +241,6 @@ it('audits edit pages against an existing record', function (): void {
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
         ->toStartWith('# 3 pages rendered, 0 failing, 14 warnings')
+        ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
         ->toContain('- `EditGadget`: the field `code` uses placeholder()');
 });

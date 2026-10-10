@@ -196,8 +196,8 @@ class AuditPages extends Tool
                 $warn("`{$action->getName()}` deletes without asking; add `->requiresConfirmation()` (WCAG 3.3.4).");
             }
 
-            if ($action->getColor() === 'danger') {
-                $warn("`{$action->getName()}` is red before anything is confirmed; make it `->color('gray')` and keep red on the confirm button, as `actions-delete` does (GOV.UK button).");
+            if (in_array($action, $headerActions, true) && $action->isButton() && ! $action->isOutlined()) {
+                $warn("`{$action->getName()}` is a solid danger button beside other actions; make it `->outlined()` and keep solid red for the confirm button, as `actions-delete` does (Carbon button).");
             }
         }
 

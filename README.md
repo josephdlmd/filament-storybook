@@ -21,7 +21,7 @@ Not on Packagist; add the repository first:
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.8
+composer require josephdlmd/filament-storybook:^0.9
 ```
 
 Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
@@ -93,12 +93,12 @@ public function default(Table $table): Table
 
 Storybook supplies the workshop, not the rules: a design system's guidelines say what good looks like, with their evidence, and Storybook hosts them beside the code. Here that is **[docs/rules.md](docs/rules.md)**: every rule the patterns and tools apply, with its source and date, how to do it in Filament, and how it is checked, plus the rules that were dropped and why.
 
-A rule is kept only when current, maintained guidance supports it: WCAG 2.2 and W3C WAI, GOV.UK, USWDS, Carbon, NIST for sign-in, and research from about 2022 on. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook-instructions` gives agents the whole rulebook.
+The base design system is **Carbon** (IBM's system for enterprise products). Form wording and error messages follow **GOV.UK**, and **WCAG 2.2 AA** always wins. A rule that follows Carbon needs no further evidence; anything beyond or against Carbon carries its own current source, and the rulebook lists where we differ from Carbon and why. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook-instructions` gives agents the whole rulebook.
 
 ### House defaults
 
 Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
-- Delete actions open with a gray button and only the confirm button is red (GOV.UK button).
+- A delete button among other actions is outlined (low-emphasis danger); the confirm button stays solid red (Carbon button).
 - A required field's error says what to do with its own label, "Enter name" or "Select payment terms", not "The name field is required" (GOV.UK error message).
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.

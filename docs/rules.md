@@ -2,15 +2,12 @@
 
 Every rule the patterns, `storybook-instructions`, `storybook-test` and `storybook-audit` apply is listed here with its evidence. Re-checked against live sources on 2026-10-10.
 
-**Policy.** A rule is kept only when current, maintained guidance supports it:
-- WCAG 2.2 and the W3C WAI tutorials
-- the GOV.UK Design System
-- the U.S. Web Design System (USWDS v3.14)
-- the Carbon Design System
-- NIST SP 800-63B-4 for sign-in
-- research published or reviewed from 2022 on, such as Nielsen Norman Group (NN/g)
-
-Where those sources disagree, the rule follows the point they share and says so. House preferences, older research and common practice are not a basis. Mobbin (real apps) can confirm a rule or raise a question about it, but never justifies one. GOV.UK's style guide sets UK conventions for dates and numbers, so formats follow the app's locale instead.
+**Base: the Carbon Design System.** IBM's system for enterprise products, whose guidance covers the data tables, filters, forms, dialogs and notifications these apps are made of. A rule that follows Carbon needs no further evidence.
+- **Form wording and errors follow GOV.UK,** whose user research on hints, placeholders and error messages is the strongest available.
+- **WCAG 2.2 AA always wins;** it is the accessibility floor.
+- **Where Carbon is silent,** a rule needs its own current evidence: W3C WAI, USWDS, NIST SP 800-63B-4 for sign-in, or research from about 2022 on, such as NN/g. Where we depart from Carbon, the rule says why (see "Where we differ from Carbon").
+- **Real-app references (Mobbin) and preference never justify a rule.** Formats follow the app's locale, not GOV.UK's UK style guide.
+- Carbon's guidance on usage and behaviour is adopted, not its look; apps keep their Filament theme.
 
 Dates in brackets are the "updated" dates the pages showed when checked.
 
@@ -27,15 +24,15 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 - **Defaults only where most people would pick that value anyway; never pre-select a judgement or consent; checkboxes start unchecked.** Carbon forms (Aug 2026); GOV.UK radios; NN/g 2024 (pre-checked opt-ins are deceptive).
 - **Dates can always be typed: the native `DatePicker`, never `native(false)`, with `minDate()`/`maxDate()` where there's a range.** Filament's JavaScript picker has a read-only text box. USWDS date picker (Aug 2026); GOV.UK dates pattern. *Audit, pattern `forms-date`.*
 - **Uploads state their limits up front:** accepted types, maximum size, and a helper text such as "PDF or JPG, up to 10 MB". USWDS file input (Aug 2026); Carbon file uploader; Filament docs (always set accepted types). *Audit, pattern `forms-file-upload`.*
-- **Label optional fields "(optional)".** GOV.UK question pages and USWDS form agree. They disagree on the required-field asterisk, so there's no rule on that. *Pattern `forms-record-form`.*
+- **Mark the smaller group:** when most fields are required, label the optional ones "(optional)"; when most are optional, label the required ones "(required)". Carbon forms (Aug 2026); GOV.UK question pages agree for the usual case. *Pattern `forms-record-form`.*
 - **Error messages say what to do, using the field's label:** "Enter the TIN", "Select payment terms". No "invalid", "is required", "please" or "sorry", and what the user typed stays. GOV.UK error message (Jan 2024); NN/g error messages (May 2023); WCAG 3.3.1 and 3.3.3. *Audit, house defaults.*
 - **Validate on submit or when the user leaves a field, never while they type.** GOV.UK validation; NN/g hostile errors (Oct 2022); Carbon forms (on blur).
-- **Don't disable Submit before it is pressed.** Hide what the user may not do. When an action is temporarily unavailable, keep it visible with a visible reason; a tooltip alone can't be reached by keyboard. GOV.UK button (Jul 2026); USWDS form; Carbon disabled states (Aug 2026).
+- **A short form may disable its primary button until its requirements are met; a long form never does.** Every form disables it while submitting. Hide what the user may not do. When an action is temporarily unavailable, keep it visible with a visible reason; a tooltip alone can't be reached by keyboard. Carbon forms and disabled states (Aug 2026).
 
 ## Feedback and dialogs
 
-- **Confirm only what can't be undone.** The heading names the record or the count, the description says the consequence, and the confirm button repeats the verb. WCAG 3.3.4 (Sep 2025); Carbon dialogs (Aug 2026); USWDS modal; NN/g confirmation dialogs (reviewed Aug 2026). *Audit, pattern `actions-delete`.*
-- **Red is for the confirming button only; the action that opens the confirmation is not red.** GOV.UK button (warning buttons need a confirmation step that uses "another button style for the initial action"). *Audit, house defaults.*
+- **Confirm only what can't be undone.** The heading names the record or the count, the description says the consequence, and the confirm button repeats the verb. Carbon dialogs (Aug 2026); WCAG 3.3.4 (Sep 2025). *Audit, pattern `actions-delete`.*
+- **Danger emphasis matches the action's place:** a delete among other actions is low-emphasis danger (outlined or a link); the button that confirms it is solid danger. Danger buttons always have a text label. Carbon button (Sep 2026). *Audit, house defaults.*
 - **Buttons are verbs ("Delete order"), never OK, Yes or Done.** Carbon modal and button (Sep 2026); NN/g confirmation dialogs.
 - **Every save says what happened, naming the record.** An undo or other action in a notification keeps it open until dismissed, and so does an error. Carbon notifications (Aug 2026); WCAG 4.1.3 (May 2026); GOV.UK notification banner. *House defaults (errors stay open).*
 - **Notification colour follows the outcome:** success for saved, warning for "saved, but follow up", danger for "nothing saved". Carbon notifications; USWDS alert.
@@ -52,7 +49,7 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 - **With more than one filter category, filters sit above the table, never in a dropdown.** They have an Apply button when results are slow and a way to clear them all. Carbon filtering (Aug 2026). *Audit, pattern `tables-list-table`.*
 - **Lists remember their filters, search and sort.** Carbon search (Aug 2026). *Pattern `tables-list-table`.*
 - **Key columns are sortable and there's a default sort.** NN/g data tables; USWDS table.
-- **At most two row actions inline; the rest go in "…".** Carbon data table (Sep 2026); NN/g data tables. *Audit, pattern `tables-list-table`.*
+- **Row actions live in an overflow menu ("…"); when there are fewer than three, they stay inline.** The table toolbar holds up to five actions. Carbon data table (Sep 2026). *Audit.*
 - **Numbered pages showing the current range and the total, never infinite scroll. Anything that refreshes itself can be paused.** GOV.UK pagination; Carbon pagination (Sep 2026); NN/g infinite scrolling (Sep 2022); WCAG 2.2.2.
 - **Bulk changes: irreversible ones confirm with the count; reversible ones offer Undo.** WCAG 3.3.4; NN/g bulk actions (Mar 2025).
 - **Working lists are tables, not card grids, unless the records are images.** GOV.UK table; NN/g data tables.
@@ -65,7 +62,7 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 - **Lists and record pages use the full width; long forms keep readable line lengths.** Carbon 2x grid (Sep 2026); GOV.UK layout.
 - **Record pages: content in two thirds, a summary of facts in one third.** The summary's actions sit on its heading row, and a missing value links to where it's added. The summary is sticky only if it fits the screen. GOV.UK layout and summary card; WCAG 2.4.11.
 - **Related lists sit in the main column, most used first, not in a tab beside the details.** GOV.UK tabs; NN/g tabs (Aug 2024).
-- **Tabs are for views of the same thing:** few, with short labels and in one row. They are never nested, and are hidden rather than disabled. NN/g tabs (Aug 2024); GOV.UK tabs.
+- **Tabs are for views of the same thing:** few, with short labels, in one row and never nested. Carbon tabs; NN/g tabs (Aug 2024).
 - **Never collapse a section that holds a required field.** NN/g accordions (Jul 2023).
 - **Deep pages keep a way back** (breadcrumbs or a back link). GOV.UK breadcrumbs; NN/g breadcrumbs.
 - **At most one "needs action" banner per page, before the heading.** GOV.UK notification banner.
@@ -96,6 +93,12 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 - Bulk actions check permission per record with `authorizeIndividualRecords()`. (Filament docs)
 - No deprecated components: `Select->multiple()`, not `MultiSelect`; `TextEntry`, not `Placeholder`. (Filament 5 source)
 
+## Where we differ from Carbon
+
+- **No placeholder text at all.** Carbon allows it sparingly; GOV.UK and USWDS research shows it disappears, isn't read by some screen readers and is mistaken for a value, and form wording follows GOV.UK.
+- **No input masks.** Carbon has no mask component; USWDS's own mask failed WCAG 2.1 AA, and WCAG wins.
+- **Error messages say what to do ("Enter name").** Carbon's examples state the problem; form wording follows GOV.UK.
+
 ## Dropped
 
 These rules had no current basis, or a current source contradicts them:
@@ -116,6 +119,9 @@ These rules had no current basis, or a current source contradicts them:
 - **"—" for a missing value.** GOV.UK links to where it's added instead.
 - **Email codes as a sign-in fallback.** NIST forbids it.
 - **Breadcrumbs off everywhere.** GOV.UK and NN/g keep them on deep pages.
+- **A grey delete trigger** (GOV.UK). Carbon, our base, makes it low-emphasis danger instead.
+- **Never disabling Submit** (GOV.UK). Carbon allows it on short forms.
+- **Hiding tabs instead of disabling them** (GOV.UK). Carbon permits disabled tabs.
 - **Capitalised glossary terms.** GOV.UK and Carbon both use sentence case.
 - **Rules backed only by older research or by preference:**
   - one money formatter

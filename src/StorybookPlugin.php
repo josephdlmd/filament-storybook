@@ -4,9 +4,7 @@ namespace Josephdlmd\FilamentStorybook;
 
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Contracts\Plugin;
 use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\Checkbox;
@@ -53,11 +51,9 @@ class StorybookPlugin implements Plugin
 
     public static function applyHouseDefaults(): void
     {
-        // Red only on the button that confirms a loss, never on the one that opens it (GOV.UK button).
-        foreach ([DeleteAction::class, ForceDeleteAction::class, DeleteBulkAction::class, ForceDeleteBulkAction::class] as $action) {
-            $action::configureUsing(fn (Action $action) => $action
-                ->color('gray')
-                ->modalSubmitAction(fn (Action $submit): Action => $submit->color('danger')));
+        // A delete among other actions is low-emphasis danger (outlined); the confirm button stays solid danger (Carbon button).
+        foreach ([DeleteAction::class, ForceDeleteAction::class] as $action) {
+            $action::configureUsing(fn (Action $action) => $action->outlined());
         }
 
         // Errors say what to do with the field's own label: "Enter name", not "The name field is required" (GOV.UK error message).
