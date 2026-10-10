@@ -32,6 +32,14 @@ The package defines one standard: the `filament-starter` stack (Filament 5 with 
 - **Carbon supplies guidance only.** Patterns use native Filament components and the app's Filament theme. Never install Carbon code, CSS, fonts or tokens. (Carbon MCP needs an IBMid, which the owner can't have. Read the public carbondesignsystem.com pages instead; `carbon-design-system/carbon-website` is an archived Markdown snapshot from 2026-09-30.)
 - **The package is public.** Shared patterns stay generic: no company names, real TINs or client data. App-specific patterns live in each app's `app/Stories`.
 
+## The owner adds to the standards
+
+The owner can add or change a standard at any time, by asking in plain words. Two kinds of input are accepted, and they're treated differently:
+- **A UI rule** (how something should look, behave or be worded): find its basis under the policy above. If Carbon, GOV.UK form guidance, WCAG or another current source supports it, add it. If none does, tell the owner it can't be a rule under the policy, and say what the sources do say. Don't add it quietly as a "house choice".
+- **A business fact** (a format, a term, a domain convention, such as "a TIN is 9 digits plus a 3-digit branch code"): the owner is the source. Record it in the pattern's description as given by the owner, and keep any real data out of the public repo.
+
+Shared standards live only here. If a session working in an app is asked to change one, it changes this repo and releases; it never edits `vendor/`.
+
 ## Changing things
 
 - **A new rule:** check it against the live source, then add it to `docs/rules.md` with the source and date. If it's machine-checkable, add a check to `storybook-audit` (real pages) or `storybook-test` (story snippets), make the fixture in `tests/Fixtures/Gadgets` break it, and assert the warning fires.

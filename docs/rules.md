@@ -8,6 +8,7 @@ Every rule the patterns, `storybook-instructions`, `storybook-test` and `storybo
 - **Where Carbon is silent,** a rule needs its own current evidence: W3C WAI, USWDS, NIST SP 800-63B-4 for sign-in, or research from about 2022 on, such as NN/g. Where we depart from Carbon, the rule says why (see "Where we differ from Carbon").
 - **Real-app references (Mobbin) and preference never justify a rule.** Formats follow the app's locale, not GOV.UK's UK style guide.
 - Carbon's guidance on usage and behaviour is adopted, not its look; apps keep their Filament theme.
+- **Business facts come from the owner,** such as the TIN format. They don't need research, but they live in a pattern's description, not here.
 
 Dates in brackets are the "updated" dates the pages showed when checked.
 

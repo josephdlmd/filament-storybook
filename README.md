@@ -110,6 +110,14 @@ Storybook supplies the workshop, not the rules: a design system's guidelines say
 
 The base design system is **Carbon** (IBM's system for enterprise products). Form wording and error messages follow **GOV.UK**, and **WCAG 2.2 AA** always wins. A rule that follows Carbon needs no further evidence; anything beyond or against Carbon carries its own current source, and the rulebook lists where we differ from Carbon and why. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook-instructions` gives agents the whole rulebook.
 
+### Adding to the standards
+
+Ask for it in plain words, in any session:
+- **A UI rule** is added when Carbon, GOV.UK form guidance, WCAG or another current source supports it. If none does, the session says so instead of adding it.
+- **A business fact** (a format, a term, a domain convention) is taken from you as given.
+
+Shared standards change only in this repo, then reach the apps through a release. Patterns for a single app go in that app's `app/Stories`.
+
 ### House defaults
 
 Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
