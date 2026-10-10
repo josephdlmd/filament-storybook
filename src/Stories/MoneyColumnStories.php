@@ -14,7 +14,7 @@ class MoneyColumnStories extends Stories
 
     public function description(): string
     {
-        return 'Every peso amount in a table, right-aligned so amounts line up for comparison. Basis: GOV.UK table (right-align numbers being compared) and USWDS table (numeric cells right-aligned).';
+        return 'Every peso amount in a table, right-aligned so amounts line up for comparison. Basis: USWDS table 2026 (right-align numbers that can be totalled); Carbon is silent.';
     }
 
     public function records(): array

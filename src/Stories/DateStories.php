@@ -14,7 +14,7 @@ class DateStories extends Stories
 
     public function description(): string
     {
-        return 'Every date a user enters: the native date field, which can always be typed into, limited to the dates that make sense. Never `native(false)`: Filament\'s JavaScript picker has a read-only box. Basis: USWDS date picker (2026, "always allow a user to type in the date"), GOV.UK dates pattern.';
+        return 'Every date a user enters: the native date field, which can always be typed into, limited to the dates that make sense. Never `native(false)`: Filament\'s JavaScript picker has a read-only box. Basis: Carbon date picker 2026 (a simple way to type dates; min and max dates); USWDS date picker 2026 ("Always allow a user to type in the date manually").';
     }
 
     public function records(): array

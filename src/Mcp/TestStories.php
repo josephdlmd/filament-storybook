@@ -129,13 +129,13 @@ class TestStories extends Tool
             if (preg_match_all("/->helperText\\('([^']*)'/", $story['snippet'], $hints)) {
                 foreach ($hints[1] as $hint) {
                     if (preg_match('/\\.(\\s|$)|\\b(e\\.g|i\\.e|etc)\\b/i', $hint)) {
-                        $warnings[] = "{$key}: helper text is one short line with no full stop and no \"e.g.\" or \"etc\"; say \"For example, …\" (GOV.UK text input and style guide).";
+                        $warnings[] = "{$key}: helper text is one short line with no full stop and no \"e.g.\" or \"etc\"; say \"For example, …\" (GOV.UK text input).";
                     }
                 }
             }
 
             if (str_contains($story['snippet'], '->native(false)')) {
-                $warnings[] = "{$key}: native(false) makes a date that cannot be typed; use the native picker (USWDS date picker, GOV.UK dates).";
+                $warnings[] = "{$key}: native(false) makes a date that cannot be typed; use the native picker (Carbon and USWDS date pickers).";
             }
 
             if (str_contains($story['snippet'], 'Toggle::make(')) {
@@ -147,7 +147,7 @@ class TestStories extends Tool
             }
 
             if (str_contains($story['snippet'], '->hiddenLabel(')) {
-                $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen (W3C WAI, GOV.UK).";
+                $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen (Carbon forms).";
             }
 
             if (in_array($story['kind'], ['column', 'table'], true) && $stories->records() === []) {

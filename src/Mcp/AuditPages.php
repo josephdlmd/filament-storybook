@@ -186,7 +186,7 @@ class AuditPages extends Tool
 
             foreach ($visible as $column) {
                 if ($column instanceof TextColumn && $column->isMoney() && ! in_array($column->getAlignment(), [Alignment::End, Alignment::Right], true)) {
-                    $warn("the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (GOV.UK and USWDS tables).");
+                    $warn("the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (USWDS table).");
                 }
             }
 
@@ -246,7 +246,7 @@ class AuditPages extends Tool
             }
 
             if ($field->isLabelHidden()) {
-                $warn("the field `{$name}` hides its label; keep it visible, above the field (W3C WAI, GOV.UK).");
+                $warn("the field `{$name}` hides its label; keep it visible, above the field (Carbon forms).");
             }
 
             if ($field instanceof Toggle) {
@@ -254,7 +254,7 @@ class AuditPages extends Tool
             }
 
             if ($field instanceof DateTimePicker && ! $field->isNative()) {
-                $warn("the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (USWDS date picker, GOV.UK dates).");
+                $warn("the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (Carbon and USWDS date pickers).");
             }
 
             if ($field instanceof Repeater && $field->isReorderableWithDragAndDrop() && ! $field->isReorderableWithButtons()) {

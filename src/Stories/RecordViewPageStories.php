@@ -100,7 +100,7 @@ class RecordViewPageStories extends Stories
                                     ->formatStateUsing(fn (string $state): string => str($state)->headline())
                                     ->color(fn (string $state): string => match ($state) {
                                         'approved' => 'success',
-                                        'for_approval' => 'warning',
+                                        'for_approval' => 'info',
                                         'overdue' => 'danger',
                                         default => 'gray',
                                     }),

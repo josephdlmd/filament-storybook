@@ -2,7 +2,7 @@
 import json, re, subprocess, sys
 
 transcript, app = sys.argv[1], sys.argv[2]
-calls, result = [], None
+calls, result, audit_ids, audits = [], None, set(), []
 for line in open(transcript):
     try:
         m = json.loads(line)
@@ -14,6 +14,13 @@ for line in open(transcript):
                 arg = block["input"]
                 brief = arg.get("command") or arg.get("file_path") or arg.get("id") or arg.get("ids") or arg.get("queries") or ""
                 calls.append((block["name"].replace("mcp__laravel-boost__", "boost:"), str(brief)[:90]))
+                if "storybook-audit" in block["name"]:
+                    audit_ids.add(block["id"])
+    if m.get("type") == "user" and isinstance(m["message"].get("content"), list):
+        for block in m["message"]["content"]:
+            if isinstance(block, dict) and block.get("type") == "tool_result" and block.get("tool_use_id") in audit_ids:
+                text = block["content"] if isinstance(block["content"], str) else " ".join(b.get("text", "") for b in block["content"])
+                audits.append(text)
     if m.get("type") == "result":
         result = m
 
@@ -25,7 +32,11 @@ story_calls = [c for c in calls if "storybook" in c[0]]
 print("\nstorybook tools used:", sorted({c[0] for c in story_calls}) or "NONE")
 first_write = next((i for i, c in enumerate(calls) if c[0] in ("Write", "Edit") and "app/Filament" in c[1]), None)
 first_story = next((i for i, c in enumerate(calls) if "storybook" in c[0]), None)
-print("audited its own screens:", any("storybook-audit" in c[0] for c in calls))
+# A call that errors (a missing table, unbuilt assets) is not an audit.
+completed = [a for a in audits if a.startswith("# ")]
+print("audited its own screens:", bool(completed), f"({len(completed)} of {len(audits)} audit calls completed)")
+if completed:
+    print("last audit:", completed[-1].splitlines()[0])
 print("looked up patterns before writing Filament code:", first_story is not None and (first_write is None or first_story < first_write))
 
 diff = subprocess.run(["git", "-C", app, "diff", "HEAD", "--stat"], capture_output=True, text=True).stdout

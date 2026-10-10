@@ -14,7 +14,7 @@ class TinInputStories extends Stories
 
     public function description(): string
     {
-        return 'Every Philippine Tax Identification Number a user types: the 9-digit TIN plus its 3-digit branch code. One field, an example in the hint, any spaces, dashes or dots accepted, and stored as `000-000-000-000`. On a resource form, add `->unique()` so each TIN is registered once. Basis: GOV.UK National Insurance number pattern (one field, an example in the hint, accept and ignore spaces and punctuation, no placeholder); USWDS input mask failed WCAG 2.1 AA in its own tests, so no mask.';
+        return 'Every Philippine Tax Identification Number a user types: the 9-digit TIN plus its 3-digit branch code. One field, an example in the hint, any spaces, dashes or dots accepted, and stored as `000-000-000-000`. On a resource form, add `->unique()` so each TIN is registered once. Basis: USWDS text input 2026 (one field, not split into sections; no placeholder); W3C WAI forms tutorial (forgiving of separators); GOV.UK hint wording ("For example, …"); USWDS\'s input mask failed WCAG 2.1 AA in its own tests, so no mask. The stored format is the owner\'s business standard.';
     }
 
     public function records(): array

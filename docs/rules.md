@@ -1,6 +1,6 @@
 # UI rules and their basis
 
-Every rule the patterns, `storybook-instructions`, `storybook-test` and `storybook-audit` apply is listed here with its evidence. Re-checked against live sources on 2026-10-10, and every rule resting on GOV.UK outside form wording, on older research, or on a number again on 2026-10-11.
+Every rule the patterns, `storybook-instructions`, `storybook-test` and `storybook-audit` apply is listed here with its evidence. Every rule was re-checked against the live sources on 2026-10-11.
 
 **Base: the Carbon Design System.** IBM's system for enterprise products, whose guidance covers the data tables, filters, forms, dialogs and notifications these apps are made of. A rule that follows Carbon needs no further evidence.
 - **Form wording and errors follow GOV.UK,** whose user research on hints, placeholders and error messages is the strongest available.
@@ -14,21 +14,21 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 
 ## Forms
 
-- **Labels are visible and above their fields; no `hiddenLabel()`.** W3C WAI forms tutorial (May 2024); GOV.UK text input. *Audit.*
-- **No `placeholder()`; an example goes in `helperText()` as "For example, …".** USWDS text input; GOV.UK text input; GOV.UK style guide ("for example", not "e.g."). *Audit, test.*
-- **Helper text is one short line without a full stop, only where the label isn't enough, and has no links.** GOV.UK text input and question pages; Carbon forms (Aug 2026): help text "should not run longer than the input area". *Audit.*
-- **Each input is about as wide as its answer.** USWDS text input; GOV.UK text input. *Pattern `forms-money-input`.*
-- **A value with a known shape (TIN) is one field.** It accepts spaces, dashes and dots, and stores one format. No input masks: USWDS's own mask failed WCAG 2.1 AA in its tests. GOV.UK National Insurance number pattern; USWDS input mask. *Pattern `forms-tin`.*
+- **Labels are visible and above their fields; no `hiddenLabel()`.** In a line-item table the column header is the visible label (see Line items). Carbon forms (Aug 2026): "Top-aligned labels are Carbon's default" and "Every text input should have a descriptive and visible label". *Audit.*
+- **No `placeholder()`; an example goes in `helperText()` as "For example, …".** USWDS text input (Aug 2026: "Avoid placeholder text"); GOV.UK text input (Jun 2026: no placeholder "for hints or examples"); hints worded "For example, …" in GOV.UK's dates and National Insurance number patterns and USWDS input mask. *Audit, test.*
+- **Helper text is one short line without a full stop, only where the label isn't enough, and has no links.** Carbon forms (Aug 2026): "Only use helper text when truly necessary" and it "should not run longer than the input area"; GOV.UK text input (Jun 2026): "a single short sentence, without any full stops", and no links in hint text. *Audit.*
+- **Each input is about as wide as its answer.** Carbon forms (Aug 2026): "The field widths should reflect the intended length of the content"; USWDS text input (Aug 2026). *Pattern `forms-money-input`.*
+- **A value with a known shape (TIN) is one field, and accepts spaces, dashes and dots.** It is stored in the owner's format (see Business standards). USWDS text input (Aug 2026): "Avoid breaking numbers with distinct sections … into separate input fields"; W3C WAI forms tutorial: "Be forgiving of different input formats". **No input masks:** the one mask a qualifying source has tested, USWDS's, failed WCAG 2.1 AA (Apr 2025: recovering from an error is difficult), and WCAG wins. USWDS itself still offers masks for fixed formats. *Pattern `forms-tin`.*
 - **One choice from up to five options: radios. More than five: a searchable select.** Carbon forms (Aug 2026): "When you have more than five options to present to the user, use a select list"; USWDS select (Aug 2026: a select is the "UI of last resort"). *Pattern `forms-choice`.*
-- **Several choices: a checkbox list for a short known list; a searchable multiple select for a long or related list.** Carbon checkbox and dropdown (Sep 2026).
+- **Several choices from up to five options: a checkbox list. More than five: a multiple select, searchable when the list is long.** Carbon forms (Aug 2026: more than five options, "use a select list (combo box or multiselect)"); Carbon dropdown (Sep 2026: filtering for a long list).
 - **A yes/no saved with the form is a `Checkbox` with a positive label. A `Toggle` is only for something that applies at once (a `ToggleColumn`).** Carbon checkbox and toggle (Sep 2026); NN/g checkboxes (Jun 2024). *Audit, pattern `forms-yes-or-no`.*
 - **Defaults only where most people would pick that value anyway and a missed change causes no error. Checkboxes start unchecked; consent, legal and opt-in boxes are never pre-checked.** Carbon forms (Aug 2026) and checkbox (Sep 2026); NN/g checkboxes (Jun 2024: pre-checked opt-ins are "a deceptive pattern").
-- **Dates can always be typed: the native `DatePicker`, never `native(false)`, with `minDate()`/`maxDate()` where there's a range.** Filament's JavaScript picker has a read-only text box. USWDS date picker (Aug 2026); GOV.UK dates pattern. *Audit, pattern `forms-date`.*
+- **Dates can always be typed, never through a picker whose text box is read-only; set min and max dates where the range is limited.** In Filament that means the native `DatePicker`, never `native(false)`, whose JavaScript picker has a read-only text box. Carbon date picker (Sep 2026): "There should always be a simple way to enter dates in a text field" and "Use min and max dates"; USWDS date picker (Aug 2026): "Always allow a user to type in the date manually". *Audit, pattern `forms-date`.*
 - **Uploads state their limits up front:** accepted types, maximum size, and a helper text such as "PDF or JPG, up to 10 MB". USWDS file input (Aug 2026); Carbon file uploader; Filament docs (always set accepted types). *Audit, pattern `forms-file-upload`.*
-- **Mark the smaller group:** when most fields are required, label the optional ones "(optional)"; when most are optional, label the required ones "(required)". Carbon forms (Aug 2026); GOV.UK question pages agree for the usual case. *Pattern `forms-record-form`.*
+- **Mark the smaller group:** when most fields are required, label the optional ones "(optional)"; when most are optional, label the required ones "(required)". Carbon forms (Aug 2026). *Pattern `forms-record-form`.*
 - **Error messages say what to do, using the field's label:** "Enter the TIN", "Select payment terms". No "invalid", "is required", "please" or "sorry", and what the user typed stays. GOV.UK error message (Jan 2024); NN/g error messages (May 2023); WCAG 3.3.1 and 3.3.3. *Audit, house defaults.*
-- **Validate on submit or when the user leaves a field, never while they type.** GOV.UK validation; NN/g hostile errors (Oct 2022); Carbon forms (on blur).
-- **A short form may disable its primary button until its requirements are met; a long form never does.** Every form disables it while submitting. Hide what the user may not do. When an action is temporarily unavailable, keep it visible with a visible reason; a tooltip alone can't be reached by keyboard. Carbon forms and disabled states (Aug 2026).
+- **Validate on submit, or when the user leaves a field they have changed; never while they type, and never flag an untouched empty field.** Carbon forms (Aug 2026: as soon as the field loses focus); USWDS text input (Aug 2026: only after the user "has interacted with a particular field"); NN/g hostile errors (Oct 2022); NN/g error messages (May 2023).
+- **A short form may disable its primary button until its requirements are met; a long form never does.** Every form disables it while submitting. Hide what the user may not do. A temporarily unavailable action stays visible, with text saying why and how to make it available; a tooltip on a disabled button alone can't be reached by keyboard. Carbon forms and disabled states (Aug 2026); USWDS button (Oct 2024): "Explain why an action is unavailable and how to make it available".
 
 ### Line items
 
@@ -37,18 +37,18 @@ Pattern `forms-line-items`. Checked against the live sources on 2026-10-10.
 - **Line items are a table repeater: one column per field, and every field keeps its label.** On a wide screen the column header is the visible label and the field's own label stays for screen readers; on a narrow screen the rows stack and each label shows above its field. No `hiddenLabel()` on a cell field, because the header disappears when rows stack. Filament removes the cell labels with `display: none` once headers show, which leaves every field unnamed, so the house CSS hides them on screen only. WCAG 1.3.1, 3.3.2 (updated Mar 2026) and 4.1.2; W3C WAI forms tutorial (May 2024): a label may be hidden on screen when the context makes the purpose clear, "though it still needs to be provided within the code". *House CSS; test and audit (axe), audit (`hiddenLabel()`).*
 - **Each column header is its field's label, word for word,** so what screen-reader and voice-control users hear matches what is on screen. A field without a column isn't shown at all. WCAG 2.5.3 (Apr 2026). *Audit.*
 - **A worked-out value in a row, such as the line total, is read-only text, not a disabled field.** Disabled fields aren't read by screen readers and needn't meet contrast. It is worked out again on the server when saving, never taken from the form. Carbon text input (Sep 2026); see also "Hidden fields" under engineering rules.
-- **Numbers in a line are right-aligned, with each column about as wide as its answer.** GOV.UK and USWDS tables; USWDS and GOV.UK text input.
+- **Numbers in a line are right-aligned, with each column about as wide as its answer.** USWDS table (Aug 2026); Carbon forms and USWDS text input (Aug 2026).
 - **Lines that can be reordered also move with buttons, not only by dragging;** if the order doesn't matter, reordering is off. Filament's repeaters reorder by dragging alone by default. WCAG 2.5.7 (Aug 2026). *Audit.*
-- **A row with more fields than fit across the form stacks instead:** each line is a small numbered form with its labels on screen ("Line 1"). Carbon data table (Sep 2026): not for "a more complex display of the data or interactions"; Carbon forms (Aug 2026) has no inline-editing guidance yet. No source sets a field count, so there is no number. *Pattern `forms-line-items.longRow`.*
+- **A line with more fields than fit without truncation is not a table row:** each line becomes a small form with its labels on screen. Carbon data table (Sep 2026): not for "a more complex display of the data or interactions", and not where information "can feel cramped or needs truncation". No source sets a field count or numbering. *Pattern `forms-line-items.longRow`.*
 
 ## Feedback and dialogs
 
-- **Confirm only what can't be undone.** The heading names the record or the count, the description says the consequence, and the confirm button repeats the verb. Carbon dialogs (Aug 2026); WCAG 3.3.4 (Sep 2025). *Audit, pattern `actions-delete`.*
-- **Danger emphasis matches the action's place:** a delete among other actions is low-emphasis danger (outlined or a link); the button that confirms it is solid danger. Danger buttons always have a text label. Carbon button (Sep 2026). *Audit, house defaults.*
+- **Confirm destructive or irreversible actions in a danger dialog, and don't confirm routine ones.** The title repeats the label of the action that opened it, the description says the consequence, and the confirm button uses the same verb. Carbon dialogs (Aug 2026) and modal (Sep 2026: "use the button label for the modal title"); WCAG 3.3.4 (changes to data are reversible, checked or confirmed). *Audit, pattern `actions-delete`.*
+- **Danger emphasis matches the action's place:** a delete among other actions is low-emphasis danger (tertiary, which Filament calls outlined, or ghost, a link); the button that confirms it is solid danger. Danger buttons always have a text label. Carbon button (Sep 2026). *Audit, house defaults.*
 - **Action buttons say what they do ("Delete order"), never OK, Yes or Done,** except a message that only needs acknowledging. Carbon modal (Sep 2026): "Avoid vague or passive words, such as Done or OK"; USWDS button ("Lead with a verb").
-- **Every save says what happened, naming the record.** An undo or other action in a notification keeps it open until dismissed, and so does an error. Carbon notifications (Aug 2026); WCAG 4.1.3 (May 2026); GOV.UK notification banner. *House defaults (errors stay open).*
-- **Notification colour follows the outcome:** success for saved, warning for "saved, but follow up", danger for "nothing saved". Carbon notifications; USWDS alert.
-- **Two empty states.** With nothing yet, say what goes here and offer the next step. When nothing matches a search or filter, say so and offer to clear it. Carbon empty states (Aug 2026). *Audit, pattern `tables-list-table`.*
+- **Every save confirms what happened in a short, descriptive message that screen readers announce.** A notification with an action (such as Undo), and an error, stays until dismissed. Carbon notifications (Aug 2026: "Toast notifications with actions persist until dismissed"; no timed dismissal for critical messages); WCAG 4.1.3 (May 2026). *House defaults (errors stay open).*
+- **Notification colour follows the outcome:** success for a task completed as expected, warning for something that may have unexpected results, danger for an error or failure. Carbon notifications (Aug 2026).
+- **Two empty states.** With nothing yet, say what goes here and offer the next step. When nothing matches a search or filter, say so and suggest adjusting them. Carbon empty states (Aug 2026). *Audit, pattern `tables-list-table`.*
 - **Sentence case for labels, headings and buttons.** Carbon writing style (Sep 2026).
 - **Form size picks its container:** fewer than five inputs, a modal; more than five, a slide-over; long, complex or multi-step, its own page (a wizard). Carbon forms (Aug 2026) sets the five and leaves exactly five open; USWDS modal (no complex forms in modals).
 - **One primary action per screen; the rest are gray or in "…".** Carbon button (Sep 2026). *Audit.*
@@ -56,14 +56,14 @@ Pattern `forms-line-items`. Checked against the live sources on 2026-10-10.
 ## Tables and finding
 
 - **A readable identifier comes first; the other columns follow in order of importance and are easy to hide.** NN/g data tables (Apr 2022). *Pattern `tables-list-table`.*
-- **Numbers and money are right-aligned.** GOV.UK table; USWDS table. *Audit, pattern `tables-money-column`.*
-- **One search box, searching the identifier.** Carbon search (Aug 2026); NN/g data tables. *Pattern `tables-list-table`.*
-- **With more than one filter category, filters sit above the table, never in a dropdown.** They have an Apply button when results are slow and a way to clear them all. Carbon filtering (Aug 2026). *Audit, pattern `tables-list-table`.*
+- **Amounts and other numbers that can be totalled are right-aligned; phone numbers, postcodes, dates and IDs are not.** USWDS table (Aug 2026: "Right-align numerical data"). Carbon is silent. *Audit, pattern `tables-money-column`.*
+- **One search field in the table's toolbar, whose placeholder says what it searches** ("Search by code or name"). Carbon data table (Sep 2026) and search (Aug 2026: placeholder text "hinting at what the user can search for"). A search field's placeholder is not a form field's (see Forms). *Pattern `tables-list-table`.*
+- **With more than one filter category, filters sit above the table or on its left, never in a menu or dropdown.** They have an Apply button when results are slow and a way to clear them all. Carbon filtering (Aug 2026). *Audit, pattern `tables-list-table`.*
 - **Applied filters stay applied for the rest of the session, until the user clears them.** Carbon search (Aug 2026): a selected filter "should persist during future searches until the user either discards the filter or begins a new session". *Pattern `tables-list-table`.*
 - **Key columns are sortable.** NN/g data tables (Apr 2022); USWDS table (Aug 2026).
 - **Row actions live in an overflow menu ("…"); when there are fewer than three, they stay inline.** The table toolbar holds up to five actions. Carbon data table (Sep 2026). *Audit.*
 - **Working lists use numbered pages showing the current range and the total, not infinite scroll. Content that updates itself next to other content can be paused, stopped or hidden.** Carbon pagination (Sep 2026); NN/g infinite scrolling (Sep 2022: not for finding something specific or comparing items); WCAG 2.2.2 (Aug 2026).
-- **Bulk changes: irreversible ones confirm with the count; reversible ones offer Undo.** WCAG 3.3.4; NN/g bulk actions (Mar 2025).
+- **Bulk changes give feedback and offer Undo where they can; irreversible ones confirm in a danger dialog that says the consequence.** NN/g bulk actions video (Mar 2025); Carbon dialogs (Aug 2026); WCAG 3.3.4.
 - **Records with the same fields are shown in a table, never as cards.** NN/g data tables (Apr 2022: cards make comparison "cognitively effortful and slow"); USWDS card ("Don't use a card as a substitute for a table row").
 - **Truncated text has its full version one step away, on focus, on activation or on a linked page,** never on hover alone. WCAG 1.4.12 Understanding (Oct 2025); WCAG 1.4.13 for how a pop-up behaves. See "Where we differ from Carbon".
 - **A specific time always shows its time zone.** Carbon date picker (Sep 2026): "Specific times should specify a timezone."
@@ -74,7 +74,7 @@ Pattern `forms-line-items`. Checked against the live sources on 2026-10-10.
 - **Lists and record pages use the full width.** Carbon 2x grid (Sep 2026): the high-density model for complex product interfaces "uses the full width of the browser".
 - **Record pages divide the 16-column grid by two and by four, never in thirds, and stack on a narrow page.** A record's facts are a list of labels and values. Carbon 2x grid (Sep 2026: "divide by two"; it advises against layouts in thirds); Carbon structured list (Sep 2026: "terms and definitions"); WCAG 1.4.10. Anything sticky must never hide focus (WCAG 2.4.11). *Patterns `records-view-page`, `records-details`.*
 - **Frequently used or critical content, and content users check against the details, is shown on the page, not in tabs.** On a record page that means its related lists. Carbon tabs (Sep 2026): "Do not use when tabs contain frequently used or critical information"; NN/g tabs (Aug 2024). *Audit.*
-- **Tabs are for views of the same thing:** few, with short labels, in one row and never nested. Carbon tabs; NN/g tabs (Aug 2024).
+- **Tabs group different but related content in the same context:** as few as possible, with one- or two-word labels, in one row. Switching formats or filters of the same content is a content switcher, not tabs. Carbon tabs (Sep 2026); NN/g tabs (Aug 2024: "Use Only One Row of Tabs").
 - **No crucial information or required input in a collapsed section; if users will read or fill all of it, don't collapse it.** NN/g accordions (Jul 2023): "Essential information should be presented outside of accordions"; Carbon accordion (Sep 2026).
 - **Pages in a hierarchy deeper than two levels show breadcrumbs; single-level navigation has none.** Carbon breadcrumb (Sep 2026).
 - **A message that needs action goes at the top of the content area it relates to;** a system-wide message goes directly below the header. Messages are never stacked: combine them into one, with a list of links. Carbon notifications (Aug 2026: "refrain from stacking them together"); USWDS site alert (Jan 2025: "Avoid stacking multiple site alerts").
@@ -89,7 +89,7 @@ Patterns `records-details`, `records-view-page` and `records-locked`. Checked ag
 - **Read-only fields look read-only:** no field background and a fainter border, with the text at full contrast. Filament's `readOnly()` changes nothing. Carbon read-only states. *House CSS.*
 - **When the user may not change a record, its values are read-only and its Edit action is hidden.** Carbon read-only states (Aug 2026, Permissions: "A user's credentials allow them to view the component but not modify it"); Carbon disabled states (Aug 2026: hidden when the user "does not have permission to … take action"). *Pattern `records-locked`.*
 - **In a partly locked form, the locked fields are read-only.** Choice fields (radios, selects, checkboxes) have no read-only state in Filament, so they show their value as text. Carbon read-only states (Permissions; choice controls have a read-only state there). *Pattern `records-locked`.*
-- **When editing is unavailable only for now** (a process running, or another user editing), Edit stays visible but disabled; when that holds up the primary action, an inline notification says how it becomes available. Carbon read-only states (Application process, Locked) and disabled states ("should never fully disappear").
+- **When editing is unavailable only for now** (a process running, or another user editing), Edit stays visible but disabled; when that holds up the primary action, an inline notification says how it becomes available. Carbon read-only states (Application process, Locked) and disabled states ("should never fully disappear"); USWDS button (Oct 2024).
 - **Which statuses lock a record is a business fact.** Each app sets its own, ideally on its status enum, and uses it in its own `app/Stories`; the shared pattern uses one generic condition on the record.
 - **A numbered badge marks new or updated items and clears once they're acknowledged,** with up to three digits. Carbon uses it only on the header's global actions. Carbon status indicators (Aug 2026).
 - **Error pages use plain language and keep any error code small; they say what happened and give a way out** (home, contact or search). Carbon empty states (Aug 2026: "plain language (no codes)"); USWDS 404 page (Mar 2023); NN/g error messages (May 2023).
@@ -99,17 +99,17 @@ Patterns `records-details`, `records-view-page` and `records-locked`. Checked ag
 - **WCAG 2.1 AA checks on every story and page.** axe-core, the engine behind Storybook's accessibility addon. *Test, audit.*
 - **Targets at least 24 by 24 CSS pixels.** WCAG 2.5.8.
 - **Nothing lost at 320 CSS pixels wide (400% zoom), or with increased text spacing.** WCAG 1.4.10 and 1.4.12.
-- **Colour never alone:** gray not started, warning waiting, success done, danger critical, always with a word. WCAG 1.4.1; Carbon status indicators. *Pattern `tables-status-badge`.*
-- **Contrast: 4.5:1 for text; 3:1 for status colours and chart series against the background and each other.** WCAG 1.4.3 and 1.4.11.
+- **Colour never alone:** gray for a draft or not started, blue for in progress, yellow for a warning, green for done, red for danger or error, always with a word. WCAG 1.4.1; Carbon status indicators (Aug 2026). *Pattern `tables-status-badge`.*
+- **Contrast: 4.5:1 for text; 3:1 for status colours against the background and each other, and for chart series against the background and against each other where they touch,** unless labels or values carry the same information. WCAG 1.4.3 and 1.4.11; Carbon status indicators (Aug 2026).
 - **Focus is always visible and never fully hidden under the sticky top bar or a sticky aside.** WCAG 2.4.7 and 2.4.11.
-- **Tooltips only repeat what's visible elsewhere.** WCAG 1.4.13.
+- **Tooltips hold only supplementary information; anything needed for the task is visible.** Carbon tooltip (Sep 2026): "do not include pertinent information for the user to complete their task". WCAG 1.4.13 for how they behave.
 - **Every icon-only action keeps a `label()`, which becomes its accessible name.** WCAG 4.1.2. *Test, audit.*
 
 ## Sign-in
 
-- **Passwords: at least 15 characters, at least 64 allowed, no composition rules, checked against breached passwords; pasting and revealing are allowed.** NIST SP 800-63B-4 (Aug 2025); WCAG 3.3.8.
-- **Multi-factor sign-in with an authenticator app and recovery codes. Never email codes as a factor.** NIST SP 800-63B-4: email "SHALL NOT be used for out-of-band authentication".
-- **The owner is told when a sign-in method or recovery is added or changed.** NIST SP 800-63B-4.
+- **Passwords: at least 15 characters when the password is the only factor (8 when multi-factor sign-in is required); at least 64 allowed; no composition rules; checked against a blocklist of common and breached passwords; pasting and showing the password allowed.** NIST SP 800-63B-4 (Aug 2025; 64, paste and show are SHOULDs); WCAG 3.3.8.
+- **Multi-factor sign-in offers at least one phishing-resistant option (such as a passkey) and issues recovery codes. Email is never an out-of-band factor;** email recovery codes are allowed. NIST SP 800-63B-4: email "SHALL NOT be used for out-of-band authentication"; at AAL2, "SHALL offer at least one phishing-resistant authentication option"; recovery codes are a SHOULD.
+- **The account owner is notified when a sign-in method is added or account recovery is used,** and should be when one is removed. NIST SP 800-63B-4.
 
 ## Business standards (from the owner)
 
@@ -162,7 +162,7 @@ These rules had no current basis, or a current source contradicts them:
   - "CheckboxList up to 15"
 - **Input masks.** USWDS's own mask failed WCAG 2.1 AA.
 - **Inline labels on forms,** including slide-overs and settings pages. This contradicts labels above fields.
-- **Save button on the right.** GOV.UK aligns the primary button to the left of the form.
+- **Save button on the right.** No qualifying source requires it.
 - **How a missing value shows,** whether "—" or a link to where it's added. GOV.UK's summary list links it, but GOV.UK covers form wording, and no qualifying source sets either. An empty section follows Carbon's empty states.
 - **Two thirds and one third on record pages** (GOV.UK layout). Carbon's 2x grid advises against layouts in thirds, and GOV.UK covers form wording, not layout.
 - **Rules backed only by GOV.UK outside form wording, or by its style guide** (re-checked 2026-10-11):
@@ -181,8 +181,16 @@ These rules had no current basis, or a current source contradicts them:
   - "about" five inputs (Carbon says five)
   - a count badge meaning waiting work, hidden at zero (the NN/g article cited doesn't say it)
   - a locked record must say why it is locked: Carbon hides an action the user may not take, and asks for a notification only when it is unavailable for now
+  - search limited to the identifier (no source limits it)
+  - a confirmation heading naming the record or count, and a save message naming the record
+  - "offer to clear" filters (Carbon: suggest adjusting them)
+  - tabs "never nested", and tabs for "views of the same thing" (Carbon uses a content switcher for that)
+  - "warning" meaning waiting (Carbon: yellow is a warning, blue is in progress)
+  - tooltips only repeating what's visible (WCAG 1.4.13 doesn't say it; Carbon's tooltip rule replaces it)
+  - an authenticator app as the required second factor (NIST asks for a phishing-resistant option)
+  - numbered line items, and line-item fields counted to decide a stacked layout
 - **Email codes as a sign-in fallback.** NIST forbids it.
-- **Breadcrumbs off everywhere.** GOV.UK and NN/g keep them on deep pages.
+- **Breadcrumbs off everywhere.** Carbon keeps them in hierarchies deeper than two levels.
 - **A grey delete trigger** (GOV.UK). Carbon, our base, makes it low-emphasis danger instead.
 - **Never disabling Submit** (GOV.UK). Carbon allows it on short forms.
 - **Hiding tabs instead of disabling them** (GOV.UK). Carbon permits disabled tabs.
