@@ -34,6 +34,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Widgets\WidgetConfiguration;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -47,6 +48,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Livewire\Component;
 use Livewire\Livewire;
+use ReflectionProperty;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
@@ -55,7 +57,7 @@ class AuditPages extends Tool
 {
     protected string $name = 'storybook-audit';
 
-    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view) and their related lists, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.1 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
+    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists and the dashboard\'s widgets, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.1 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -153,6 +155,27 @@ class AuditPages extends Tool
                 } catch (Throwable $e) {
                     $failing[] = "- `{$key}`: ".static::failure($e);
                 }
+            }
+        }
+
+        // The panel's dashboard widgets, on a full audit. Filament's stats and chart widgets reload every 5 seconds unless told not to.
+        foreach ($request->get('resources') ? [] : $panel->getWidgets() as $widget) {
+            $widget = $widget instanceof WidgetConfiguration ? $widget->widget : $widget;
+            $key = class_basename($widget);
+
+            if (! $widget::canView()) {
+                continue;
+            }
+
+            if (property_exists($widget, 'pollingInterval') && ($every = (new ReflectionProperty($widget, 'pollingInterval'))->getDefaultValue()) !== null) {
+                $warnings[] = "- `{$key}`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
+            }
+
+            try {
+                $rendered[$key] = Livewire::test($widget)->html();
+                $passing[] = "- `{$key}`";
+            } catch (Throwable $e) {
+                $failing[] = "- `{$key}`: ".static::failure($e);
             }
         }
 

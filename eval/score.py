@@ -69,6 +69,10 @@ checks = {
     "import: row limit set": "maxRows(" in code,
     "import: amounts not numeric()": "extends Importer" in code and not re.search(r"ImportColumn::make\([^;]*?->numeric\(", code),
     "export: ExportAction with an exporter": "ExportAction::make" in code and "extends Exporter" in code,
+    # Dashboard prompt: widgets that don't poll, charts with their values as text.
+    "dashboard: widgets don't refresh by themselves": "Widget" in code and len(re.findall(r"pollingInterval = null", code)) >= len(re.findall(r"extends (?:StatsOverviewWidget|ChartWidget)", code)) > 0,
+    "dashboard: chart values as text": "extends ChartWidget" in code and "getChartAssistiveContent" in code,
+    "dashboard: bar or line axis from zero": "extends ChartWidget" in code and "beginAtZero" in code,
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")

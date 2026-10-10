@@ -124,6 +124,18 @@ Labels, headings, buttons, helper text, empty states, notifications and errors. 
 - **A specific time always shows its time zone.** Carbon date picker (Sep 2026): "Specific times should specify a timezone."
 - **Dates and times use the app's locale format. A negative number keeps its minus sign even when colour is used.** Carbon date picker (Sep 2026: design for internationalization); WCAG 1.4.1 (Sep 2025).
 
+## Dashboards
+
+Pattern `dashboards-key-figures-and-charts`. Checked against the live sources on 2026-10-11. Carbon's data-visualisation pages show no update date; the dates are their sitemap entries (Sep 2026), and several are marked a work in progress.
+
+- **Most important first:** key figures at the top, then charts, then the rest, and only what helps the user decide where to look. Carbon dashboards ("Place the most important at the top of the page"; "Limit the number of metrics"). *Pattern.*
+- **A key figure is a number with a short label,** in the app's locale and with its unit (₱ for money). A change is said in words ("3 more than last week"), never by colour alone. Carbon chart anatomy ("a number with a single word description"); WCAG 1.4.1. Carbon sets no rule for up and down arrows or their colours, so there is none. *Pattern.*
+- **A chart's type follows its purpose:** a line for a trend over time, bars to compare values, stacked bars for parts of a whole. Carbon simple charts. Carbon gives no guidance on pie and donut charts, so there is no rule on them; if used, each slice is labelled with its value or meets 3:1 against its neighbours (WCAG 1.4.11). *Pattern.*
+- **A chart's heading says what it shows and its description the main insight; one series needs no legend, and several are labelled on the chart where they fit, otherwise with a legend above or below; an axis says what it counts; a bar or area chart's value axis starts at zero; gaps in the data are shown, never joined up; each data set keeps one colour on every chart of the dashboard.** Carbon chart anatomy, legends, axes and labels, dashboards ("Always start numerical axes at zero" for bar and area charts; "Never interpolate between periods when data is unavailable"; "Always use consistent colors for each data set"). *Pattern.*
+- **Every chart gives its values as text.** In Filament, `getChartAssistiveContent()`, built from the chart's own data so the two never disagree. WCAG 1.1.1; W3C WAI complex images (Apr 2026: a long description, "a textual representation of the essential information"). *Pattern.*
+- **Widgets don't refresh by themselves.** Filament's stats and chart widgets reload every 5 seconds unless `$pollingInterval` is `null`, and the user can't stop them. WCAG 2.2.2 (content that updates itself beside other content can be paused, stopped or hidden). *Audit, pattern.*
+- **An empty widget says why there is no data and what would make some appear,** in text rather than an illustration when several are empty at once. Carbon empty states (Aug 2026).
+
 ## Layout and pages
 
 - **Lists and record pages use the full width.** Carbon 2x grid (Sep 2026): the high-density model for complex product interfaces "uses the full width of the browser".

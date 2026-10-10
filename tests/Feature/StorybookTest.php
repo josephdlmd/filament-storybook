@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -215,7 +215,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -257,7 +257,7 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 37 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 39 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -366,6 +366,13 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `EditGadget`: no record to open')
         ->toContain('- `ViewGadget`: no record to open')
         ->toContain('Fix each one, then run storybook-audit again');
+});
+
+it('audits the dashboard\'s widgets on a full audit', function (): void {
+    expect((string) (new AuditPages)->handle(new Request)->content())
+        ->toContain('- `GadgetStats`: it reloads itself every 5s, and the user can\'t stop it')
+        ->toContain('- `OrdersPerMonthChart`')
+        ->not->toContain('- `OrdersPerMonthChart`:');
 });
 
 it('audits edit pages against an existing record', function (): void {
