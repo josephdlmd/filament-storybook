@@ -9,7 +9,7 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | Docs page + sidebar | The **Storybook** panel page: live story beside its PHP snippet, grouped by title |
 | `components.json` manifest | `StoryRegistry::manifest()`: imports, snippets and docblocks, read by reflection |
 | `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |
-| `test-run` | `storybook-test`: renders stories through the real canvas and reports failures with the story line to fix |
+| `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule warnings, and WCAG 2.1 AA issues from axe-core |
 | `get-storybook-story-instructions` | `storybook-instructions`: the rules for writing a story and the test-and-fix loop |
 | Storybook Test | A Pest test that renders every story in CI |
 | AGENTS.md instructions | `resources/boost/guidelines/core.blade.php`, loaded by Boost |
@@ -20,7 +20,7 @@ Not on Packagist; add the repository first:
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.2
+composer require josephdlmd/filament-storybook:^0.3
 ```
 
 Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
@@ -31,11 +31,22 @@ Register the plugin in the panel provider. The page is left out of the navigatio
 
 Add `"josephdlmd/filament-storybook"` to `packages` in `boost.json`, then run `php artisan boost:update` so agents get the guideline. The four MCP tools join Boost's server automatically.
 
+### Accessibility checks
+
+`storybook-test` runs axe-core on every story that renders, in headless Chromium with the panel's theme CSS, so contrast is judged on real colours. It needs Node and, in the app:
+
+```bash
+npm install --save-dev playwright-core axe-core
+npx playwright-core install chromium
+```
+
+Without them the tool still runs and says the check was skipped. Set `STORYBOOK_CHROMIUM` to use another Chromium binary.
+
 ## The agent loop
 
 1. `storybook-list`, then `storybook-show`: the agent copies an approved snippet and passes only the arguments its API section shows.
 2. No pattern fits: `storybook-instructions`, then it writes a story in `app/Stories`.
-3. `storybook-test`: failures come back with the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
+3. `storybook-test`: failures, house-rule warnings and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
 
 ## Write a story
 

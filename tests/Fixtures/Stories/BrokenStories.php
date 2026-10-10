@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Josephdlmd\FilamentStorybook\Stories;
@@ -38,5 +39,11 @@ class BrokenStories extends Stories
     {
         return TextColumn::make('code')
             ->formatStateUsing(fn (string $state): string => $state->upper());
+    }
+
+    /** Renders, but a screen reader cannot name the button. */
+    public function unnamedIconButton(): Action
+    {
+        return Action::make('delete')->iconButton()->icon('heroicon-o-trash')->label('');
     }
 }

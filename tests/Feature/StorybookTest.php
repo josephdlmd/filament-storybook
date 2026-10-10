@@ -121,7 +121,7 @@ it('tells an agent the valid ids instead of letting it guess', function (): void
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 8 passing, 0 failing, 0 warnings')
+        ->toStartWith('# 8 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -129,20 +129,34 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 1 passing, 3 failing, 5 warnings')
+        ->toStartWith('# 2 passing, 3 failing, 5 warnings, 1 accessibility issues')
+        ->toContain('- `broken-story.unnamedIconButton`: [critical] button-name: Buttons must have discernible text')
         ->toContain('- `broken-story`: add description()')
         ->toContain('- `broken-story.works`: format examples never go in placeholder()')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:40')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:41')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:24')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:25')
         ->toContain('- `broken-story.untyped`: Not a story: declare a Filament schema component, table column or action as its return type, at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:27')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:28')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 
     expect((new TestStories)->handle(new Request(['ids' => ['nope']]))->isError())->toBeTrue();
+});
+
+it('says how to enable the accessibility check when it cannot run', function (): void {
+    putenv('STORYBOOK_CHROMIUM=/nonexistent/chrome');
+
+    try {
+        expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-tin']]))->content())
+            ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues')
+            ->toContain('Accessibility not checked (')
+            ->toContain('npx playwright-core install chromium');
+    } finally {
+        putenv('STORYBOOK_CHROMIUM');
+    }
 });
 
 it('gives agents the story-writing rules', function (): void {

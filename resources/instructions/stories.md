@@ -26,5 +26,5 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Money is `money('PHP')`, right-aligned, with decimals kept; negatives by sign, never by colour.
 
 ## Verify
-- Run `storybook-test` with the pattern's id. Fix every failure and warning, then run it again. Repeat until it reports none.
+- Run `storybook-test` with the pattern's id. Fix every failure, warning and accessibility issue, then run it again. Repeat until it reports none.
 - Then give the user the preview link from `storybook-show`.
