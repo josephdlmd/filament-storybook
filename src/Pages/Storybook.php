@@ -43,7 +43,8 @@ class Storybook extends Page
 
     public function getTitle(): string | Htmlable
     {
-        return $this->current()?->title() ?? 'Storybook';
+        // The group already shows in the sub-navigation.
+        return Str::afterLast($this->current()?->title() ?? 'Storybook', '/');
     }
 
     /**
@@ -73,18 +74,25 @@ class Storybook extends Page
         $manifest = app(StoryRegistry::class)->manifest($stories);
 
         return $schema->components([
-            Text::make($manifest['description'])->visible(filled($manifest['description'])),
+            Text::make(static::prose($manifest['description']))->visible(filled($manifest['description'])),
             ...array_map(fn (array $story): Section => Section::make($story['label'])
-                ->description($story['description'] ?: null)
+                ->description($story['description'] ? static::prose($story['description']) : null)
                 ->schema([
                     $story['kind'] === null
                         ? Callout::make('Not a story')->description('Declare a Filament component, column or action as the return type.')->danger()
                         : Livewire::make(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story['name']])
                             ->key("{$manifest['id']}.{$story['name']}"),
                     // shortcut: plain <pre> because CodeEntry needs phiki/phiki; switch if apps install it.
-                    Html::make(new HtmlString('<pre style="overflow-x: auto; font-size: 0.8125rem;"><code>'.e($story['snippet']).'</code></pre>')),
+                    // currentColor tints keep the box readable in light and dark mode without a stylesheet.
+                    Html::make(new HtmlString('<pre style="overflow-x: auto; font-size: 0.8125rem; padding: 0.75rem 1rem; border-radius: 0.5rem; background: color-mix(in oklab, currentColor 4%, transparent); border: 1px solid color-mix(in oklab, currentColor 12%, transparent);"><code>'.e($story['snippet']).'</code></pre>')),
                 ]), $manifest['stories']),
         ]);
+    }
+
+    /** Descriptions may use `code` spans, so `->badge()` reads as code instead of the font's arrow ligature. */
+    protected static function prose(string $text): HtmlString
+    {
+        return new HtmlString(Str::inlineMarkdown($text, ['html_input' => 'escape', 'allow_unsafe_links' => false]));
     }
 
     protected function current(): ?Stories

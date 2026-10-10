@@ -66,6 +66,12 @@ it('shows the catalogue page with navigation, live story and snippet', function 
     expect(Josephdlmd\FilamentStorybook\Pages\Storybook::shouldRegisterNavigation())->toBeFalse();
 });
 
+it('titles the page without its group and shows code in descriptions as code', function (): void {
+    $this->get('/fixture/storybook?component=tables-status-badge')
+        ->assertDontSee('Tables/Status badge')
+        ->assertSee('<code>-&gt;badge()</code>', false);
+});
+
 it('lists the patterns for agents', function (): void {
     expect((string) (new ListStories)->handle(new Request)->content())
         ->toContain('`forms-money-input` Forms/Money input: Every peso amount a user types.')

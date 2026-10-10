@@ -14,7 +14,7 @@ class StatusBadgeStories extends Stories
 
     public function description(): string
     {
-        return 'A record\'s state in a table. One colour per meaning (success done, warning to-do, danger only for losses and failures, gray neutral), always with the word. In an app, put the label and colour on the status enum (HasLabel, HasColor) and use just ->badge().';
+        return 'A record\'s state in a table. One colour per meaning (success done, warning to-do, danger only for losses and failures, gray neutral), always with the word. In an app, put the label and colour on the status enum (`HasLabel`, `HasColor`) and use just `->badge()`.';
     }
 
     public function records(): array
