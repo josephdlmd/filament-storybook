@@ -62,6 +62,8 @@ it('shows the catalogue page with navigation, live story and snippet', function 
         ->assertSee('Money input')
         ->assertSee('Status badge')
         ->assertSee('Enter the amount', false);
+
+    expect(Josephdlmd\FilamentStorybook\Pages\Storybook::shouldRegisterNavigation())->toBeFalse();
 });
 
 it('lists the patterns for agents', function (): void {

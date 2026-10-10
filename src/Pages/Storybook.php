@@ -2,7 +2,6 @@
 
 namespace Josephdlmd\FilamentStorybook\Pages;
 
-use BackedEnum;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Callout;
@@ -11,7 +10,6 @@ use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -25,7 +23,8 @@ use Livewire\Attributes\Url;
  */
 class Storybook extends Page
 {
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedSwatch;
+    // A developer tool: reached by URL or an agent's preview link, never from users' navigation.
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $slug = 'storybook';
 

@@ -21,7 +21,7 @@ composer config repositories.filament-storybook vcs https://github.com/josephdlm
 composer require josephdlmd/filament-storybook:^0.1
 ```
 
-Register the plugin in the panel provider (the page is hidden in production):
+Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
 
 ```php
 ->plugin(\Josephdlmd\FilamentStorybook\StorybookPlugin::make())
