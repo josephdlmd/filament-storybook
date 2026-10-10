@@ -16,7 +16,7 @@ class ListTableStories extends Stories
 
     public function description(): string
     {
-        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, at most 8 columns are visible, money is right-aligned, status is a badge, and 25 rows show per page. Clicking a row opens the record, with at most one inline row action.';
+        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, at most 8 columns are visible, money is right-aligned, status is a badge, and 25 rows show per page. Clicking a row opens the record, with at most one inline row action. Basis: identifier first and hideable columns (NN/g data tables 2022); numbers right-aligned (GOV.UK table). 25 rows and 8 columns are house choices: no source sets a number (GitLab Pajamas paginates above 20).';
     }
 
     public function records(): array

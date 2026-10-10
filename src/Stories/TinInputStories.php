@@ -14,7 +14,7 @@ class TinInputStories extends Stories
 
     public function description(): string
     {
-        return 'Every Philippine Tax Identification Number a user types: the 9-digit TIN plus its 3-digit branch code, stored as `000-000-000-000`. On a resource form, add `->unique()` so each TIN is registered once.';
+        return 'Every Philippine Tax Identification Number a user types: the 9-digit TIN plus its 3-digit branch code, stored as `000-000-000-000`. On a resource form, add `->unique()` so each TIN is registered once. Basis: no placeholder examples (GOV.UK text input, NN/g 2014); the mask is a house choice.';
     }
 
     public function records(): array

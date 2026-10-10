@@ -14,7 +14,7 @@ class MoneyColumnStories extends Stories
 
     public function description(): string
     {
-        return 'Every peso amount in a table: one formatter, right-aligned, decimals kept, negatives shown by sign and never by colour.';
+        return 'Every peso amount in a table: one formatter, right-aligned, decimals kept, negatives shown by sign and never by colour. Basis: right-aligned numbers (GOV.UK table, Microsoft style guide). One formatter, kept decimals and uncoloured negatives are house choices.';
     }
 
     public function records(): array

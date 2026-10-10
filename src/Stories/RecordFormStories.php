@@ -16,7 +16,7 @@ class RecordFormStories extends Stories
 
     public function description(): string
     {
-        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels inline beside their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`).';
+        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: labels above fields for short forms (NN/g 2016, GOV.UK text input); one column (NN/g, GOV.UK); input width matches the answer (GOV.UK text input).';
     }
 
     public function records(): array
@@ -28,7 +28,6 @@ class RecordFormStories extends Stories
     {
         return $schema
             ->columns(1)
-            ->inlineLabel()
             ->components([
                 TextInput::make('name')
                     ->required()

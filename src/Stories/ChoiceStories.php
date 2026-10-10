@@ -15,7 +15,7 @@ class ChoiceStories extends Stories
 
     public function description(): string
     {
-        return 'Picking one option. ToggleButtons up to 5 options, Select up to 15, searchable Select beyond that.';
+        return 'Picking one option. ToggleButtons up to 5 options, Select up to 15, searchable Select beyond that. Basis: radio-style choices for 5 or fewer, a dropdown for 5 to 15 (NN/g listboxes 2020); searchable beyond 15 adapts NN/g\'s long-list advice.';
     }
 
     public function fewOptions(): ToggleButtons

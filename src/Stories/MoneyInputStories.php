@@ -14,7 +14,7 @@ class MoneyInputStories extends Stories
 
     public function description(): string
     {
-        return 'Every peso amount a user types. Decimals are kept and the field is only as wide as the amount.';
+        return 'Every peso amount a user types. Decimals are kept and the field is only as wide as the amount. Basis: currency in a prefix and input width matching the answer (GOV.UK text input).';
     }
 
     public function records(): array

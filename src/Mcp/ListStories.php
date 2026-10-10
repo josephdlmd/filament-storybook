@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
+use Illuminate\Support\Str;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Laravel\Mcp\Request;
@@ -19,7 +20,7 @@ class ListStories extends Tool
     public function handle(Request $request): Response
     {
         $lines = collect(app(StoryRegistry::class)->all())
-            ->map(fn (Stories $stories, string $id): string => "- `{$id}` {$stories->title()}: ".(strtok($stories->description(), "\n") ?: 'no description')
+            ->map(fn (Stories $stories, string $id): string => "- `{$id}` {$stories->title()}: ".(Str::before((string) strtok($stories->description(), "\n"), ' Basis:') ?: 'no description')
                 .' (stories: '.implode(', ', array_keys($stories->stories())).')')
             ->values();
 

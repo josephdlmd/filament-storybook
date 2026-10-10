@@ -139,16 +139,16 @@ class AuditPages extends Tool
             $visible = collect($table->getColumns())->reject(fn (Column $column): bool => $column->isHidden() || $column->isToggledHiddenByDefault());
 
             if ($visible->count() > 8) {
-                $warnings[] = "- `{$key}`: {$visible->count()} columns are visible; show at most 8 and make the rest `->toggleable(isToggledHiddenByDefault: true)`.";
+                $warnings[] = "- `{$key}`: {$visible->count()} columns are visible; show at most 8 and make the rest `->toggleable(isToggledHiddenByDefault: true)` (house choice).";
             }
 
             if ($table->isPaginated() && (int) $table->getDefaultPaginationPageOption() !== 25) {
-                $warnings[] = "- `{$key}`: show 25 rows per page with `->defaultPaginationPageOption(25)`, as `tables-list-table` does.";
+                $warnings[] = "- `{$key}`: show 25 rows per page with `->defaultPaginationPageOption(25)`, as `tables-list-table` does (house choice).";
             }
 
             foreach ($visible as $column) {
                 if ($column instanceof TextColumn && $column->isMoney() && ! in_array($column->getAlignment(), [Alignment::End, Alignment::Right], true)) {
-                    $warnings[] = "- `{$key}`: the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does.";
+                    $warnings[] = "- `{$key}`: the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (GOV.UK, Microsoft).";
                 }
             }
         }
@@ -158,11 +158,11 @@ class AuditPages extends Tool
 
         foreach ($fields as $field) {
             if ($field instanceof TextInput && filled($field->getPlaceholder())) {
-                $warnings[] = "- `{$key}`: the field `{$field->getName()}` puts an example in placeholder(); use mask() for a fixed shape, otherwise a one-line helperText().";
+                $warnings[] = "- `{$key}`: the field `{$field->getName()}` puts an example in placeholder(); use mask() for a fixed shape, otherwise a one-line helperText() (GOV.UK, NN/g).";
             }
 
             if ($field->isLabelHidden()) {
-                $warnings[] = "- `{$key}`: the field `{$field->getName()}` hides its label; keep it visible.";
+                $warnings[] = "- `{$key}`: the field `{$field->getName()}` hides its label; keep it visible (GOV.UK, NN/g).";
             }
         }
 

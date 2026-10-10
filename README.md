@@ -21,7 +21,7 @@ Not on Packagist; add the repository first:
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.5
+composer require josephdlmd/filament-storybook:^0.6
 ```
 
 Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
@@ -87,7 +87,11 @@ public function default(Table $table): Table
 }
 ```
 
-`Tables/List table` and `Forms/Record form` ship as the shared screen patterns. The record form's inline labels rely on one house CSS rule, which the package registers as a Filament asset; `php artisan filament:upgrade` publishes it.
+`Tables/List table` and `Forms/Record form` ship as the shared screen patterns. Where a very long form uses inline labels, one house CSS rule keeps them aligned; the package registers it as a Filament asset and `php artisan filament:upgrade` publishes it.
+
+## Where the rules come from
+
+Storybook supplies the workshop, not the rules: a design system's guidelines say what good looks like, with their evidence, and Storybook hosts them beside the code. Here every pattern description and every warning names its basis. **C** means two or more independent sources agree (NN/g, GOV.UK Design System, WCAG, Microsoft); **P** marks a house choice that no source sets, such as 25 rows per page. The accessibility checks are WCAG 2.1 AA, run by axe-core, the engine behind Storybook's own accessibility addon.
 
 The package ships shared patterns in `src/Stories`. Each app adds its own in `app/Stories`.
 

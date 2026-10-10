@@ -42,7 +42,7 @@ checks = {
     "terms: ToggleButtons": "ToggleButtons" in code,
     "TIN: shared pattern's mask reused": "mask('999-999-999-999')" in code,
     "no placeholder() format examples": "->placeholder(" not in code,
-    "record form screen: inlineLabel()": "inlineLabel()" in code,
+    "record form screen: one column, labels above": "->columns(1)" in code and "inlineLabel()" not in code,
     "list table screen: defaultPaginationPageOption(25)": "defaultPaginationPageOption(25)" in code,
 }
 print("pattern reuse:")

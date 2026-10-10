@@ -123,11 +123,11 @@ class TestStories extends Tool
             }
 
             if (str_contains($story['snippet'], '->placeholder(')) {
-                $warnings[] = "{$key}: format examples never go in placeholder(); use mask() for a fixed shape, otherwise a one-line helperText().";
+                $warnings[] = "{$key}: format examples never go in placeholder(); use mask() for a fixed shape, otherwise a one-line helperText() (GOV.UK, NN/g).";
             }
 
             if (str_contains($story['snippet'], '->hiddenLabel(')) {
-                $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen.";
+                $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen (GOV.UK, NN/g).";
             }
 
             if (in_array($story['kind'], ['column', 'table'], true) && $stories->records() === []) {

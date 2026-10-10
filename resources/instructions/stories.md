@@ -21,10 +21,13 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Use the field names and labels a real screen would use, so the snippet pastes into a resource unchanged.
 
 ## House rules
-`storybook-test` warns when a story breaks one of these.
-- Format examples never go in `placeholder()`. A value with a fixed shape gets `mask()`; otherwise put one example in a one-line `helperText()`.
-- Every field keeps a visible label; no `hiddenLabel()`. Colour always comes with a word or an icon.
-- Money is `money('PHP')`, right-aligned, with decimals kept; negatives by sign, never by colour.
+`storybook-test` and `storybook-audit` warn when one is broken. **C** means two or more independent sources agree; **P** is a house choice, so follow it but don't present it as industry practice.
+- No examples in `placeholder()`; one example goes in `helperText()`. **C** (GOV.UK text input, NN/g 2014). A fixed shape gets `mask()` instead. **P**
+- Labels stay visible, above their fields; no `hiddenLabel()`. Inline labels only on very long desktop forms. **C** (NN/g 2016, GOV.UK text input)
+- Colour always comes with a word or an icon. **C** (WCAG 1.4.1)
+- Numbers and money are right-aligned. **C** (GOV.UK table, Microsoft). Money uses one formatter, `money('PHP')`, keeps its decimals, and shows negatives by sign, never in red. **P**
+- Radio-style choices for 5 or fewer options, a select for 5 to 15, searchable beyond. **C** (NN/g listboxes 2020)
+- Tables put the identifier first and let people hide columns. **C** (NN/g data tables 2022). At most 8 visible columns and 25 rows per page. **P**
 
 ## Verify
 - Run `storybook-test` with the pattern's id. Fix every failure, warning and accessibility issue, then run it again. Repeat until it reports none.
