@@ -107,12 +107,14 @@ Approved by the owner on 2026-10-10.
 - **Unit cost** (weighted-average, landed or derived costs): **up to 4 decimal places,** so costs worked out by division don't drift by centavos. *Pattern `forms-unit-cost`.*
 - **Quantity:** **up to 3 decimal places,** for weights, volumes and lengths. *Pattern `forms-quantity`.*
 - **Round once, at the end:** a line total is quantity × unit price, rounded to 2 decimals once, as `forms-line-items` shows. VAT is worked out once per invoice for each VAT class (12%, zero-rated, exempt), on that class's total, then rounded to 2 decimals. This matches BIR's requirement to show VAT as a separate item and to break out taxable, zero-rated and exempt sales (RR 7-2024).
+- **Rounding is half up, away from zero for negatives:** ₱50.025 becomes ₱50.03, and a credit of −₱50.025 becomes −₱50.03, so a return mirrors its sale. This is how people check figures by hand and how Excel's `ROUND` and PostgreSQL's `round()` work. Not banker's rounding (half to even). *Pattern `forms-line-items`.*
 - **One method everywhere:** the invoice, the journal entry and the tax returns use the same amounts and the same rounding, so the books always agree with the invoices.
 - **Never floating-point money:** money is stored in decimal columns (for example `decimal(15, 2)`, and `decimal(15, 4)` for unit cost) and computed with decimal arithmetic, never PHP floats.
 
 **Decided by the owner (2026-10-10):**
-1. **VAT is worked out per invoice for each VAT class,** not per line. A CPA review is still worthwhile; if the CPA prefers per line, change it here and in the patterns, in one release.
-2. **None of the owner's companies is under BIR's e-invoicing (EIS) mandate at present** (RR 11-2025, RMC 98-2026). If one comes under it, EIS's technical specification sets field precision and overrides this section.
+1. **Half up, away from zero for negatives,** as above. No BIR rule setting the method was found; ask the CPA in the same review as item 2.
+2. **VAT is worked out per invoice for each VAT class,** not per line. A CPA review is still worthwhile; if the CPA prefers per line, change it here and in the patterns, in one release.
+3. **None of the owner's companies is under BIR's e-invoicing (EIS) mandate at present** (RR 11-2025, RMC 98-2026). If one comes under it, EIS's technical specification sets field precision and overrides this section.
 
 ## Engineering rules (Filament facts, not UX)
 

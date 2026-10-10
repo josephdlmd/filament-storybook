@@ -317,7 +317,7 @@ it('holds amounts to centavos, unit costs to 4 decimals and quantities to 3, on 
     'quantity, a fourth decimal' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.1255', false],
 ]);
 
-it('works out a line total as quantity × unit price, rounded once to centavos', function (string $quantity, string $price, ?string $total): void {
+it('works out a line total as quantity × unit price, rounded once to centavos, half up', function (string $quantity, string $price, ?string $total): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\LineItemsStories::class, 'story' => 'default'])
         ->set('data.lines', [['description' => 'Gloves', 'quantity' => $quantity, 'unit_price' => $price]]);
 
@@ -325,7 +325,9 @@ it('works out a line total as quantity × unit price, rounded once to centavos',
         ? expect($canvas->html())->not->toContain('₱0.00')
         : expect($canvas->html())->toContain($total);
 })->with([
-    'rounds half up once' => ['2.5', '89.2857', '₱223.21'],
+    'rounds once' => ['2.5', '89.2857', '₱223.21'],
+    'half a centavo rounds up' => ['0.5', '100.05', '₱50.03'],
+    'a negative line rounds away from zero, mirroring the sale' => ['-0.5', '100.05', '-₱50.03'],
     'whole numbers' => ['12', '285.5', '₱3,426.00'],
     'a half centavo' => ['1', '0.005', '₱0.01'],
     'a tiny unit price' => ['3', '0.0001', '₱0.00'],
