@@ -71,7 +71,7 @@ class RelatedRecordsStories extends Stories
             ])
             ->recordActions([
                 DetachAction::make()
-                    ->modalDescription(fn (Model $record): string => "{$record->name} keeps their account and leaves only this team."),
+                    ->modalDescription(fn (?Model $record): string => "{$record?->name} keeps their account and leaves only this team."),
             ]);
     }
 }

@@ -27,7 +27,10 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Number;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 
 class StorybookPlugin implements Plugin
@@ -85,6 +88,11 @@ class StorybookPlugin implements Plugin
         // one with nothing to submit, such as View, also closes by clicking outside (Carbon modal: transactional and passive).
         Action::configureUsing(fn (Action $action) => $action->closeModalByClickingAway(fn (Action $action): bool => $action->getModalSubmitAction() === null));
 
+        // An import states its row limit before the upload, beside Filament's example file (USWDS file input: limits up front).
+        ImportAction::configureUsing(fn (ImportAction $action) => $action->modalDescription(fn (ImportAction $action): Htmlable => new HtmlString(
+            ($action->getMaxRows() ? e('A CSV file of up to '.Number::format($action->getMaxRows()).' rows.').' ' : '').$action->getModalAction('downloadExample')->toHtml(),
+        )));
+
         // The modal a button opens is titled with that button's label: "New supplier", not "Create Supplier" (Carbon modal).
         CreateAction::configureUsing(fn (CreateAction $action) => $action->modalHeading(fn (CreateAction $action): string => (string) $action->getLabel()));
 
@@ -112,6 +120,13 @@ class StorybookPlugin implements Plugin
 
                 app('translator')->addLines(array_map(fn (string $line): string => str_replace($search, [ucfirst($done), $done, ucfirst($verb), $verb], $line), $lines), 'en', 'filament-actions');
             }
+
+            // Import wording: a notification action of one or two words (Carbon notifications); no "please" in an error (GOV.UK error message).
+            app('translator')->load('filament-actions', 'import', 'en');
+            app('translator')->addLines([
+                'import.notifications.completed.actions.download_failed_rows_csv.label' => 'Download errors',
+                'import.failure_csv.system_error' => 'A system error stopped this row. Contact support.',
+            ], 'en', 'filament-actions');
         });
 
         // Errors say what to do with the field's own label: "Enter name", not "The name field is required" (GOV.UK error message).

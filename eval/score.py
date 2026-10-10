@@ -64,6 +64,11 @@ checks = {
     "approval: shown only while awaiting a decision": bool(re.search(r"make\('approve'\)(?:(?!make\().)*?->(visible|hidden)\(", code, re.S)),
     "line items: table repeater": "Repeater::make" in code and "->table([" in code,
     "related list: a relation manager": "extends RelationManager" in code,
+    # Import prompt: the importer validates like the form and never rounds amounts.
+    "import: ImportAction with an importer": "ImportAction::make" in code and "extends Importer" in code,
+    "import: row limit set": "maxRows(" in code,
+    "import: amounts not numeric()": "extends Importer" in code and not re.search(r"ImportColumn::make\([^;]*?->numeric\(", code),
+    "export: ExportAction with an exporter": "ExportAction::make" in code and "extends Exporter" in code,
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")

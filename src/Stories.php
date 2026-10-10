@@ -30,6 +30,16 @@ abstract class Stories
     }
 
     /**
+     * Classes the pattern needs besides its stories, such as an importer; storybook-show prints their source to copy.
+     *
+     * @return list<class-string>
+     */
+    public function examples(): array
+    {
+        return [];
+    }
+
+    /**
      * Sample rows for column stories, keyed by column name.
      *
      * @return array<int, array<string, mixed>>

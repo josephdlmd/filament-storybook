@@ -9,6 +9,7 @@ use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
+use ReflectionClass;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[IsReadOnly]
@@ -43,6 +44,11 @@ class ShowStories extends Tool
         foreach ($manifest['stories'] as $story) {
             $text .= "\n## {$story['label']}\n\n".($story['description'] ? "{$story['description']}\n\n" : '')
                 ."```php\n{$story['snippet']}\n```\n";
+        }
+
+        foreach ($stories->examples() as $class) {
+            $text .= "\n## ".class_basename($class)."\n\nCopy this class into the app and change its model, columns and wording.\n\n```php\n"
+                .file_get_contents((string) (new ReflectionClass($class))->getFileName())."```\n";
         }
 
         if ($manifest['api'] !== []) {

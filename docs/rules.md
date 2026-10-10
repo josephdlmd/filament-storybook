@@ -113,6 +113,8 @@ Labels, headings, buttons, helper text, empty states, notifications and errors. 
 - **One search field in the table's toolbar, whose placeholder says what it searches** ("Search by code or name"). Carbon data table (Sep 2026) and search (Aug 2026: placeholder text "hinting at what the user can search for"). A search field's placeholder is not a form field's (see Forms). *Pattern `tables-list-table`.*
 - **With more than one filter category, filters sit above the table or on its left, never in a menu or dropdown.** They have an Apply button when results are slow and a way to clear them all. Carbon filtering (Aug 2026). *Audit, pattern `tables-list-table`.*
 - **Applied filters stay applied for the rest of the session, until the user clears them.** Carbon search (Aug 2026): a selected filter "should persist during future searches until the user either discards the filter or begins a new session". *Pattern `tables-list-table`.*
+- **Import and export sit in the List page's header, gray beside the primary New button.** Carbon data table (Sep 2026: the toolbar holds "global table actions such as … exporting"); Carbon button (Sep 2026: a ghost button "if there is another button on the page that requires primary styling"). *Pattern `tables-import-and-export`.*
+- **An import says what it accepts before the upload** (a CSV file, its columns, with an example file to download, and the most rows) **and checks each row with the form's own rules and error wording, on the server.** Rows that fail are skipped, and the notification when the import finishes says how many and offers the errors to download, fix and import again. USWDS file input (Aug 2026: state limits up front); Carbon notification usage (Sep 2026: "User actions are mandatory for error messages"); error wording as in Forms. *Pattern, house defaults (the row limit is stated; wording).*
 - **Key columns are sortable.** NN/g data tables (Apr 2022); USWDS table (Aug 2026).
 - **Row actions live in an overflow menu ("…"); when there are fewer than three, they stay inline.** The table toolbar holds up to five actions. Carbon data table (Sep 2026). *Audit.*
 - **Working lists use numbered pages showing the current range and the total, not infinite scroll. Content that updates itself next to other content can be paused, stopped or hidden.** Carbon pagination (Sep 2026); NN/g infinite scrolling (Sep 2022: not for finding something specific or comparing items); WCAG 2.2.2 (Aug 2026).
@@ -187,6 +189,9 @@ Approved by the owner on 2026-10-10.
 ## Engineering rules (Filament facts, not UX)
 
 - `Hidden` fields can be edited by the user; set trusted values on the server. (Filament docs)
+- A table calls its row actions' closures without a record while it has no rows, so type the record nullable: `fn (?Order $record)`. A closure typed `Order $record` stops the empty list from rendering. (Filament source; three eval agents hit it) *Test.*
+- Imports and exports run as queued jobs without policy checks: authorize the actions, and decide in the importer's `resolveRecord()` which records an import may change. (Filament source)
+- An imported number stays text and is validated (`numeric`, `decimal:0,2`); `ImportColumn::numeric()` rounds extra decimals away instead of rejecting the row. (Filament source)
 - Restrict which records a `ModalTableSelect` offers in `relationship(modifyQueryUsing:)`; the table filter alone isn't a security boundary. (Filament docs)
 - Bulk actions check permission per record with `authorizeIndividualRecords()`. (Filament docs)
 - No deprecated components: `Select->multiple()`, not `MultiSelect`; `TextEntry`, not `Placeholder`. (Filament 5 source)

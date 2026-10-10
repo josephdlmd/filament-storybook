@@ -6,6 +6,8 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
 use RuntimeException;
 
@@ -56,5 +58,13 @@ class BrokenStories extends Stories
             ->modalHeading('Save Order')
             ->modalDescription('Lorem ipsum dolor sit amet.')
             ->action(fn () => Notification::make()->title('Saved.')->send());
+    }
+
+    /** Renders while it has rows, but its row action can't take the null an empty table passes. */
+    public function nonNullableRecord(Table $table): Table
+    {
+        return $table
+            ->columns([TextColumn::make('code')])
+            ->recordActions([Action::make('open')->url(fn (Model $record): string => '#'.$record->code)]);
     }
 }

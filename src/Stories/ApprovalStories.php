@@ -29,8 +29,8 @@ class ApprovalStories extends Stories
     {
         return Action::make('approve')
             ->label('Approve')
-            ->visible(fn (Model $record): bool => $record->status === 'for_approval')
-            ->successNotificationTitle(fn (Model $record): string => "Order {$record->number} approved")
+            ->visible(fn (?Model $record): bool => $record?->status === 'for_approval')
+            ->successNotificationTitle(fn (?Model $record): string => "Order {$record?->number} approved")
             ->action(function (Model $record, Action $action): void {
                 // On a resource: $record->update(['status' => OrderStatus::Approved]);
                 $action->success();
@@ -43,14 +43,14 @@ class ApprovalStories extends Stories
         return Action::make('reject')
             ->label('Reject')
             ->color('gray')
-            ->visible(fn (Model $record): bool => $record->status === 'for_approval')
-            ->modalHeading(fn (Model $record): string => "Reject order {$record->number}?")
+            ->visible(fn (?Model $record): bool => $record?->status === 'for_approval')
+            ->modalHeading(fn (?Model $record): string => "Reject order {$record?->number}?")
             ->schema([
                 Textarea::make('reason')
                     ->required()
                     ->rows(3),
             ])
-            ->successNotificationTitle(fn (Model $record): string => "Order {$record->number} rejected")
+            ->successNotificationTitle(fn (?Model $record): string => "Order {$record?->number} rejected")
             ->action(function (Model $record, array $data, Action $action): void {
                 // On a resource: $record->update(['status' => OrderStatus::Rejected, 'rejection_reason' => $data['reason']]);
                 $action->success();

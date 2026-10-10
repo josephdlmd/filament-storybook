@@ -160,6 +160,10 @@ class TestStories extends Tool
                 }
             }
 
+            if ($story['kind'] === 'table' && preg_match('/fn \\((?!\\?)[\\w\\\\]+ \\$record\\)/', $story['snippet'], $typed)) {
+                $warnings[] = "{$key}: `{$typed[0]}` gets null while the table has no rows, which stops an empty list rendering; make the record nullable, `?` before the type.";
+            }
+
             if (preg_match("/lorem ipsum|'(option|section|item|step|label|title|text) \\d+'/i", $story['snippet'], $filler)) {
                 $warnings[] = "{$key}: \"{$filler[0]}\" is placeholder content; use realistic content from a real task, so the story shows whether the pattern reads clearly (Carbon story guidelines).";
             }

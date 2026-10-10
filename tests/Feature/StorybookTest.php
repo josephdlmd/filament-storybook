@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-related-records', 'records-view-page', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -200,12 +200,22 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
         ->and(__('filament-actions::attach.single.modal.actions.attach_another.label'))->toBe('Add & add another')
         // Lines the house defaults don't change are still Filament's.
         ->and(__('filament-actions::attach.single.modal.fields.record_id.label'))->toBe('Record')
-        ->and(__('filament-actions::delete.single.label'))->toBe('Delete');
+        ->and(__('filament-actions::delete.single.label'))->toBe('Delete')
+        ->and(trans_choice('filament-actions::import.notifications.completed.actions.download_failed_rows_csv.label', 3))->toBe('Download errors')
+        ->and(__('filament-actions::import.failure_csv.system_error'))->not->toContain('please')
+        ->and(__('filament-actions::import.notifications.completed.title'))->toBe('Import completed');
+
+    // An import states its row limit before the upload, and keeps Filament's example file.
+    $import = Filament\Actions\ImportAction::make()->importer(Josephdlmd\FilamentStorybook\Stories\Imports\SupplierImporter::class)->maxRows(5000)->livewire(new StoryCanvas);
+
+    expect($import->getModalDescription()->toHtml())
+        ->toStartWith('A CSV file of up to 5,000 rows. ')
+        ->toContain('Download example CSV file');
 });
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-related-records, records-view-page, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -216,9 +226,38 @@ it('labels a related list\'s actions by what the related records are, with the r
         ->assertSee('Add')->assertSee('Remove')->assertDontSee('Delete');
 });
 
+it('imports a CSV row with the form\'s checks, errors and stored formats, and shows agents the importer to copy', function (): void {
+    Illuminate\Support\Facades\Schema::create('suppliers', function (Illuminate\Database\Schema\Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+        $table->string('tin')->unique();
+        $table->decimal('credit_limit', 15, 2)->nullable();
+        $table->timestamps();
+    });
+
+    $import = new Josephdlmd\FilamentStorybook\Stories\Imports\SupplierImporter(new Filament\Actions\Imports\Models\Import, ['name' => 'name', 'tin' => 'tin', 'credit_limit' => 'credit_limit'], []);
+
+    $import(['name' => 'Abra Medical Supply', 'tin' => '123 456 789 000', 'credit_limit' => '250000.50']);
+    // The same TIN, typed another way, updates that supplier.
+    $import(['name' => 'Abra Medical Supply Inc.', 'tin' => '123.456.789.000', 'credit_limit' => '250000.50']);
+
+    // The amount reaches the model as typed, never a float (SQLite itself reads decimals back as floats).
+    expect(Josephdlmd\FilamentStorybook\Stories\Imports\Supplier::query()->get(['name', 'tin'])->toArray())
+        ->toBe([['name' => 'Abra Medical Supply Inc.', 'tin' => '123-456-789-000']])
+        ->and($import->getData()['credit_limit'])->toBe('250000.50')
+        ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '123-456-789', 'credit_limit' => '1']))
+        ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the TIN as 12 digits, such as 123-456-789-000')
+        ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '987-654-321-000', 'credit_limit' => '1.234']))
+        ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the credit limit with at most 2 decimal places');
+
+    expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-import-and-export']))->content())
+        ->toContain('## SupplierImporter')
+        ->toContain('public function resolveRecord(): Supplier');
+});
+
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 35 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 37 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -240,7 +279,8 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 3 passing, 3 failing, 9 warnings, 1 accessibility issues')
+        ->toStartWith('# 4 passing, 3 failing, 10 warnings, 1 accessibility issues')
+        ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Save Order" is in Title Case')
@@ -250,11 +290,11 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.works`: no placeholder()')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:42')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:44')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:26')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:28')
         ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:29')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:31')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 

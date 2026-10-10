@@ -125,6 +125,8 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 - A required field's error says what to do with its own label, "Enter name" or "Select payment terms", not "The name field is required" (GOV.UK error message).
 - An error notification, and a notification with an action, stay until dismissed; others still close after 6 seconds. An explicit `->duration()` or `->persistent()` wins (Carbon notifications).
 - A modal's confirm button repeats the action's label (or is "Save" for an "Edit …" form), never "Submit" or "Confirm"; the New modal is titled "New supplier", not "Create Supplier"; modal headings name the model in sentence case (Carbon modal, button and content).
+- An import states its row limit (`maxRows()`) before the upload, beside Filament's example file (USWDS file input).
+- Filament's import wording: the failed-rows link is "Download errors", and a row's system error has no "please" (Carbon notifications, GOV.UK error message).
 - Carbon's verbs replace Filament's: Attach and Associate are "Add", Detach and Dissociate are "Remove", Replicate is "Copy". The View modal closes with its × only, with no Close button (Carbon common actions).
 - A modal with buttons (a form or a confirmation) doesn't close when the user clicks outside it, so a stray click loses no input; a View modal still does (Carbon modal).
 
