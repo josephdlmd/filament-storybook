@@ -2,11 +2,14 @@
 
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
+use Josephdlmd\FilamentStorybook\Mcp\ShowInstructions;
 use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
+use Josephdlmd\FilamentStorybook\Mcp\TestStories;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\ChoiceStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyColumnStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyInputStories;
+use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Laravel\Mcp\Request;
@@ -87,6 +90,51 @@ it('shows a pattern for agents with imports, snippets and a preview link', funct
     expect((new ShowStories)->handle(new Request(['id' => 'nope']))->isError())->toBeTrue();
 });
 
+it('gives agents the real signatures of the methods a pattern uses', function (): void {
+    $api = collect(app(StoryRegistry::class)->manifest(app(StatusBadgeStories::class))['api'])->pluck('signature', 'method');
+
+    expect($api->keys()->all())->toBe(['TextColumn::make', 'TextColumn::badge', 'TextColumn::formatStateUsing', 'TextColumn::color'])
+        ->and($api['TextColumn::badge'])->toBe('badge(Closure|bool $condition = true): static');
+
+    expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-status-badge']))->content())
+        ->toContain("## API")
+        ->toContain('TextColumn::badge(Closure|bool $condition = true): static');
+});
+
+it('tells an agent the valid ids instead of letting it guess', function (): void {
+    expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
+        ->toContain('Valid ids: forms-choice, forms-money-input, tables-money-column, tables-status-badge');
+});
+
+it('reports every story passing', function (): void {
+    expect((string) (new TestStories)->handle(new Request)->content())
+        ->toStartWith('# 6 passing, 0 failing')
+        ->toContain('- `forms-money-input.required`');
+});
+
+it('reports a failing story with the line to fix, so the agent can self-correct', function (): void {
+    app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
+
+    expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
+        ->toStartWith('# 1 passing, 3 failing')
+        ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:40')
+        ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:24')
+        ->toContain('- `broken-story.untyped`: Not a story: declare a Filament schema component, table column or action as its return type, at ')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:27')
+        ->toContain('run storybook-test again until every story passes')
+        ->toContain('- `broken-story.works`');
+
+    expect((new TestStories)->handle(new Request(['ids' => ['nope']]))->isError())->toBeTrue();
+});
+
+it('gives agents the story-writing rules', function (): void {
+    expect((string) (new ShowInstructions)->handle(new Request)->content())
+        ->toContain('# Writing Filament stories')
+        ->toContain('Run `storybook-test`');
+});
+
 it('joins the Boost MCP server when laravel/mcp is installed', function (): void {
-    expect(config('boost.mcp.tools.include'))->toBe([ListStories::class, ShowStories::class]);
+    expect(config('boost.mcp.tools.include'))->toBe([ListStories::class, ShowStories::class, TestStories::class, ShowInstructions::class]);
 });

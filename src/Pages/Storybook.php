@@ -2,8 +2,10 @@
 
 namespace Josephdlmd\FilamentStorybook\Pages;
 
+use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Page;
+use Filament\Panel;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Livewire;
@@ -30,6 +32,12 @@ class Storybook extends Page
 
     #[Url]
     public ?string $component = null;
+
+    /** The panel this page is registered on, for code that runs outside a panel request, like the MCP tools. */
+    public static function panel(): ?Panel
+    {
+        return collect(Filament::getPanels())->first(fn (Panel $panel): bool => in_array(static::class, $panel->getPages(), true));
+    }
 
     public static function canAccess(): bool
     {

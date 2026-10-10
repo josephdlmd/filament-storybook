@@ -5,7 +5,9 @@ namespace Josephdlmd\FilamentStorybook;
 use Illuminate\Support\ServiceProvider;
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
+use Josephdlmd\FilamentStorybook\Mcp\ShowInstructions;
 use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
+use Josephdlmd\FilamentStorybook\Mcp\TestStories;
 use Laravel\Mcp\Server\Tool;
 use Livewire\Livewire;
 
@@ -31,6 +33,8 @@ class FilamentStorybookServiceProvider extends ServiceProvider
                 ...config('boost.mcp.tools.include', []),
                 ListStories::class,
                 ShowStories::class,
+                TestStories::class,
+                ShowInstructions::class,
             ]]);
         }
     }

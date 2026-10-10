@@ -2,9 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
-use Filament\Facades\Filament;
-use Filament\Panel;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Laravel\Mcp\Request;
@@ -32,7 +31,7 @@ class ShowStories extends Tool
         $stories = app(StoryRegistry::class)->find($id);
 
         if ($stories === null) {
-            return Response::error("No pattern \"{$id}\". Call storybook-list for the ids.");
+            return Response::error("No pattern \"{$id}\". Valid ids: ".implode(', ', array_keys(app(StoryRegistry::class)->all())).'. Never invent an id; call storybook-list to see what each one is for.');
         }
 
         $manifest = app(StoryRegistry::class)->manifest($stories);
@@ -46,12 +45,18 @@ class ShowStories extends Tool
                 ."```php\n{$story['snippet']}\n```\n";
         }
 
+        if ($manifest['api'] !== []) {
+            $text .= "\n## API\n\nThe exact signatures of the methods these stories use. Pass only these arguments.\n\n```php\n"
+                .implode("\n", array_map(fn (array $method): string => ($method['description'] ? "// {$method['description']}\n" : '')
+                    .Str::before($method['method'], '::').'::'.$method['signature'], $manifest['api']))."\n```\n";
+        }
+
         return Response::text($text);
     }
 
     protected function previewUrl(string $id): ?string
     {
-        $panel = collect(Filament::getPanels())->first(fn (Panel $panel): bool => in_array(Storybook::class, $panel->getPages(), true));
+        $panel = Storybook::panel();
 
         return $panel ? Storybook::getUrl(['component' => $id], panel: $panel->getId()) : null;
     }

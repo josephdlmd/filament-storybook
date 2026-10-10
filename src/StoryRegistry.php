@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionParameter;
 
 /**
  * Finds Stories classes and describes them the way Storybook's components.json does.
@@ -72,7 +74,7 @@ class StoryRegistry
     }
 
     /**
-     * @return array{id: string, title: string, description: string, class: class-string, path: string, imports: list<string>, stories: list<array{name: string, label: string, description: string, kind: string|null, snippet: string}>}
+     * @return array{id: string, title: string, description: string, class: class-string, path: string, imports: list<string>, stories: list<array{name: string, label: string, description: string, kind: string|null, snippet: string}>, api: list<array{method: string, signature: string, description: string}>}
      */
     public function manifest(Stories $stories): array
     {
@@ -81,7 +83,7 @@ class StoryRegistry
 
         preg_match_all('/^use\s+([^;]+);/m', $source, $imports);
 
-        return [
+        $manifest = [
             'id' => $stories->id(),
             'title' => $stories->title(),
             'description' => $stories->description(),
@@ -99,6 +101,69 @@ class StoryRegistry
                 ->values()
                 ->all(),
         ];
+
+        $manifest['api'] = static::api(array_values($stories->stories()), $manifest['stories']);
+
+        return $manifest;
+    }
+
+    /**
+     * The real signatures of the methods the stories call on the component, so agents never guess an argument.
+     *
+     * @param  list<ReflectionMethod>  $methods
+     * @param  list<array{snippet: string}>  $stories
+     * @return list<array{method: string, signature: string, description: string}>
+     */
+    protected static function api(array $methods, array $stories): array
+    {
+        $api = [];
+
+        foreach ($methods as $i => $story) {
+            $type = $story->getReturnType();
+            $class = $type instanceof ReflectionNamedType ? $type->getName() : null;
+
+            if ($class === null || ! class_exists($class)) {
+                continue;
+            }
+
+            preg_match_all('/(?:->|::)(\w+)\(/', $stories[$i]['snippet'], $calls);
+
+            // Calls inside closures on other objects, like str($state)->headline(), are not the component's.
+            foreach (array_filter(array_unique($calls[1]), fn (string $name): bool => method_exists($class, $name)) as $name) {
+                $method = new ReflectionMethod($class, $name);
+                $key = class_basename($class).'::'.$name;
+
+                $api[$key] ??= [
+                    'method' => $key,
+                    'signature' => static::signature($method),
+                    'description' => (string) strtok(static::docblock($method), "\n"),
+                ];
+            }
+        }
+
+        return array_values($api);
+    }
+
+    protected static function signature(ReflectionMethod $method): string
+    {
+        $parameters = array_map(function (ReflectionParameter $parameter): string {
+            $default = '';
+
+            if ($parameter->isDefaultValueAvailable()) {
+                $value = $parameter->getDefaultValue();
+                $default = ' = '.match (true) {
+                    $parameter->isDefaultValueConstant() => $parameter->getDefaultValueConstantName(),
+                    $value === null => 'null',
+                    is_array($value) => $value === [] ? '[]' : '[...]',
+                    default => var_export($value, true),
+                };
+            }
+
+            return trim($parameter->getType().' '.($parameter->isVariadic() ? '...' : '').'$'.$parameter->getName()).$default;
+        }, $method->getParameters());
+
+        return $method->getName().'('.implode(', ', $parameters).')'
+            .($method->hasReturnType() ? ': '.$method->getReturnType() : '');
     }
 
     /** The story's body, reduced to the returned expression so it pastes straight into a schema array. */
