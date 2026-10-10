@@ -1,0 +1,47 @@
+{
+    "name": "josephdlmd/filament-storybook",
+    "description": "Storybook for native Filament components: house patterns as PHP stories, a live catalogue page, and Boost MCP tools so AI agents reuse them instead of guessing.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "filament/filament": "^5.0"
+    },
+    "require-dev": {
+        "laravel/mcp": "^1.0",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0"
+    },
+    "suggest": {
+        "laravel/boost": "Exposes the stories to AI agents as the storybook-list and storybook-show MCP tools."
+    },
+    "autoload": {
+        "psr-4": {
+            "Josephdlmd\\FilamentStorybook\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Josephdlmd\\FilamentStorybook\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Josephdlmd\\FilamentStorybook\\FilamentStorybookServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
