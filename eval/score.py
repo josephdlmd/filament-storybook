@@ -25,6 +25,7 @@ story_calls = [c for c in calls if "storybook" in c[0]]
 print("\nstorybook tools used:", sorted({c[0] for c in story_calls}) or "NONE")
 first_write = next((i for i, c in enumerate(calls) if c[0] in ("Write", "Edit") and "app/Filament" in c[1]), None)
 first_story = next((i for i, c in enumerate(calls) if "storybook" in c[0]), None)
+print("audited its own screens:", any("storybook-audit" in c[0] for c in calls))
 print("looked up patterns before writing Filament code:", first_story is not None and (first_write is None or first_story < first_write))
 
 diff = subprocess.run(["git", "-C", app, "diff", "HEAD", "--stat"], capture_output=True, text=True).stdout
