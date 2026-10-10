@@ -7,8 +7,10 @@ use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
 use Josephdlmd\FilamentStorybook\Mcp\TestStories;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\ChoiceStories;
+use Josephdlmd\FilamentStorybook\Stories\ListTableStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyColumnStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyInputStories;
+use Josephdlmd\FilamentStorybook\Stories\RecordFormStories;
 use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
 use Josephdlmd\FilamentStorybook\Stories\TinInputStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
@@ -22,7 +24,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['forms-choice', 'forms-money-input', 'forms-tin', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['forms-choice', 'forms-money-input', 'forms-record-form', 'forms-tin', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -32,7 +34,7 @@ it('describes a story the way a components manifest does', function (): void {
         ->and($manifest['stories'][0])->toMatchArray([
             'name' => 'default',
             'label' => 'Default',
-            'kind' => 'schema',
+            'kind' => 'component',
             'snippet' => "TextInput::make('amount')\n    ->numeric()\n    ->prefix('₱')\n    ->step(0.01)\n    ->minValue(0)\n    ->maxWidth('xs')",
         ])
         ->and($manifest['stories'][1]['description'])->toBe('A required amount says what to do when it is left empty.');
@@ -40,7 +42,9 @@ it('describes a story the way a components manifest does', function (): void {
 
 it('reads the canvas kind from the return type', function (): void {
     expect(Stories::kind(new ReflectionMethod(MoneyColumnStories::class, 'default')))->toBe('column')
-        ->and(Stories::kind(new ReflectionMethod(ChoiceStories::class, 'fewOptions')))->toBe('schema');
+        ->and(Stories::kind(new ReflectionMethod(ChoiceStories::class, 'fewOptions')))->toBe('component')
+        ->and(Stories::kind(new ReflectionMethod(ListTableStories::class, 'default')))->toBe('table')
+        ->and(Stories::kind(new ReflectionMethod(RecordFormStories::class, 'default')))->toBe('schema');
 });
 
 it('renders every story', function (): void {
@@ -114,14 +118,35 @@ it('gives agents the real signatures of the methods a pattern uses', function ()
         ->toContain('TextColumn::badge(Closure|bool $condition = true): static');
 });
 
+it('credits each method in a screen story to the class it is called on', function (): void {
+    $api = collect(app(StoryRegistry::class)->manifest(app(ListTableStories::class))['api'])->pluck('signature', 'method');
+
+    expect($api->keys()->all())->toContain('Table::columns', 'TextColumn::make', 'TextColumn::money', 'SelectFilter::options', 'Table::defaultPaginationPageOption')
+        ->not->toContain('Table::make', 'Table::money', 'TextColumn::columns');
+});
+
+it('renders a screen story as the resource would, with its sample rows', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => ListTableStories::class, 'story' => 'default'])
+        ->assertSee('SUP-0003')
+        ->assertSee('₱1,250,000.50');
+
+    Livewire::test(StoryCanvas::class, ['stories' => RecordFormStories::class, 'story' => 'default'])
+        ->assertSet('data.tin', '123-456-789-000')
+        ->assertSee('Head office branch code is 000.');
+});
+
+it('loads the house CSS the patterns depend on, on every panel page', function (): void {
+    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->map->getId()->all())->toBe(['house']);
+});
+
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: forms-choice, forms-money-input, forms-tin, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: forms-choice, forms-money-input, forms-record-form, forms-tin, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 8 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 10 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -138,7 +163,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:41')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:25')
-        ->toContain('- `broken-story.untyped`: Not a story: declare a Filament schema component, table column or action as its return type, at ')
+        ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:28')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');

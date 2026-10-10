@@ -1,5 +1,5 @@
 <div>
-    @if ($this->kind() === 'column')
+    @if (in_array($this->kind(), ['column', 'table'], true))
         {{ $this->table }}
     @else
         {{ $this->form }}

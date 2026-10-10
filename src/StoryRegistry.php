@@ -102,46 +102,89 @@ class StoryRegistry
                 ->all(),
         ];
 
-        $manifest['api'] = static::api(array_values($stories->stories()), $manifest['stories']);
+        $manifest['api'] = static::api(array_values($stories->stories()), $manifest['stories'], $manifest['imports']);
 
         return $manifest;
     }
 
     /**
-     * The real signatures of the methods the stories call on the component, so agents never guess an argument.
+     * The real signatures of the Filament methods the stories call, so agents never guess an argument.
+     * Each call chain is followed from where it starts (`TextColumn::make(`, or the story's `$table`)
+     * so a method is credited to the class it is really called on.
      *
      * @param  list<ReflectionMethod>  $methods
      * @param  list<array{snippet: string}>  $stories
+     * @param  list<string>  $imports
      * @return list<array{method: string, signature: string, description: string}>
      */
-    protected static function api(array $methods, array $stories): array
+    protected static function api(array $methods, array $stories, array $imports): array
     {
+        $aliases = [];
+
+        foreach ($imports as $import) {
+            [$class, $alias] = array_pad(preg_split('/\s+as\s+/i', $import), 2, null);
+            $aliases[$alias ?? class_basename($class)] = $class;
+        }
+
         $api = [];
 
         foreach ($methods as $i => $story) {
-            $type = $story->getReturnType();
-            $class = $type instanceof ReflectionNamedType ? $type->getName() : null;
+            $return = $story->getReturnType();
+            $variable = ($story->getParameters()[0] ?? null)?->getName();
+            $tokens = array_values(array_filter(
+                \PhpToken::tokenize('<?php '.$stories[$i]['snippet']),
+                fn (\PhpToken $token): bool => ! $token->isIgnorable(),
+            ));
 
-            if ($class === null || ! class_exists($class)) {
-                continue;
-            }
+            // The class each nesting level's current chain is on; a new level starts at every ( and [.
+            $chain = [$variable === null && $return instanceof ReflectionNamedType ? $return->getName() : null];
 
-            preg_match_all('/(?:->|::)(\w+)\(/', $stories[$i]['snippet'], $calls);
+            foreach ($tokens as $t => $token) {
+                $next = $tokens[$t + 1] ?? null;
+                $class = $chain[array_key_last($chain)];
 
-            // Calls inside closures on other objects, like str($state)->headline(), are not the component's.
-            foreach (array_filter(array_unique($calls[1]), fn (string $name): bool => method_exists($class, $name)) as $name) {
-                $method = new ReflectionMethod($class, $name);
-                $key = class_basename($class).'::'.$name;
-
-                $api[$key] ??= [
-                    'method' => $key,
-                    'signature' => static::signature($method),
-                    'description' => (string) strtok(static::docblock($method), "\n"),
-                ];
+                if ($token->text === '(' || $token->text === '[') {
+                    $chain[] = null;
+                } elseif ($token->text === ')' || $token->text === ']') {
+                    count($chain) > 1 && array_pop($chain);
+                } elseif ($token->text === ',') {
+                    $chain[array_key_last($chain)] = null;
+                } elseif ($token->is(T_VARIABLE)) {
+                    $chain[array_key_last($chain)] = $token->text === '$'.$variable && $return instanceof ReflectionNamedType ? $return->getName() : null;
+                } elseif ($token->is(T_STRING) && $next?->is(T_DOUBLE_COLON) && ($tokens[$t + 3] ?? null)?->text === '(') {
+                    $chain[array_key_last($chain)] = static::record($api, $aliases[$token->text] ?? null, $tokens[$t + 2]->text);
+                } elseif ($token->is(T_OBJECT_OPERATOR) && $class !== null && $next?->is(T_STRING) && ($tokens[$t + 2] ?? null)?->text === '(') {
+                    $chain[array_key_last($chain)] = static::record($api, $class, $next->text);
+                }
             }
         }
 
         return array_values($api);
+    }
+
+    /**
+     * Notes a method's signature and returns the class the chain continues on, or null when it leaves the fluent API.
+     *
+     * @param  array<string, array{method: string, signature: string, description: string}>  $api
+     */
+    protected static function record(array &$api, ?string $class, string $name): ?string
+    {
+        if ($class === null || ! method_exists($class, $name)) {
+            return null;
+        }
+
+        $method = new ReflectionMethod($class, $name);
+        $key = class_basename($class).'::'.$name;
+
+        $api[$key] ??= [
+            'method' => $key,
+            'signature' => static::signature($method),
+            'description' => (string) strtok(static::docblock($method), "\n"),
+        ];
+
+        $returns = (string) $method->getReturnType();
+
+        return in_array($returns, ['static', 'self', '$this'], true) || is_a($returns, $class, true) ? $class : null;
     }
 
     protected static function signature(ReflectionMethod $method): string

@@ -5,15 +5,18 @@ namespace Josephdlmd\FilamentStorybook;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Schemas\Components\Component;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Column;
+use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 
 /**
- * One component's stories, like a Storybook CSF file: every public method declared
- * on the subclass is a story returning a configured Filament component.
+ * One pattern's stories, like a Storybook CSF file: every public method declared on the subclass
+ * is a story. It returns a configured component, or, for a whole screen, takes and returns the
+ * Table or Schema a resource's table() or form() would.
  */
 abstract class Stories
 {
@@ -64,7 +67,9 @@ abstract class Stories
             $class === null => null,
             is_a($class, Column::class, true) => 'column',
             is_a($class, Action::class, true), is_a($class, ActionGroup::class, true) => 'action',
-            is_a($class, Component::class, true) => 'schema',
+            is_a($class, Component::class, true) => 'component',
+            is_a($class, Table::class, true) => 'table',
+            is_a($class, Schema::class, true) => 'schema',
             default => null,
         };
     }

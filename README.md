@@ -20,7 +20,7 @@ Not on Packagist; add the repository first:
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.3
+composer require josephdlmd/filament-storybook:^0.4
 ```
 
 Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
@@ -76,6 +76,17 @@ class TinStories extends Stories
 ```
 
 The return type picks the canvas: a schema component (field, entry, layout), a table column, or an action. Column and entry stories take sample data from `records()`.
+
+A whole screen is a story too. It takes and returns what the resource's `configure()` would, so its snippet pastes straight in:
+
+```php
+public function default(Table $table): Table
+{
+    return $table->columns([...])->filters([...])->defaultSort('name');
+}
+```
+
+`Tables/List table` and `Forms/Record form` ship as the shared screen patterns. The record form's inline labels rely on one house CSS rule, which the package registers as a Filament asset; `php artisan filament:upgrade` publishes it.
 
 The package ships shared patterns in `src/Stories`. Each app adds its own in `app/Stories`.
 

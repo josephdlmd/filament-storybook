@@ -11,6 +11,7 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - `title()` is `Group/Name`, for example `Forms/Money input` or `Tables/Status badge`.
 - `description()` says when to use the pattern and when not to, in one or two sentences. Wrap code in backticks.
 - Declare the return type of every story: a schema component (field, entry, layout), a table column, or an action.
+- A whole screen is a story too: `public function default(Table $table): Table` or `public function default(Schema $schema): Schema`, returning exactly what the resource's `configure()` would. Fill it with the field patterns, so the two never disagree.
 
 ## The stories
 - One public method per state the pattern really has: `default`, then variants such as `required`, `disabled`, `withHelperText`, `manyOptions`. Name them by scenario, in camelCase.

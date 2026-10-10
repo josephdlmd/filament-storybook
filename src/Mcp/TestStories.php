@@ -57,7 +57,7 @@ class TestStories extends Tool
 
             foreach ($stories->stories() as $name => $story) {
                 if (Stories::kind($story) === null) {
-                    $failing["{$id}.{$name}"] = 'Not a story: declare a Filament schema component, table column or action as its return type, at '
+                    $failing["{$id}.{$name}"] = 'Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at '
                         .static::relative((string) $story->getFileName()).':'.$story->getStartLine();
 
                     continue;
@@ -170,8 +170,8 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen.";
             }
 
-            if ($story['kind'] === 'column' && $stories->records() === []) {
-                $warnings[] = "{$key}: add sample rows in records(), so the column shows real values.";
+            if (in_array($story['kind'], ['column', 'table'], true) && $stories->records() === []) {
+                $warnings[] = "{$key}: add sample rows in records(), so the table shows real values.";
             }
         }
 

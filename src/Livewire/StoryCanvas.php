@@ -45,21 +45,26 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->statePath('data')
-            ->components(match ($this->kind()) {
-                'schema' => [$this->build()],
-                'action' => [Actions::make([$this->build()])],
-                default => [],
-            });
+        $schema->statePath('data');
+
+        return match ($this->kind()) {
+            'component' => $schema->components([$this->build()]),
+            'action' => $schema->components([Actions::make([$this->build()])]),
+            'schema' => $this->build($schema),
+            default => $schema,
+        };
     }
 
     public function table(Table $table): Table
     {
-        return $table
-            ->records(fn (): array => $this->instance()->records())
-            ->columns($this->kind() === 'column' ? [$this->build()] : [])
-            ->paginated(false);
+        // Set before a table story runs, so the story can still choose its own pagination.
+        $table->records(fn (): array => $this->instance()->records())->paginated(false);
+
+        return match ($this->kind()) {
+            'column' => $table->columns([$this->build()]),
+            'table' => $this->build($table),
+            default => $table,
+        };
     }
 
     public function kind(): ?string
@@ -72,9 +77,9 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         return app(StoryRegistry::class)->findByClass($this->stories) ?? abort(404);
     }
 
-    protected function build(): mixed
+    protected function build(mixed ...$arguments): mixed
     {
-        return $this->instance()->{$this->story}();
+        return $this->instance()->{$this->story}(...$arguments);
     }
 
     public function render(): View
