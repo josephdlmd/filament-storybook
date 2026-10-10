@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-money-input', 'forms-record-form', 'forms-tin', 'forms-yes-or-no', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -39,7 +39,7 @@ it('describes a story the way a components manifest does', function (): void {
             'name' => 'default',
             'label' => 'Default',
             'kind' => 'component',
-            'snippet' => "TextInput::make('amount')\n    ->numeric()\n    ->prefix('₱')\n    ->step(0.01)\n    ->minValue(0)\n    ->maxWidth('xs')",
+            'snippet' => "TextInput::make('amount')\n    ->numeric()\n    ->prefix('₱')\n    ->step(0.01)\n    ->minValue(0)\n    ->rules(['decimal:0,2'])\n    ->maxWidth('xs')\n    ->validationMessages(['decimal' => 'Enter the amount with at most 2 decimal places, such as 1250.50'])",
         ])
         ->and($manifest['stories'][1]['description'])->toBe('A required amount says what to do when it is left empty.');
 });
@@ -101,7 +101,7 @@ it('titles the page without its group and shows code in descriptions as code', f
 
 it('lists the patterns for agents', function (): void {
     expect((string) (new ListStories)->handle(new Request)->content())
-        ->toContain('`forms-money-input` Forms/Money input: Every peso amount a user types.')
+        ->toContain('`forms-money-input` Forms/Money input: Every peso amount a user types: pesos and centavos, at most 2 decimal places')
         ->toContain('(stories: default, required)');
 });
 
@@ -160,12 +160,12 @@ it('corrects Filament defaults that break a sourced rule, app-wide', function ()
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-money-input, forms-record-form, forms-tin, forms-yes-or-no, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 15 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 17 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -280,3 +280,18 @@ it('skips pages the user may not open, and pages that need route parameters, ins
         GadgetResource::$creatable = true;
     }
 });
+
+it('holds amounts to centavos, unit costs to 4 decimals and quantities to 3, on the server', function (string $stories, string $field, string $typed, bool $valid): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => $stories, 'story' => 'default'])->set("data.{$field}", $typed);
+
+    $valid
+        ? expect($canvas->instance()->form->getState()[$field])->toEqual($typed)
+        : expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, 'decimal places');
+})->with([
+    'amount, centavos' => [Josephdlmd\FilamentStorybook\Stories\MoneyInputStories::class, 'amount', '1250.50', true],
+    'amount, a third decimal' => [Josephdlmd\FilamentStorybook\Stories\MoneyInputStories::class, 'amount', '1.234', false],
+    'unit cost, 4 decimals' => [Josephdlmd\FilamentStorybook\Stories\UnitCostStories::class, 'unit_cost', '89.2857', true],
+    'unit cost, a fifth decimal' => [Josephdlmd\FilamentStorybook\Stories\UnitCostStories::class, 'unit_cost', '89.28571', false],
+    'quantity, 3 decimals' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.125', true],
+    'quantity, a fourth decimal' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.1255', false],
+]);

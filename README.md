@@ -31,7 +31,7 @@ Apps are brought up to this standard; the package doesn't adapt to exceptions. T
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.10
+composer require josephdlmd/filament-storybook:^0.11
 php artisan storybook:install
 ```
 

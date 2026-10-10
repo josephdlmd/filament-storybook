@@ -8,7 +8,7 @@ Every rule the patterns, `storybook-instructions`, `storybook-test` and `storybo
 - **Where Carbon is silent,** a rule needs its own current evidence: W3C WAI, USWDS, NIST SP 800-63B-4 for sign-in, or research from about 2022 on, such as NN/g. Where we depart from Carbon, the rule says why (see "Where we differ from Carbon").
 - **Real-app references (Mobbin) and preference never justify a rule.** Formats follow the app's locale, not GOV.UK's UK style guide.
 - Carbon's guidance on usage and behaviour is adopted, not its look; apps keep their Filament theme.
-- **Business facts come from the owner,** such as the TIN format. They don't need research, but they live in a pattern's description, not here.
+- **Business facts come from the owner,** such as the TIN format and decimal places. They don't need research. They're listed under "Business standards" and built into the patterns.
 
 Dates in brackets are the "updated" dates the pages showed when checked.
 
@@ -86,6 +86,22 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 - **Passwords: at least 15 characters, at least 64 allowed, no composition rules, checked against breached passwords; pasting and revealing are allowed.** NIST SP 800-63B-4 (Aug 2025); WCAG 3.3.8.
 - **Multi-factor sign-in with an authenticator app and recovery codes. Never email codes as a factor.** NIST SP 800-63B-4: email "SHALL NOT be used for out-of-band authentication".
 - **The owner is told when a sign-in method or recovery is added or changed.** NIST SP 800-63B-4.
+
+## Business standards (from the owner)
+
+Approved by the owner on 2026-10-10 "for now". Two points are still to be confirmed with the company's CPA or tax adviser; see "Open" below.
+
+- **TIN:** the 9-digit TIN plus a 3-digit branch code, stored as `000-000-000-000`, with `000` for the head office. *Pattern `forms-tin`.*
+- **Amounts** (prices, totals, payments, balances, VAT and withholding): pesos and centavos, **at most 2 decimal places, checked on the server.** The peso has 100 centavos (PHP; 2 minor units). *Pattern `forms-money-input`.*
+- **Unit cost** (weighted-average, landed or derived costs): **up to 4 decimal places,** so costs worked out by division don't drift by centavos. *Pattern `forms-unit-cost`.*
+- **Quantity:** **up to 3 decimal places,** for weights, volumes and lengths. *Pattern `forms-quantity`.*
+- **Round once, at the end:** a line total is quantity × unit price, rounded to 2 decimals once. VAT is worked out once per invoice for each VAT class (12%, zero-rated, exempt), on that class's total, then rounded to 2 decimals. This matches BIR's requirement to show VAT as a separate item and to break out taxable, zero-rated and exempt sales (RR 7-2024).
+- **One method everywhere:** the invoice, the journal entry and the tax returns use the same amounts and the same rounding, so the books always agree with the invoices.
+- **Never floating-point money:** money is stored in decimal columns (for example `decimal(15, 2)`, and `decimal(15, 4)` for unit cost) and computed with decimal arithmetic, never PHP floats.
+
+**Open, to confirm with the CPA:**
+1. VAT worked out per invoice and VAT class, rather than per line.
+2. Whether any DL Group company falls under BIR's e-invoicing (EIS) mandate (RR 11-2025, RMC 98-2026). If one does, EIS's technical specification sets field precision and overrides this section.
 
 ## Engineering rules (Filament facts, not UX)
 
