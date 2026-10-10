@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-delete', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-view-page', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-related-records', 'records-view-page', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -176,6 +176,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
     expect(Filament\Actions\Action::make('markPaid')->requiresConfirmation()->getModalSubmitActionLabel())->toBe('Mark paid')
         ->and(Filament\Actions\Action::make('send')->schema([])->getModalSubmitActionLabel())->toBe('Send')
+        ->and(Filament\Actions\Action::make('editDelivery')->label('Edit delivery details')->getModalSubmitActionLabel())->toBe('Save')
         ->and($create->getLabel())->toBe('New gadget part')
         ->and($create->getModalHeading())->toBe('New gadget part')
         ->and($create->getModalSubmitActionLabel())->toBe('Create')
@@ -204,12 +205,20 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-delete, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-view-page, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-related-records, records-view-page, tables-list-table, tables-money-column, tables-status-badge');
+});
+
+it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RelatedRecordsStories::class, 'story' => 'default'])
+        ->assertSee('New contact')->assertSee('Delete')->assertDontSee('Remove');
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RelatedRecordsStories::class, 'story' => 'linked'])
+        ->assertSee('Add')->assertSee('Remove')->assertDontSee('Delete');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 28 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 35 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 

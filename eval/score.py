@@ -58,6 +58,12 @@ checks = {
     "notification: no forced persistent()": "->persistent()" not in code,
     "delete: confirmation says the consequence": "DeleteAction::make" in code and "modalDescription(" in code,
     "delete: no solid danger trigger": "outlined(false)" not in code,
+    # Purchase-order prompt: approvals, line items, a related list.
+    "approval: Approve and Reject actions": "make('approve')" in code and "make('reject')" in code,
+    "approval: Reject is gray, not danger": bool(re.search(r"make\('reject'\)(?:(?!make\().)*?->color\('gray'\)", code, re.S)),
+    "approval: shown only while awaiting a decision": bool(re.search(r"make\('approve'\)(?:(?!make\().)*?->(visible|hidden)\(", code, re.S)),
+    "line items: table repeater": "Repeater::make" in code and "->table([" in code,
+    "related list: a relation manager": "extends RelationManager" in code,
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")

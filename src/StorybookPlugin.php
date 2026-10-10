@@ -77,9 +77,9 @@ class StorybookPlugin implements Plugin
             $notification->duration(fn (): int|string => $notification->getStatus() === 'danger' || $notification->getActions() !== [] ? 'persistent' : $timed);
         });
 
-        // A modal's confirm button repeats the action's verb, never "Submit" or "Confirm" (Carbon modal and forms).
-        // Actions with their own (Create, Save changes, Delete) set it again in setUp(), which runs after this.
-        Action::configureUsing(fn (Action $action) => $action->modalSubmitActionLabel(fn (Action $action): string => (string) $action->getLabel()));
+        // A modal's confirm button repeats the action's verb, never "Submit" or "Confirm"; an "Edit …" form's button saves, so it is
+        // "Save" (Carbon modal and forms, action labels). Actions with their own (Create, Save changes, Delete) set it again in setUp().
+        Action::configureUsing(fn (Action $action) => $action->modalSubmitActionLabel(fn (Action $action): string => str_starts_with($label = (string) $action->getLabel(), 'Edit ') ? 'Save' : $label));
 
         // A modal with buttons (a form or a confirmation) closes only by its buttons, × or Esc, so a stray click loses no input;
         // one with nothing to submit, such as View, also closes by clicking outside (Carbon modal: transactional and passive).
