@@ -62,16 +62,19 @@ it('shows column stories with their sample rows', function (): void {
         ->assertSee('-₱320.00');
 });
 
-it('accepts a TIN with its branch code and rejects one without', function (string $tin, bool $valid): void {
-    $canvas = Livewire::test(StoryCanvas::class, ['stories' => TinInputStories::class, 'story' => 'required'])->set('data.tin', $tin);
+it('accepts a TIN typed any reasonable way and stores one format', function (string $typed, ?string $stored): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => TinInputStories::class, 'story' => 'required'])->set('data.tin', $typed);
 
-    $valid
-        ? expect($canvas->instance()->form->getState())->toBe(['tin' => $tin])
-        : expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, 'Enter all 12 digits');
+    $stored !== null
+        ? expect($canvas->instance()->form->getState())->toBe(['tin' => $stored])
+        : expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, 'Enter a TIN in the correct format');
 })->with([
-    'head office' => ['123-456-789-000', true],
-    'branch' => ['123-456-789-002', true],
-    'missing branch code' => ['123-456-789', false],
+    'dashes, head office' => ['123-456-789-000', '123-456-789-000'],
+    'spaces, branch' => ['123 456 789 002', '123-456-789-002'],
+    'digits only' => ['123456789000', '123-456-789-000'],
+    'dots and stray spaces' => [' 123.456.789.000 ', '123-456-789-000'],
+    'missing branch code' => ['123-456-789', null],
+    'letters' => ['ABC-456-789-000', null],
 ]);
 
 it('refuses to render a class that is not a registered story', function (): void {
@@ -123,7 +126,7 @@ it('gives agents the real signatures of the methods a pattern uses', function ()
 it('credits each method in a screen story to the class it is called on', function (): void {
     $api = collect(app(StoryRegistry::class)->manifest(app(ListTableStories::class))['api'])->pluck('signature', 'method');
 
-    expect($api->keys()->all())->toContain('Table::columns', 'TextColumn::make', 'TextColumn::money', 'SelectFilter::options', 'Table::defaultPaginationPageOption')
+    expect($api->keys()->all())->toContain('Table::columns', 'TextColumn::make', 'TextColumn::money', 'SelectFilter::options', 'Table::defaultSort')
         ->not->toContain('Table::make', 'Table::money', 'TextColumn::columns');
 });
 
@@ -159,7 +162,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toStartWith('# 2 passing, 3 failing, 5 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.unnamedIconButton`: [critical] button-name: Buttons must have discernible text')
         ->toContain('- `broken-story`: add description()')
-        ->toContain('- `broken-story.works`: format examples never go in placeholder()')
+        ->toContain('- `broken-story.works`: no placeholder()')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:41')
@@ -204,12 +207,12 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 4 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 2 warnings')
         ->toContain('Signed in as tester@example.com.')
-        ->toContain('- `ListGadgets`: 9 columns are visible; show at most 8')
-        ->toContain('- `ListGadgets`: show 25 rows per page')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
-        ->toContain('- `CreateGadget`: the field `code` puts an example in placeholder()')
+        ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
+        ->not->toContain('25 rows')
+        ->not->toContain('columns are visible')
         ->toContain('- `EditGadget`: no record to open')
         ->toContain('Fix each one, then run storybook-audit again');
 });
@@ -218,6 +221,6 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 3 pages rendered, 0 failing, 5 warnings')
-        ->toContain('- `EditGadget`: the field `code` puts an example in placeholder()');
+        ->toStartWith('# 3 pages rendered, 0 failing, 3 warnings')
+        ->toContain('- `EditGadget`: the field `code` uses placeholder()');
 });

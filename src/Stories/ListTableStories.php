@@ -16,7 +16,7 @@ class ListTableStories extends Stories
 
     public function description(): string
     {
-        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, at most 8 columns are visible, money is right-aligned, status is a badge, and 25 rows show per page. Clicking a row opens the record, with at most one inline row action. Basis: identifier first and hideable columns (NN/g data tables 2022); numbers right-aligned (GOV.UK table). 25 rows and 8 columns are house choices: no source sets a number (GitLab Pajamas paginates above 20).';
+        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, the columns follow in order of importance, money is right-aligned and status is a badge. Basis: NN/g data tables 2022 (a human-readable identifier first, columns ordered by importance, easy to hide) and GOV.UK table (right-align numbers).';
     }
 
     public function records(): array
@@ -49,7 +49,6 @@ class ListTableStories extends Stories
                 SelectFilter::make('status')
                     ->options(['Active' => 'Active', 'On hold' => 'On hold']),
             ])
-            ->defaultSort('name')
-            ->defaultPaginationPageOption(25);
+            ->defaultSort('name');
     }
 }

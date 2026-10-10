@@ -21,13 +21,14 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Use the field names and labels a real screen would use, so the snippet pastes into a resource unchanged.
 
 ## House rules
-`storybook-test` and `storybook-audit` warn when one is broken. **C** means two or more independent sources agree; **P** is a house choice, so follow it but don't present it as industry practice.
-- No examples in `placeholder()`; one example goes in `helperText()`. **C** (GOV.UK text input, NN/g 2014). A fixed shape gets `mask()` instead. **P**
-- Labels stay visible, above their fields; no `hiddenLabel()`. Inline labels only on very long desktop forms. **C** (NN/g 2016, GOV.UK text input)
-- Colour always comes with a word or an icon. **C** (WCAG 1.4.1)
-- Numbers and money are right-aligned. **C** (GOV.UK table, Microsoft). Money uses one formatter, `money('PHP')`, keeps its decimals, and shows negatives by sign, never in red. **P**
-- Radio-style choices for 5 or fewer options, a select for 5 to 15, searchable beyond. **C** (NN/g listboxes 2020)
-- Tables put the identifier first and let people hide columns. **C** (NN/g data tables 2022). At most 8 visible columns and 25 rows per page. **P**
+`storybook-test` and `storybook-audit` warn when one is broken. Every rule rests on current, maintained guidance; nothing is here because it is merely common or preferred.
+- Labels stay visible, above their fields; no `hiddenLabel()`. (W3C WAI forms tutorial 2024, GOV.UK text input)
+- No `placeholder()`: an example or format goes in `helperText()`, worded "For example, …". (USWDS text input, GOV.UK text input)
+- A value with a known shape, like a TIN, is one field that accepts spaces, dashes and dots and stores one format. No input mask: USWDS's own mask failed WCAG 2.1 AA. (GOV.UK National Insurance number pattern, USWDS input mask)
+- Each input is about as wide as its answer. (USWDS text input, GOV.UK text input)
+- Few options are radios; only a long list goes in a searchable select. (GOV.UK select and radios)
+- Colour always comes with a word or an icon: gray not started, warning waiting, success done, danger critical. (WCAG 2.2 1.4.1, Carbon status indicators)
+- Tables put a readable identifier first and order the other columns by importance. Numbers and money are right-aligned. (NN/g data tables 2022, GOV.UK table, USWDS table)
 
 ## Verify
 - Run `storybook-test` with the pattern's id. Fix every failure, warning and accessibility issue, then run it again. Repeat until it reports none.

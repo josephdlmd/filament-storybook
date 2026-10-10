@@ -3,7 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories;
 
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Components\Radio;
 use Filament\Schemas\Schema;
 use Josephdlmd\FilamentStorybook\Stories;
 
@@ -16,7 +16,7 @@ class RecordFormStories extends Stories
 
     public function description(): string
     {
-        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: labels above fields for short forms (NN/g 2016, GOV.UK text input); one column (NN/g, GOV.UK); input width matches the answer (GOV.UK text input).';
+        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: W3C WAI forms tutorial 2024 and GOV.UK text input (visible labels above their fields); USWDS and GOV.UK text input (input width matches the answer); GOV.UK radios (choices as radios).';
     }
 
     public function records(): array
@@ -34,9 +34,9 @@ class RecordFormStories extends Stories
                     ->maxWidth('md'),
                 TextInput::make('tin')
                     ->label('TIN')
-                    ->mask('999-999-999-999')
-                    ->regex('/^\d{3}-\d{3}-\d{3}-\d{3}$/')
-                    ->helperText('Head office branch code is 000.')
+                    ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
+                    ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
+                    ->helperText('For example, 123-456-789-000. Head office branch code is 000.')
                     ->maxWidth('xs')
                     ->required(),
                 TextInput::make('credit_limit')
@@ -45,13 +45,12 @@ class RecordFormStories extends Stories
                     ->step(0.01)
                     ->minValue(0)
                     ->maxWidth('xs'),
-                ToggleButtons::make('payment_terms')
+                Radio::make('payment_terms')
                     ->options([
                         'cod' => 'Cash on delivery',
                         'net_30' => '30 days',
                         'net_60' => '60 days',
-                    ])
-                    ->inline(),
+                    ]),
             ]);
     }
 }

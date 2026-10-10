@@ -14,7 +14,7 @@ class TinInputStories extends Stories
 
     public function description(): string
     {
-        return 'Every Philippine Tax Identification Number a user types: the 9-digit TIN plus its 3-digit branch code, stored as `000-000-000-000`. On a resource form, add `->unique()` so each TIN is registered once. Basis: no placeholder examples (GOV.UK text input, NN/g 2014); the mask is a house choice.';
+        return 'Every Philippine Tax Identification Number a user types: the 9-digit TIN plus its 3-digit branch code. One field, an example in the hint, any spaces, dashes or dots accepted, and stored as `000-000-000-000`. On a resource form, add `->unique()` so each TIN is registered once. Basis: GOV.UK National Insurance number pattern (one field, an example in the hint, accept and ignore spaces and punctuation, no placeholder); USWDS input mask failed WCAG 2.1 AA in its own tests, so no mask.';
     }
 
     public function records(): array
@@ -26,11 +26,11 @@ class TinInputStories extends Stories
     {
         return TextInput::make('tin')
             ->label('TIN')
-            ->mask('999-999-999-999')
-            ->regex('/^\d{3}-\d{3}-\d{3}-\d{3}$/')
-            ->helperText('Head office branch code is 000.')
+            ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
+            ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
+            ->helperText('For example, 123-456-789-000. Head office branch code is 000.')
             ->maxWidth('xs')
-            ->validationMessages(['regex' => 'Enter all 12 digits: the 9-digit TIN and its 3-digit branch code']);
+            ->validationMessages(['regex' => 'Enter a TIN in the correct format: 12 digits, including the branch code']);
     }
 
     /** A required TIN says what to do when it is left empty. */
@@ -38,14 +38,14 @@ class TinInputStories extends Stories
     {
         return TextInput::make('tin')
             ->label('TIN')
-            ->mask('999-999-999-999')
-            ->regex('/^\d{3}-\d{3}-\d{3}-\d{3}$/')
-            ->helperText('Head office branch code is 000.')
+            ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
+            ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
+            ->helperText('For example, 123-456-789-000. Head office branch code is 000.')
             ->maxWidth('xs')
             ->required()
             ->validationMessages([
                 'required' => 'Enter the TIN',
-                'regex' => 'Enter all 12 digits: the 9-digit TIN and its 3-digit branch code',
+                'regex' => 'Enter a TIN in the correct format: 12 digits, including the branch code',
             ]);
     }
 }

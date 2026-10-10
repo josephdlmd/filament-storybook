@@ -14,7 +14,7 @@ class StatusBadgeStories extends Stories
 
     public function description(): string
     {
-        return 'A record\'s state in a table. One colour per meaning (success done, warning to-do, danger only for losses and failures, gray neutral), always with the word (colour alone fails WCAG 1.4.1). In an app, put the label and colour on the status enum (`HasLabel`, `HasColor`) and use just `->badge()`.';
+        return 'A record\'s state in a table: gray for not started, warning for waiting on someone, success for done, danger for something critical, always with the word. In an app, put the label and colour on the status enum (`HasLabel`, `HasColor`) and use just `->badge()`. Basis: Carbon status indicator pattern (colour meanings, colour never alone) and WCAG 2.2 1.4.1 Use of Color.';
     }
 
     public function records(): array
@@ -23,7 +23,7 @@ class StatusBadgeStories extends Stories
             1 => ['status' => 'draft'],
             2 => ['status' => 'for_approval'],
             3 => ['status' => 'approved'],
-            4 => ['status' => 'cancelled'],
+            4 => ['status' => 'overdue'],
         ];
     }
 
@@ -35,7 +35,7 @@ class StatusBadgeStories extends Stories
             ->color(fn (string $state): string => match ($state) {
                 'approved' => 'success',
                 'for_approval' => 'warning',
-                'cancelled' => 'danger',
+                'overdue' => 'danger',
                 default => 'gray',
             });
     }
