@@ -129,6 +129,8 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
+One thing a plugin can't reach: Filament title-cases the model in each resource's page titles, navigation and breadcrumbs ("Create Supplier"). Add `use \Josephdlmd\FilamentStorybook\Concerns\HasSentenceCaseLabels;` and a `$recordTitleAttribute` to each resource; `storybook-audit` warns where it's missing.
+
 ## Render every story in the app's tests
 
 `storybook:install` writes the standard `tests/Feature/StoriesTest.php` ([stubs/StoriesTest.php](stubs/StoriesTest.php)). The first test renders every story. The second fails the build if a Boost update ever stops giving agents the tools: they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file. Every app has the same file, so don't edit it there; change the stub.

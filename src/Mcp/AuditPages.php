@@ -2,7 +2,6 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
-use Filament\Facades\Filament;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -13,6 +12,7 @@ use Filament\Actions\DissociateAction;
 use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
@@ -20,14 +20,14 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Component as SchemaComponent;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
@@ -176,6 +176,18 @@ class AuditPages extends Tool
         $warn = function (string $message) use (&$warnings, $key): void {
             $warnings[] = "- `{$key}`: {$message}";
         };
+
+        // Filament title-cases the model in these ("Create Supplier", "Purchase Orders"); edit and view titles name the record, so they're left alone.
+        if ($page instanceof ListRecords || $page instanceof CreateRecord) {
+            $resource = $page::getResource();
+            $titles = [(string) $page->getTitle(), ...($page instanceof ListRecords ? [$resource::getNavigationLabel(), (string) $resource::getBreadcrumb()] : [])];
+
+            foreach (array_unique($titles) as $title) {
+                if (static::isTitleCase($title, $title)) {
+                    $warn("\"{$title}\" (the page title, navigation or breadcrumb) is in Title Case; add `use \\Josephdlmd\\FilamentStorybook\\Concerns\\HasSentenceCaseLabels;` inside `".class_basename($resource).'` and set its `$recordTitleAttribute`, or, for a resource whose records have no name, set the page\'s `$title` and the resource\'s `$breadcrumb` (Carbon content).');
+                }
+            }
+        }
 
         $header = method_exists($page, 'getCachedHeaderActions') ? $page->getCachedHeaderActions() : [];
         $headerActions = static::flatten($header);

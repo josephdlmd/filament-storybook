@@ -204,7 +204,7 @@ it('tells an agent the valid ids instead of letting it guess', function (): void
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 27 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 28 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -273,7 +273,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 23 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 24 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
@@ -297,6 +297,8 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the field label "Released On" is in Title Case')
         ->toContain('- `CreateGadget`: the field label "Code:" ends with a colon')
         ->toContain('- `CreateGadget`: the heading "Stock Keeping" is in Title Case')
+        ->toContain('- `CreateGadget`: "Create Gadget" (the page title, navigation or breadcrumb) is in Title Case; add `use \\Josephdlmd\\FilamentStorybook\\Concerns\\HasSentenceCaseLabels;` inside `GadgetResource`')
+        ->not->toContain('"Gadgets"')
         // Sentence case, names, acronyms and Filament's own labels raise nothing.
         ->not->toContain('"SKU"')
         ->not->toContain('"Price"')
@@ -315,7 +317,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 4 pages rendered, 0 failing, 38 warnings')
+        ->toStartWith('# 4 pages rendered, 0 failing, 39 warnings')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
         ->toContain('- `EditGadget`: `delete` asks "Are you sure you would like to do this?"')
         ->toContain('- `ViewGadget`: it shows the record as a disabled form')
@@ -348,6 +350,20 @@ it('refuses an app that does not meet the standard, saying what to change', func
         ->toContain('Laravel Boost')->toContain('Pest')->toContain('package.json')->toContain('default Filament panel');
 
     $this->artisan('storybook:install')->assertExitCode(1);
+});
+
+it('gives a resource sentence case where Filament title-cases its model', function (): void {
+    $resource = new class extends Filament\Resources\Resource
+    {
+        use Josephdlmd\FilamentStorybook\Concerns\HasSentenceCaseLabels;
+
+        protected static ?string $model = Josephdlmd\FilamentStorybook\Tests\Fixtures\GadgetPart::class;
+    };
+
+    expect($resource::getTitleCaseModelLabel())->toBe('gadget part')
+        ->and($resource::getNavigationLabel())->toBe('Gadget parts')
+        ->and($resource::getBreadcrumb())->toBe('Gadget parts')
+        ->and(GadgetResource::getTitleCaseModelLabel())->toBe('Gadget');
 });
 
 it('flags only Title Case someone typed, never sentence case, names or acronyms', function (string $label, string $name, bool $flagged): void {

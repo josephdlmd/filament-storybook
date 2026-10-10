@@ -54,7 +54,8 @@ checks = {
     "TIN: shared pattern reused (no mask, example in hint)": "For example, 123-456-789-000" in code and "mask(" not in code,
     "no placeholder() format examples": "->placeholder(" not in code,
     "record form screen: one column, labels above": "->columns(1)" in code and "inlineLabel()" not in code,
-    "notification: save toast titled, no forced persistent()": any(m in code for m in ("NotificationTitle(", "Notification::make")) and "->persistent()" not in code,
+    # Filament's own "Created"/"Saved" toast meets the rule, so only forcing persistent() (an app-wide default already) fails.
+    "notification: no forced persistent()": "->persistent()" not in code,
     "delete: confirmation says the consequence": "DeleteAction::make" in code and "modalDescription(" in code,
     "delete: no solid danger trigger": "outlined(false)" not in code,
 }
