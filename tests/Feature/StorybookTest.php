@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-view-page', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -160,12 +160,12 @@ it('corrects Filament defaults that break a sourced rule, app-wide', function ()
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-view-page, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 19 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 23 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -231,7 +231,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 13 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 14 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
@@ -246,12 +246,14 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the field `quantity` hides its label')
         ->toContain('- `CreateGadget`: the line-item field `note` has no column in `parts`')
         ->toContain('- `CreateGadget`: `parts` reorders only by dragging')
+        ->toContain('- `CreateGadget`: the read-only field `sku` is still saved')
         // A line-item field built right, under its own label as the header, raises nothing.
         ->not->toContain('`part`')
         ->not->toContain('"Part"')
         ->not->toContain('the error "Enter name"')
         ->not->toContain('25 rows')
         ->toContain('- `EditGadget`: no record to open')
+        ->toContain('- `ViewGadget`: no record to open')
         ->toContain('Fix each one, then run storybook-audit again');
 });
 
@@ -259,8 +261,12 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 3 pages rendered, 0 failing, 21 warnings')
+        ->toStartWith('# 4 pages rendered, 0 failing, 25 warnings')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
+        ->toContain('- `ViewGadget`: it shows the record as a disabled form')
+        ->toContain('- `ViewGadget`: its related lists are tabs')
+        // The view page's disabled form isn't audited field by field; the warning above covers it.
+        ->not->toContain('- `ViewGadget`: the field')
         ->toContain('- `EditGadget`: the field `code` uses placeholder()');
 });
 
@@ -334,3 +340,35 @@ it('works out a line total as quantity × unit price, rounded once to centavos, 
     'an exponent, as a number field allows' => ['1e3', '2', '₱2,000.00'],
     'no quantity yet' => ['', '2', null],
 ]);
+
+it('builds the View page pattern on a real resource page: related lists in the main column, Edit on the summary', function (): void {
+    $gadget = Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
+    $gadget->parts()->create(['name' => 'Bulb']);
+
+    $page = Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\Pages\ViewGadgetInLayout::class, ['record' => $gadget->getKey()])
+        ->assertSee('Bulb')
+        ->assertSee('Spare parts')
+        ->assertSeeHtml('href="'.GadgetResource::getUrl('edit', ['record' => $gadget]).'"')
+        ->assertDontSeeHtml('fi-tabs');
+
+    expect((fn (): array => static::warnings('ViewGadgetInLayout', $page->instance()))->call(new AuditPages))->toBe([]);
+});
+
+it('links a missing value to where it is added', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordDetailsStories::class, 'story' => 'default'])
+        ->assertSee('Add due date')
+        ->assertSee('123-456-789-000')
+        ->assertSee('₱2,363.71');
+});
+
+it('keeps a locked record\'s values out of the save, even when changed in the browser', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordLockedStories::class, 'story' => 'default'])
+        ->assertSee('This bill is approved, so only its notes can change')
+        ->assertSeeHtml('readonly')
+        ->assertSee('30 days')
+        ->set('data.reference', 'CHANGED')
+        ->set('data.amount', '1')
+        ->set('data.notes', 'Checked by the warehouse');
+
+    expect($canvas->instance()->form->getState())->toBe(['notes' => 'Checked by the warehouse']);
+});

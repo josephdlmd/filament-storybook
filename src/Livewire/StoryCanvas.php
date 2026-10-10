@@ -2,8 +2,10 @@
 
 namespace Josephdlmd\FilamentStorybook\Livewire;
 
+use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\EditAction;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -12,6 +14,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
@@ -45,7 +48,8 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 
     public function form(Schema $schema): Schema
     {
-        $schema->statePath('data');
+        // An unsaved record from the first sample row, so stories can lock on `$record` as a resource would.
+        $schema->statePath('data')->record($this->record());
 
         return match ($this->kind()) {
             'component' => $schema->components([$this->build()]),
@@ -65,6 +69,17 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
             'table' => $this->build($table),
             default => $table,
         };
+    }
+
+    /** The canvas has no Edit page for `EditAction` to open, as a resource page does. */
+    public function getDefaultActionUrl(Action $action): ?string
+    {
+        return $action instanceof EditAction ? '#' : null;
+    }
+
+    protected function record(): Model
+    {
+        return (new class extends Model {})->forceFill(Arr::first($this->instance()->records()) ?? []);
     }
 
     public function kind(): ?string

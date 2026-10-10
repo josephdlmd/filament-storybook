@@ -72,12 +72,24 @@ Pattern `forms-line-items`. Checked against the live sources on 2026-10-10.
 ## Layout and pages
 
 - **Lists and record pages use the full width; long forms keep readable line lengths.** Carbon 2x grid (Sep 2026); GOV.UK layout.
-- **Record pages: content in two thirds, a summary of facts in one third.** The summary's actions sit on its heading row, and a missing value links to where it's added. The summary is sticky only if it fits the screen. GOV.UK layout and summary card; WCAG 2.4.11.
+- **Record pages: content in three quarters, a summary of facts in one quarter,** stacked below a large screen with the content first. The summary's actions sit on its heading row, and a missing value links to where it's added. The summary is not sticky: Filament has no setting for it, and a sticky column must never hide focus. Carbon 2x grid (Sep 2026: 16 columns, divided by two and by four; it advises against layouts in thirds); GOV.UK summary card and summary list; WCAG 1.4.10 and 2.4.11. *Patterns `records-view-page`, `records-details`.*
 - **Related lists sit in the main column, most used first, not in a tab beside the details.** GOV.UK tabs; NN/g tabs (Aug 2024).
 - **Tabs are for views of the same thing:** few, with short labels, in one row and never nested. Carbon tabs; NN/g tabs (Aug 2024).
 - **Never collapse a section that holds a required field.** NN/g accordions (Jul 2023).
 - **Deep pages keep a way back** (breadcrumbs or a back link). GOV.UK breadcrumbs; NN/g breadcrumbs.
 - **At most one "needs action" banner per page, before the heading.** GOV.UK notification banner.
+
+### Read-only and locked records
+
+Patterns `records-details`, `records-view-page` and `records-locked`. Checked against the live sources on 2026-10-10.
+
+- **A value the user may read but not change is read-only, never disabled.** Read-only text keeps 4.5:1 contrast, stays reachable by keyboard and is read by screen readers. A disabled control is skipped by screen readers and exempt from contrast, so it never holds something the user needs to read. Carbon read-only states (Aug 2026); WCAG 1.4.3 (Sep 2026: the exemption covers controls "not available for user interaction"); WAI-ARIA 1.2 `aria-readonly` (focusable, and copying is supported).
+- **Information that can't be edited here is text, not a field.** A View page is an infolist of entries, never Filament's default disabled form. Carbon read-only states: "If the component does not have an enabled state, do not use a read-only state to display static information." *Audit.*
+- **Disabled is only for a control that becomes available once the user does something on the same screen.** When it holds up the primary action, an inline notification says how to enable it. Hide what the user may never do. Carbon disabled states (Aug 2026).
+- **Read-only fields look read-only:** no field background and a fainter border, with the text at full contrast. Filament's `readOnly()` changes nothing. Carbon read-only states. *House CSS.*
+- **A locked record says why, and what to do instead,** in an inline notification: first in the main column of its View page, and at the top of a form that can still change part of it. Edit never vanishes without a reason. Carbon disabled states (the notification describes how to re-enable); Carbon notifications (inline, informational). *Pattern `records-locked`.*
+- **In a partly locked form, the locked fields are read-only.** Choice fields (radios, selects, checkboxes) have no read-only state in Filament, so they show their value as text. Carbon read-only states (Locked; choice controls have a read-only state there). *Pattern `records-locked`.*
+- **Which statuses lock a record is a business fact.** Each app sets its own, ideally on its status enum, and uses it in its own `app/Stories`; the shared pattern uses one generic condition on the record.
 - **A count badge means waiting work, and is hidden at zero.** NN/g indicators (Jan 2024).
 - **Error pages:** no "404" or "500" jargon; say whether work was saved and who to contact. GOV.UK page not found and problem with the service.
 
@@ -122,6 +134,9 @@ Approved by the owner on 2026-10-10.
 - Restrict which records a `ModalTableSelect` offers in `relationship(modifyQueryUsing:)`; the table filter alone isn't a security boundary. (Filament docs)
 - Bulk actions check permission per record with `authorizeIndividualRecords()`. (Filament docs)
 - No deprecated components: `Select->multiple()`, not `MultiSelect`; `TextEntry`, not `Placeholder`. (Filament 5 source)
+- A read-only field is still submitted, and its value can be changed in the browser. Keep locked values out of the save with `saved(false)` on the field or a group around it, and let the policy's `update()` refuse when nothing may change; Filament then hides Edit and refuses the Edit page. (Filament docs) *Audit.*
+- A relation manager embedded with `Livewire::make()` skips Filament's `canViewForRecord()` check; keep it with `visible()`, as `records-view-page` shows. (Filament 5 source)
+- In Filament, `EditAction::make()` anywhere on a resource page opens the Edit page, or the resource form in a modal when there is no Edit page, and is hidden when the policy refuses `update()`. (Filament 5 source)
 
 ## Where we differ from Carbon
 
@@ -147,6 +162,7 @@ These rules had no current basis, or a current source contradicts them:
 - **Inline labels on forms,** including slide-overs and settings pages. This contradicts labels above fields.
 - **Save button on the right.** GOV.UK aligns the primary button to the left of the form.
 - **"—" for a missing value.** GOV.UK links to where it's added instead.
+- **Two thirds and one third on record pages** (GOV.UK layout). Carbon's 2x grid advises against layouts in thirds, and GOV.UK covers form wording, not layout. Replaced by three quarters and one quarter.
 - **Email codes as a sign-in fallback.** NIST forbids it.
 - **Breadcrumbs off everywhere.** GOV.UK and NN/g keep them on deep pages.
 - **A grey delete trigger** (GOV.UK). Carbon, our base, makes it low-emphasis danger instead.

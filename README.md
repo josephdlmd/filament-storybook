@@ -102,7 +102,7 @@ public function default(Table $table): Table
 }
 ```
 
-`Tables/List table` and `Forms/Record form` ship as the shared screen patterns, and `Forms/Line items` as the lines of an invoice, bill or order. Two house CSS rules cover what Filament has no setting for: inline labels on a very long form stay aligned, and the fields in a line-item table keep their labels for screen readers under the column headers, where Filament would remove them. The package registers the CSS as a Filament asset and `php artisan filament:upgrade` publishes it.
+`Tables/List table`, `Forms/Record form` and `Records/View page` ship as the shared screen patterns, `Forms/Line items` as the lines of an invoice, bill or order, `Records/Details` as a record's summary of facts, and `Records/Locked` as a record that can no longer change. Three house CSS rules cover what Filament has no setting for: inline labels on a very long form stay aligned, the fields in a line-item table keep their labels for screen readers under the column headers, where Filament would remove them, and read-only fields look read-only. The package registers the CSS as a Filament asset and `php artisan filament:upgrade` publishes it.
 
 ## Where the rules come from
 

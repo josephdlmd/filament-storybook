@@ -17,6 +17,7 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - One public method per state the pattern really has: `default`, then variants such as `required`, `disabled`, `withHelperText`, `manyOptions`. Name them by scenario, in camelCase.
 - Put a one-line docblock on every variant saying what is different and why.
 - Columns and entries need sample data. Return rows from `records()`, keyed by record id, covering the edge cases: a negative amount, an empty value, a long label.
+- The canvas gives every story an unsaved record made from the first sample row, so a condition on `$record` (`fn (?Model $record): bool => …`) works as it does in a resource.
 - Keep stories pure. Do not query the database, read the session or call external services; sample data goes in `records()`.
 - Use the field names and labels a real screen would use, so the snippet pastes into a resource unchanged.
 

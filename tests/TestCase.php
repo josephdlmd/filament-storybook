@@ -70,5 +70,12 @@ abstract class TestCase extends Orchestra
             $table->decimal('price', 12, 2)->default(0);
             $table->timestamps();
         });
+
+        Schema::create('gadget_parts', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('gadget_id');
+            $table->string('name');
+            $table->timestamps();
+        });
     }
 }

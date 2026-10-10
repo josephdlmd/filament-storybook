@@ -34,6 +34,7 @@ class GadgetResource extends Resource
         return $schema->components([
             TextInput::make('name')->label('Name')->required(),
             TextInput::make('code')->label('Code')->placeholder('GAD-0001'),
+            TextInput::make('sku')->label('SKU')->readOnly(),
             TextInput::make('serial')->label('Serial')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
             DatePicker::make('released_on')->label('Released')->native(false),
@@ -67,11 +68,17 @@ class GadgetResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [RelationManagers\PartsRelationManager::class, RelationManagers\SparePartsRelationManager::class];
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListGadgets::route('/'),
             'create' => Pages\CreateGadget::route('/create'),
+            'view' => Pages\ViewGadget::route('/{record}'),
             'edit' => Pages\EditGadget::route('/{record}/edit'),
             'report' => Pages\ReportGadgets::route('/report/{year}'),
         ];

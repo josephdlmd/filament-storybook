@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -29,6 +30,9 @@ class Storybook extends Page
     protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $slug = 'storybook';
+
+    // Screen stories show at the width their real pages get: lists and record pages use the full width (Carbon 2x grid).
+    protected Width | string | null $maxContentWidth = Width::Full;
 
     #[Url]
     public ?string $component = null;

@@ -16,9 +16,11 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Schemas\Components\Component as SchemaComponent;
 use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
@@ -219,14 +221,28 @@ class AuditPages extends Tool
             }
         }
 
-        // A list page reuses the resource form for its create modal; that form is audited on the create page.
-        $fields = $page instanceof ListRecords ? [] : rescue(fn (): array => $page->form->getFlatFields(withHidden: false), [], report: false);
+        if ($page instanceof ViewRecord) {
+            if ($page->getSchema('infolist')?->getComponents() === []) {
+                $warn('it shows the record as a disabled form, which screen readers skip and which needn\'t meet contrast; give the resource an `infolist()` of read-only entries, as `records-view-page` does (Carbon read-only states, WCAG 1.4.3).');
+            }
+
+            if (count($page->getCachedRelationManagers()) > 1 || $page->hasCombinedRelationManagerTabsWithContent()) {
+                $warn('its related lists are tabs; stack each relation manager in the main column with `Livewire::make()`, as `records-view-page` does (NN/g tabs 2024).');
+            }
+        }
+
+        // A list page reuses the resource form for its create modal, and a view page's form is the disabled one warned about above.
+        $fields = $page instanceof ListRecords || $page instanceof ViewRecord ? [] : rescue(fn (): array => $page->form->getFlatFields(withHidden: false), [], report: false);
 
         foreach ($fields as $field) {
             $name = $field->getName();
 
             if ($field instanceof TextInput && filled($field->getPlaceholder())) {
                 $warn("the field `{$name}` uses placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).");
+            }
+
+            if (method_exists($field, 'isReadOnly') && $field->isReadOnly() && static::isSaved($field)) {
+                $warn("the read-only field `{$name}` is still saved, and its value can be changed in the browser; put it in a group with `->saved(false)`, as `records-locked` does, and set the value on the server (Filament docs).");
             }
 
             if ($field->isLabelHidden()) {
@@ -271,6 +287,18 @@ class AuditPages extends Tool
         }
 
         return $warnings;
+    }
+
+    /** Whether a field's value reaches the save: neither it nor any group around it is `saved(false)`. */
+    protected static function isSaved(?SchemaComponent $component): bool
+    {
+        for (; $component !== null; $component = $component->getContainer()->getParentComponent()) {
+            if (! $component->isDehydrated()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
