@@ -16,7 +16,7 @@ class BrokenStories extends Stories
 
     public function works(): TextInput
     {
-        return TextInput::make('name');
+        return TextInput::make('name')->placeholder('Jane Cruz');
     }
 
     public function throws(): TextInput

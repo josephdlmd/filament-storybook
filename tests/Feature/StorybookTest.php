@@ -108,7 +108,7 @@ it('tells an agent the valid ids instead of letting it guess', function (): void
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 6 passing, 0 failing')
+        ->toStartWith('# 6 passing, 0 failing, 0 warnings')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -116,7 +116,10 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 1 passing, 3 failing')
+        ->toStartWith('# 1 passing, 3 failing, 5 warnings')
+        ->toContain('- `broken-story`: add description()')
+        ->toContain('- `broken-story.works`: format examples never go in placeholder()')
+        ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:40')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')

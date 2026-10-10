@@ -19,9 +19,12 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Keep stories pure. Do not query the database, read the session or call external services; sample data goes in `records()`.
 - Use the field names and labels a real screen would use, so the snippet pastes into a resource unchanged.
 
-## Accessibility
-- Every field keeps a visible label. Colour always comes with a word or an icon.
+## House rules
+`storybook-test` warns when a story breaks one of these.
+- Format examples never go in `placeholder()`. A value with a fixed shape gets `mask()`; otherwise put one example in a one-line `helperText()`.
+- Every field keeps a visible label; no `hiddenLabel()`. Colour always comes with a word or an icon.
+- Money is `money('PHP')`, right-aligned, with decimals kept; negatives by sign, never by colour.
 
 ## Verify
-- Run `storybook-test` with the pattern's id. If anything fails, fix it and run it again. Repeat until every story passes.
+- Run `storybook-test` with the pattern's id. Fix every failure and warning, then run it again. Repeat until it reports none.
 - Then give the user the preview link from `storybook-show`.

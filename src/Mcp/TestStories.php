@@ -47,8 +47,11 @@ class TestStories extends Tool
 
         $passing = [];
         $failing = [];
+        $warnings = [];
 
         foreach ($ids === [] ? $all : array_intersect_key($all, array_flip($ids)) as $id => $stories) {
+            $warnings = [...$warnings, ...static::warnings($id, $stories, app(StoryRegistry::class)->manifest($stories))];
+
             foreach ($stories->stories() as $name => $story) {
                 if (Stories::kind($story) === null) {
                     $failing["{$id}.{$name}"] = 'Not a story: declare a Filament schema component, table column or action as its return type, at '
@@ -71,7 +74,7 @@ class TestStories extends Tool
             }
         }
 
-        $text = '# '.count($passing).' passing, '.count($failing)." failing\n";
+        $text = '# '.count($passing).' passing, '.count($failing).' failing, '.count($warnings)." warnings\n";
 
         if ($failing !== []) {
             $text .= "\n## Failing\n\n"
@@ -79,7 +82,49 @@ class TestStories extends Tool
                 ."\n\nFix each failure, then run storybook-test again until every story passes.\n";
         }
 
+        if ($warnings !== []) {
+            $text .= "\n## Warnings\n\nThese stories render but break a house rule. Fix each one too, or tell the user why it should stay.\n\n"
+                .implode("\n", array_map(fn (string $warning): string => "- {$warning}", $warnings))."\n";
+        }
+
         return Response::text($text.($passing === [] ? '' : "\n## Passing\n\n".implode("\n", array_map(fn (string $story): string => "- `{$story}`", $passing))."\n"));
+    }
+
+    /**
+     * House rules a story can break and still render. Agents copy stories, so a broken rule spreads to every screen.
+     *
+     * @param  array{description: string, stories: list<array{name: string, description: string, kind: string|null, snippet: string}>}  $manifest
+     * @return list<string>
+     */
+    protected static function warnings(string $id, Stories $stories, array $manifest): array
+    {
+        $warnings = [];
+
+        if (blank($manifest['description'])) {
+            $warnings[] = "`{$id}`: add description(), saying when to use this pattern and when not to.";
+        }
+
+        foreach ($manifest['stories'] as $i => $story) {
+            $key = "`{$id}.{$story['name']}`";
+
+            if ($i > 0 && blank($story['description'])) {
+                $warnings[] = "{$key}: add a one-line docblock saying how this variant differs.";
+            }
+
+            if (str_contains($story['snippet'], '->placeholder(')) {
+                $warnings[] = "{$key}: format examples never go in placeholder(); use mask() for a fixed shape, otherwise a one-line helperText().";
+            }
+
+            if (str_contains($story['snippet'], '->hiddenLabel(')) {
+                $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen.";
+            }
+
+            if ($story['kind'] === 'column' && $stories->records() === []) {
+                $warnings[] = "{$key}: add sample rows in records(), so the column shows real values.";
+            }
+        }
+
+        return $warnings;
     }
 
     /** Points at the story's own line when the error passed through it, since that is what the agent can fix. */
