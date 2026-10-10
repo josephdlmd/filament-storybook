@@ -10,6 +10,7 @@ use Josephdlmd\FilamentStorybook\Stories\ChoiceStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyColumnStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyInputStories;
 use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
+use Josephdlmd\FilamentStorybook\Stories\TinInputStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Laravel\Mcp\Request;
@@ -21,7 +22,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['forms-choice', 'forms-money-input', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['forms-choice', 'forms-money-input', 'forms-tin', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -54,6 +55,18 @@ it('shows column stories with their sample rows', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => MoneyColumnStories::class, 'story' => 'default'])
         ->assertSee('-₱320.00');
 });
+
+it('accepts a TIN with its branch code and rejects one without', function (string $tin, bool $valid): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => TinInputStories::class, 'story' => 'required'])->set('data.tin', $tin);
+
+    $valid
+        ? expect($canvas->instance()->form->getState())->toBe(['tin' => $tin])
+        : expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, 'Enter all 12 digits');
+})->with([
+    'head office' => ['123-456-789-000', true],
+    'branch' => ['123-456-789-002', true],
+    'missing branch code' => ['123-456-789', false],
+]);
 
 it('refuses to render a class that is not a registered story', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => User::class, 'story' => 'delete'])->assertNotFound();
@@ -103,12 +116,12 @@ it('gives agents the real signatures of the methods a pattern uses', function ()
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: forms-choice, forms-money-input, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: forms-choice, forms-money-input, forms-tin, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 6 passing, 0 failing, 0 warnings')
+        ->toStartWith('# 8 passing, 0 failing, 0 warnings')
         ->toContain('- `forms-money-input.required`');
 });
 
