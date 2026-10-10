@@ -38,12 +38,14 @@ Then, as an app needs them:
 - **Records:** returns and credit notes; approval history; a change history on each record; notes and attachments on a record; global search. Shared.
 - **Money:** price lists and customer prices; collections and deposits (including post-dated cheques, if used). Shared screens, business rules.
 - **Accounting and tax:** chart of accounts; journal entries (debits equal credits); closing a period; tax reports and certificates. App-specific.
+- **Other screens an app may need:** a customer portal; delivery confirmation on a phone (photo or signature); a delivery calendar; recurring documents; a first-run company setup. Build them when an app asks.
 - **Administration:** roles and permissions; error pages (the rule exists, no pattern); faster data entry ("save and create another", keyboard use on long forms). Shared.
 
 ## Ask the owner first
 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
+- Whether the app serves more than one company or branch. Decide this first: it shapes every table, so it can't be added after the documents are built.
 - Which documents the app handles (sales invoice, purchase order, receiving, payment, others)
 - Whether a posted document can ever be edited
 - How cancellation works (a reason, keeping the number, who may cancel)
