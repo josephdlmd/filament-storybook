@@ -23,7 +23,8 @@ class StatusBadgeStories extends Stories
             1 => ['status' => 'draft'],
             2 => ['status' => 'for_approval'],
             3 => ['status' => 'approved'],
-            4 => ['status' => 'overdue'],
+            4 => ['status' => 'rejected'],
+            5 => ['status' => 'overdue'],
         ];
     }
 
@@ -35,7 +36,7 @@ class StatusBadgeStories extends Stories
             ->color(fn (string $state): string => match ($state) {
                 'approved' => 'success',
                 'for_approval' => 'info',
-                'overdue' => 'danger',
+                'rejected', 'overdue' => 'danger',
                 default => 'gray',
             });
     }

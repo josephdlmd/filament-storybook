@@ -59,7 +59,7 @@ Pattern `actions-approve-and-reject`. Checked against the live sources on 2026-1
 - **Approve and Reject show only while the record waits for a decision, and only to users who may decide** (a policy method); otherwise they are hidden, not disabled. Carbon disabled states (Aug 2026: hidden when the user "does not have permission"). *Pattern.*
 - **Approve is the page's one primary button; Reject is secondary (gray), the negative action of the pair, never danger,** because nothing is destroyed. Carbon button (Sep 2026: secondary is "the negative action of the set"; danger is "for actions that could have destructive effects"); Carbon action labels (archived: Approve "typically initiates the next step", Reject "typically blocks the process from proceeding"). *Pattern.*
 - **Approve acts at once; each decision ends with a toast naming the outcome** ("Order 1042 approved"). Only where approving can't be undone does it confirm, under "Confirm destructive or irreversible actions". See Notifications. *Pattern.*
-- Whether a rejection needs a reason, and which colours the Approved and Rejected statuses take, are business decisions; Carbon sets neither. The pattern asks for a reason and leaves the colours to the app's status enum.
+- **Rejecting always asks for a reason,** and the statuses are For approval (blue), Approved (green) and Rejected (red). Carbon sets neither; both are business standards (see Business standards). *Pattern, `tables-status-badge`.*
 
 ### Notifications
 
@@ -175,6 +175,7 @@ Approved by the owner on 2026-10-10.
 - **Quantity:** **up to 3 decimal places,** for weights, volumes and lengths. *Pattern `forms-quantity`.*
 - **Round once, at the end:** a line total is quantity × unit price, rounded to 2 decimals once, as `forms-line-items` shows. VAT is worked out once per invoice for each VAT class (12%, zero-rated, exempt), on that class's total, then rounded to 2 decimals. This matches BIR's requirement to show VAT as a separate item and to break out taxable, zero-rated and exempt sales (RR 7-2024).
 - **Rounding is half up, away from zero for negatives:** ₱50.025 becomes ₱50.03, and a credit of −₱50.025 becomes −₱50.03, so a return mirrors its sale. This is how people check figures by hand and how Excel's `ROUND` and PostgreSQL's `round()` work. Not banker's rounding (half to even). *Pattern `forms-line-items`.*
+- **Approval statuses:** For approval is info (blue), Approved is success (green), Rejected is danger (red), each with its word. **Rejecting requires a reason,** which the person who raised the record sees. Decided 2026-10-11: the owner asked for best practice. Basis: Carbon's status palette (red for "danger or error", yellow for a warning that something may go wrong) and Carbon notifications pattern ("Do not leave users without next steps"); confirmed by Atlassian (red for "declined") and SAP Fiori (red for a "negative status or consequence"). *Patterns `actions-approve-and-reject`, `tables-status-badge`.*
 - **One method everywhere:** the invoice, the journal entry and the tax returns use the same amounts and the same rounding, so the books always agree with the invoices.
 - **Never floating-point money:** money is stored in decimal columns (for example `decimal(15, 2)`, and `decimal(15, 4)` for unit cost) and computed with decimal arithmetic, never PHP floats.
 
