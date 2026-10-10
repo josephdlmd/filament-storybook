@@ -105,9 +105,13 @@ Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
 ## Render every story in the app's tests
 
+Copy this into the app as `tests/Feature/StoriesTest.php`. The first test renders every story; the second fails the build if a Boost update ever stops giving agents the tools (they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file).
+
 ```php
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
+use Josephdlmd\FilamentStorybook\Mcp;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
+use Laravel\Boost\Mcp\ToolRegistry;
 use Livewire\Livewire;
 
 it('renders every stories pattern', function () {
@@ -116,6 +120,16 @@ it('renders every stories pattern', function () {
             Livewire::test(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story])->assertOk();
         }
     }
+});
+
+it('gives agents the storybook tools through Boost', function () {
+    expect(ToolRegistry::getAvailableTools())->toContain(
+        Mcp\ListStories::class,
+        Mcp\ShowStories::class,
+        Mcp\ShowInstructions::class,
+        Mcp\TestStories::class,
+        Mcp\AuditPages::class,
+    );
 });
 ```
 

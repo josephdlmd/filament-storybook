@@ -14,7 +14,10 @@
         "pestphp/pest-plugin-laravel": "^5.0"
     },
     "suggest": {
-        "laravel/boost": "Exposes the stories to AI agents as the storybook-list and storybook-show MCP tools."
+        "laravel/boost": "Gives AI agents the patterns, rules and checks as the storybook-list, storybook-show, storybook-instructions, storybook-test and storybook-audit MCP tools."
+    },
+    "conflict": {
+        "laravel/mcp": ">=2.0"
     },
     "autoload": {
         "psr-4": {

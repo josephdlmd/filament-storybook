@@ -34,6 +34,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 - **A new pattern:** add a `Stories` class in `src/Stories`. Its description names its basis. Its snippets use only native Filament and paste straight into a resource. Run `storybook-test`; it must report 0 failures, 0 warnings and 0 accessibility issues.
 - **A Filament default that breaks a rule:** correct it in `StorybookPlugin::applyHouseDefaults()`, which apps can turn off with `->houseDefaults(false)`. Test the default itself.
 - **A tool class:** a fatal error in any one of them takes down Boost's whole MCP server, so the tests construct every tool. Don't name a method `name()`; that's laravel/mcp's.
+- **Compatibility:** the tools extend laravel/mcp 1.x, and `composer.json` has `"conflict": {"laravel/mcp": ">=2.0"}`, so composer refuses an update that would break them. When laravel/mcp 2.0 ships, run the tests against it, fix the tools, and lift the limit in a release. The tools reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file, so each app's `StoriesTest` asserts Boost still lists all five tools.
 
 ## Checking
 
