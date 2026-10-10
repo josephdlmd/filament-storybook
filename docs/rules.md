@@ -89,7 +89,7 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 
 ## Business standards (from the owner)
 
-Approved by the owner on 2026-10-10 "for now". Two points are still to be confirmed with the company's CPA or tax adviser; see "Open" below.
+Approved by the owner on 2026-10-10.
 
 - **TIN:** the 9-digit TIN plus a 3-digit branch code, stored as `000-000-000-000`, with `000` for the head office. *Pattern `forms-tin`.*
 - **Amounts** (prices, totals, payments, balances, VAT and withholding): pesos and centavos, **at most 2 decimal places, checked on the server.** The peso has 100 centavos (PHP; 2 minor units). *Pattern `forms-money-input`.*
@@ -99,9 +99,9 @@ Approved by the owner on 2026-10-10 "for now". Two points are still to be confir
 - **One method everywhere:** the invoice, the journal entry and the tax returns use the same amounts and the same rounding, so the books always agree with the invoices.
 - **Never floating-point money:** money is stored in decimal columns (for example `decimal(15, 2)`, and `decimal(15, 4)` for unit cost) and computed with decimal arithmetic, never PHP floats.
 
-**Open, to confirm with the CPA:**
-1. VAT worked out per invoice and VAT class, rather than per line.
-2. Whether any DL Group company falls under BIR's e-invoicing (EIS) mandate (RR 11-2025, RMC 98-2026). If one does, EIS's technical specification sets field precision and overrides this section.
+**Decided by the owner (2026-10-10):**
+1. **VAT is worked out per invoice for each VAT class,** not per line. A CPA review is still worthwhile; if the CPA prefers per line, change it here and in the patterns, in one release.
+2. **None of the owner's companies is under BIR's e-invoicing (EIS) mandate at present** (RR 11-2025, RMC 98-2026). If one comes under it, EIS's technical specification sets field precision and overrides this section.
 
 ## Engineering rules (Filament facts, not UX)
 
