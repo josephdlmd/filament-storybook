@@ -13,7 +13,7 @@ class FilamentStorybookServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Shared house patterns ship with the package; each app adds its own in app/Stories.
+        // Shared patterns ship with the package; each app adds its own in app/Stories.
         $this->app->singleton(StoryRegistry::class, fn (): StoryRegistry => (new StoryRegistry)
             ->discover(__DIR__.'/Stories', __NAMESPACE__.'\\Stories')
             ->discover($this->app->path('Stories'), 'App\\Stories'));

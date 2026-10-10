@@ -58,7 +58,7 @@ class TinStories extends Stories
 
 The return type picks the canvas: a schema component (field, entry, layout), a table column, or an action. Column and entry stories take sample data from `records()`.
 
-The package ships shared DL Group patterns in `src/Stories`. Each app adds its own in `app/Stories`.
+The package ships shared patterns in `src/Stories`. Each app adds its own in `app/Stories`.
 
 ## Render every story in the app's tests
 
