@@ -6,6 +6,8 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -36,6 +38,10 @@ class GadgetResource extends Resource
             Toggle::make('is_active')->label('Active'),
             DatePicker::make('released_on')->label('Released')->native(false),
             FileUpload::make('manual')->label('Manual'),
+            // `part` is built right; `quantity` hides its label under a header that reads differently; `note` has no column.
+            Repeater::make('parts')
+                ->table([TableColumn::make('Part'), TableColumn::make('Qty')])
+                ->schema([TextInput::make('part'), TextInput::make('quantity')->hiddenLabel(), TextInput::make('note')]),
         ]);
     }
 

@@ -13,3 +13,23 @@
         grid-column: auto;
     }
 }
+
+/*
+ * Line items: once a table repeater shows its column headers, Filament removes each cell field's label with
+ * display: none, leaving the field without an accessible name (WCAG 1.3.1, 4.1.2). Hide it on screen only; the
+ * header shows it, and Filament shows it again when the rows stack on a narrow screen.
+ */
+@container (width >= 36rem) {
+    .fi-fo-table-repeater > table > tbody > tr > td .fi-fo-field-label-content {
+        display: inline;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+}

@@ -30,6 +30,17 @@ Dates in brackets are the "updated" dates the pages showed when checked.
 - **Validate on submit or when the user leaves a field, never while they type.** GOV.UK validation; NN/g hostile errors (Oct 2022); Carbon forms (on blur).
 - **A short form may disable its primary button until its requirements are met; a long form never does.** Every form disables it while submitting. Hide what the user may not do. When an action is temporarily unavailable, keep it visible with a visible reason; a tooltip alone can't be reached by keyboard. Carbon forms and disabled states (Aug 2026).
 
+### Line items
+
+Pattern `forms-line-items`. Checked against the live sources on 2026-10-10.
+
+- **Line items are a table repeater: one column per field, and every field keeps its label.** On a wide screen the column header is the visible label and the field's own label stays for screen readers; on a narrow screen the rows stack and each label shows above its field. No `hiddenLabel()` on a cell field, because the header disappears when rows stack. Filament removes the cell labels with `display: none` once headers show, which leaves every field unnamed, so the house CSS hides them on screen only. WCAG 1.3.1, 3.3.2 (updated Mar 2026) and 4.1.2; W3C WAI forms tutorial (May 2024): a label may be hidden on screen when the context makes the purpose clear, "though it still needs to be provided within the code". *House CSS; test and audit (axe), audit (`hiddenLabel()`).*
+- **Each column header is its field's label, word for word,** so what screen-reader and voice-control users hear matches what is on screen. A field without a column isn't shown at all. WCAG 2.5.3 (Apr 2026). *Audit.*
+- **A worked-out value in a row, such as the line total, is read-only text, not a disabled field.** Disabled fields aren't read by screen readers and needn't meet contrast. It is worked out again on the server when saving, never taken from the form. Carbon text input (Sep 2026); see also "Hidden fields" under engineering rules.
+- **Numbers in a line are right-aligned, with each column about as wide as its answer.** GOV.UK and USWDS tables; USWDS and GOV.UK text input.
+- **Lines that can be reordered also move with buttons, not only by dragging;** if the order doesn't matter, reordering is off. Filament's repeaters reorder by dragging alone by default. WCAG 2.5.7 (Aug 2026). *Audit.*
+- **A row with more fields than fit across the form stacks instead:** each line is a small numbered form with its labels on screen ("Line 1"). Carbon data table (Sep 2026): not for "a more complex display of the data or interactions"; Carbon forms (Aug 2026) has no inline-editing guidance yet. No source sets a field count, so there is no number. *Pattern `forms-line-items.longRow`.*
+
 ## Feedback and dialogs
 
 - **Confirm only what can't be undone.** The heading names the record or the count, the description says the consequence, and the confirm button repeats the verb. Carbon dialogs (Aug 2026); WCAG 3.3.4 (Sep 2025). *Audit, pattern `actions-delete`.*
@@ -95,7 +106,7 @@ Approved by the owner on 2026-10-10.
 - **Amounts** (prices, totals, payments, balances, VAT and withholding): pesos and centavos, **at most 2 decimal places, checked on the server.** The peso has 100 centavos (PHP; 2 minor units). *Pattern `forms-money-input`.*
 - **Unit cost** (weighted-average, landed or derived costs): **up to 4 decimal places,** so costs worked out by division don't drift by centavos. *Pattern `forms-unit-cost`.*
 - **Quantity:** **up to 3 decimal places,** for weights, volumes and lengths. *Pattern `forms-quantity`.*
-- **Round once, at the end:** a line total is quantity × unit price, rounded to 2 decimals once. VAT is worked out once per invoice for each VAT class (12%, zero-rated, exempt), on that class's total, then rounded to 2 decimals. This matches BIR's requirement to show VAT as a separate item and to break out taxable, zero-rated and exempt sales (RR 7-2024).
+- **Round once, at the end:** a line total is quantity × unit price, rounded to 2 decimals once, as `forms-line-items` shows. VAT is worked out once per invoice for each VAT class (12%, zero-rated, exempt), on that class's total, then rounded to 2 decimals. This matches BIR's requirement to show VAT as a separate item and to break out taxable, zero-rated and exempt sales (RR 7-2024).
 - **One method everywhere:** the invoice, the journal entry and the tax returns use the same amounts and the same rounding, so the books always agree with the invoices.
 - **Never floating-point money:** money is stored in decimal columns (for example `decimal(15, 2)`, and `decimal(15, 4)` for unit cost) and computed with decimal arithmetic, never PHP floats.
 

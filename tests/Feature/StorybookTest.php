@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -160,13 +160,27 @@ it('corrects Filament defaults that break a sourced rule, app-wide', function ()
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 17 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 19 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
+});
+
+it('names every line-item field under Filament\'s own CSS, which hides the cell labels once the table shows headers', function (): void {
+    // The tests have no published theme; Filament's compiled one is what apps load.
+    $theme = public_path('css/filament/filament/app.css');
+    @mkdir(dirname($theme), recursive: true);
+    copy(__DIR__.'/../../vendor/filament/filament/dist/theme.css', $theme);
+
+    try {
+        expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-line-items']]))->content())
+            ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues');
+    } finally {
+        unlink($theme);
+    }
 });
 
 it('reports a failing story with the line to fix, so the agent can self-correct', function (): void {
@@ -217,7 +231,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 9 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 13 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
@@ -228,6 +242,13 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the date field `released_on` uses `native(false)`')
         ->toContain('- `CreateGadget`: the upload `manual` does not state its accepted types and largest size')
         ->toContain('- `CreateGadget`: the error "Please enter the serial" doesn\'t say what to do')
+        ->toContain('- `CreateGadget`: the column "Qty" in `parts` heads the field labelled "Quantity"')
+        ->toContain('- `CreateGadget`: the field `quantity` hides its label')
+        ->toContain('- `CreateGadget`: the line-item field `note` has no column in `parts`')
+        ->toContain('- `CreateGadget`: `parts` reorders only by dragging')
+        // A line-item field built right, under its own label as the header, raises nothing.
+        ->not->toContain('`part`')
+        ->not->toContain('"Part"')
         ->not->toContain('the error "Enter name"')
         ->not->toContain('25 rows')
         ->toContain('- `EditGadget`: no record to open')
@@ -238,7 +259,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 3 pages rendered, 0 failing, 14 warnings')
+        ->toStartWith('# 3 pages rendered, 0 failing, 21 warnings')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
         ->toContain('- `EditGadget`: the field `code` uses placeholder()');
 });
@@ -294,4 +315,20 @@ it('holds amounts to centavos, unit costs to 4 decimals and quantities to 3, on 
     'unit cost, a fifth decimal' => [Josephdlmd\FilamentStorybook\Stories\UnitCostStories::class, 'unit_cost', '89.28571', false],
     'quantity, 3 decimals' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.125', true],
     'quantity, a fourth decimal' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.1255', false],
+]);
+
+it('works out a line total as quantity × unit price, rounded once to centavos', function (string $quantity, string $price, ?string $total): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\LineItemsStories::class, 'story' => 'default'])
+        ->set('data.lines', [['description' => 'Gloves', 'quantity' => $quantity, 'unit_price' => $price]]);
+
+    $total === null
+        ? expect($canvas->html())->not->toContain('₱0.00')
+        : expect($canvas->html())->toContain($total);
+})->with([
+    'rounds half up once' => ['2.5', '89.2857', '₱223.21'],
+    'whole numbers' => ['12', '285.5', '₱3,426.00'],
+    'a half centavo' => ['1', '0.005', '₱0.01'],
+    'a tiny unit price' => ['3', '0.0001', '₱0.00'],
+    'an exponent, as a number field allows' => ['1e3', '2', '₱2,000.00'],
+    'no quantity yet' => ['', '2', null],
 ]);

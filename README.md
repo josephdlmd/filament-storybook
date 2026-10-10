@@ -11,7 +11,7 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |
 | `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule warnings, and WCAG 2.1 AA issues from axe-core |
 | `get-storybook-story-instructions` | `storybook-instructions`: the rules for writing a story and the test-and-fix loop |
-| (no equivalent) | `storybook-audit`: renders the app's real resource pages signed in as a panel user, and reports render errors, rule breaks (red delete triggers, unconfirmed deletes, more than one primary action, more than two inline row actions, filters hidden in a dropdown, empty states with no next step, toggles in saved forms, untypeable dates, uploads without limits, error messages that don't say what to do, money not right-aligned, placeholders, hidden labels) and WCAG 2.1 AA issues |
+| (no equivalent) | `storybook-audit`: renders the app's real resource pages signed in as a panel user, and reports render errors, rule breaks (red delete triggers, unconfirmed deletes, more than one primary action, more than two inline row actions, filters hidden in a dropdown, empty states with no next step, toggles in saved forms, untypeable dates, uploads without limits, error messages that don't say what to do, money not right-aligned, placeholders, hidden labels, line-item columns that don't match their fields, rows that reorder only by dragging) and WCAG 2.1 AA issues |
 | Storybook Test | A Pest test that renders every story in CI |
 | AGENTS.md instructions | `resources/boost/guidelines/core.blade.php`, loaded by Boost |
 
@@ -102,7 +102,7 @@ public function default(Table $table): Table
 }
 ```
 
-`Tables/List table` and `Forms/Record form` ship as the shared screen patterns. Where a very long form uses inline labels, one house CSS rule keeps them aligned; the package registers it as a Filament asset and `php artisan filament:upgrade` publishes it.
+`Tables/List table` and `Forms/Record form` ship as the shared screen patterns, and `Forms/Line items` as the lines of an invoice, bill or order. Two house CSS rules cover what Filament has no setting for: inline labels on a very long form stay aligned, and the fields in a line-item table keep their labels for screen readers under the column headers, where Filament would remove them. The package registers the CSS as a Filament asset and `php artisan filament:upgrade` publishes it.
 
 ## Where the rules come from
 

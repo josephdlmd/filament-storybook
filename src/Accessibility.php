@@ -22,6 +22,8 @@ class Accessibility
             array_map(fn (string $url): string => public_path(ltrim((string) parse_url($url, PHP_URL_PATH), '/')), $hrefs[1]),
             'is_file',
         )));
+        // Every panel page loads the house CSS too; the line-item labels depend on it.
+        $css[] = __DIR__.'/../resources/css/house.css';
 
         $result = Process::path(base_path())->timeout(120)
             ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))

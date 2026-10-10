@@ -11,9 +11,12 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\Alignment;
@@ -236,6 +239,26 @@ class AuditPages extends Tool
 
             if ($field instanceof DateTimePicker && ! $field->isNative()) {
                 $warn("the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (USWDS date picker, GOV.UK dates).");
+            }
+
+            if ($field instanceof Repeater && $field->isReorderableWithDragAndDrop() && ! $field->isReorderableWithButtons()) {
+                $warn("`{$name}` reorders only by dragging; add `->reorderableWithButtons()`, or `->reorderable(false)` if the order doesn't matter, as `forms-line-items` does (WCAG 2.5.7).");
+            }
+
+            // Wide tables show the column header in place of each field's label, so the two must read the same (WCAG 2.5.3).
+            if ($field instanceof Repeater && filled($columns = $field->getTableColumns())) {
+                $children = $field->getDefaultChildComponents();
+                $cells = collect($children instanceof Schema ? $children->getComponents(withHidden: true) : $children)->reject(fn ($cell): bool => $cell instanceof Hidden)->values();
+
+                foreach ($cells as $index => $cell) {
+                    $header = isset($columns[$index]) ? $columns[$index]->getLabel() : null;
+
+                    if ($header !== $cell->getLabel()) {
+                        $warn($header === null
+                            ? "the line-item field `{$cell->getName()}` has no column in `{$name}`, so Filament doesn't show it; add a `TableColumn` for it, as `forms-line-items` does."
+                            : "the column \"{$header}\" in `{$name}` heads the field labelled \"{$cell->getLabel()}\"; make the header the field's label, word for word, as `forms-line-items` does (WCAG 2.5.3).");
+                    }
+                }
             }
 
             if ($field instanceof BaseFileUpload && (blank($field->getAcceptedFileTypes()) || $field->getMaxSize() === null)) {
