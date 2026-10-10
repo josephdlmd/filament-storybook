@@ -59,8 +59,8 @@ class ListTableStories extends Stories
             ->emptyStateHeading('No suppliers yet')
             ->emptyStateDescription('Suppliers you add appear here.')
             ->emptyStateActions([
-                Action::make('add')
-                    ->label('Add supplier'),
+                Action::make('create')
+                    ->label('New supplier'),
             ]);
     }
 }

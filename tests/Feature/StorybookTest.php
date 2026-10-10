@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-delete', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-view-page', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-delete', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-view-page', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -158,14 +158,53 @@ it('corrects Filament defaults that break a sourced rule, app-wide', function ()
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\Select::make('payment_terms')))->toBe('Select payment terms');
 });
 
+it('keeps an error, or a toast with an action, open until dismissed, deciding when it is sent', function (): void {
+    expect(Filament\Notifications\Notification::make()->success()->title('Saved')->getDuration())->toBe(6000)
+        ->and(Filament\Notifications\Notification::make()->danger()->title('Order 1042 not saved')->getDuration())->toBe('persistent')
+        ->and(Filament\Notifications\Notification::make()->success()->actions([Filament\Actions\Action::make('view')])->getDuration())->toBe('persistent')
+        // An explicit choice set later still wins.
+        ->and(Filament\Notifications\Notification::make()->danger()->duration(3000)->getDuration())->toBe(3000)
+        ->and(Filament\Notifications\Notification::make()->success()->persistent()->getDuration())->toBe('persistent');
+
+    Filament\Notifications\Notification::make()->danger()->title('Order 1042 not saved')->send();
+
+    expect(session('filament.notifications')[0]['duration'])->toBe('persistent');
+});
+
+it('labels actions with Carbon\'s verbs and titles their modals in sentence case', function (): void {
+    $create = Filament\Actions\CreateAction::make()->model(Josephdlmd\FilamentStorybook\Tests\Fixtures\GadgetPart::class);
+
+    expect(Filament\Actions\Action::make('markPaid')->requiresConfirmation()->getModalSubmitActionLabel())->toBe('Mark paid')
+        ->and(Filament\Actions\Action::make('send')->schema([])->getModalSubmitActionLabel())->toBe('Send')
+        ->and($create->getLabel())->toBe('New gadget part')
+        ->and($create->getModalHeading())->toBe('New gadget part')
+        ->and($create->getModalSubmitActionLabel())->toBe('Create')
+        ->and(Filament\Actions\EditAction::make()->getModalSubmitActionLabel())->toBe('Save changes')
+        ->and(Filament\Actions\DeleteAction::make()->getModalSubmitActionLabel())->toBe('Delete')
+        ->and(Filament\Actions\DeleteBulkAction::make()->model(Josephdlmd\FilamentStorybook\Tests\Fixtures\GadgetPart::class)->getModalHeading())->toBe('Delete selected gadget parts')
+        ->and(Filament\Actions\AttachAction::make()->getLabel())->toBe('Add')
+        ->and(Filament\Actions\AssociateAction::make()->getModalSubmitActionLabel())->toBe('Add')
+        ->and(Filament\Actions\DetachAction::make()->getLabel())->toBe('Remove')
+        ->and(Filament\Actions\DetachBulkAction::make()->getLabel())->toBe('Remove selected')
+        ->and(Filament\Actions\DissociateAction::make()->getModalSubmitActionLabel())->toBe('Remove')
+        ->and(Filament\Actions\ReplicateAction::make()->getLabel())->toBe('Copy')
+        ->and(Filament\Actions\ViewAction::make()->getModalCancelAction())->toBeNull()
+        ->and(Filament\Actions\ViewAction::make()->hasModalCloseButton())->toBeTrue()
+        ->and(__('filament-actions::detach.single.notifications.detached.title'))->toBe('Removed')
+        ->and(__('filament-actions::attach.single.modal.actions.attach_another.label'))->toBe('Add & add another')
+        // Lines the house defaults don't change are still Filament's.
+        ->and(__('filament-actions::attach.single.modal.fields.record_id.label'))->toBe('Record')
+        ->and(__('filament-actions::delete.single.label'))->toBe('Delete');
+});
+
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-delete, forms-choice, forms-date, forms-file-upload, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-view-page, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-delete, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-view-page, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 22 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 27 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -187,17 +226,20 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 2 passing, 3 failing, 5 warnings, 1 accessibility issues')
+        ->toStartWith('# 3 passing, 3 failing, 8 warnings, 1 accessibility issues')
+        ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
+        ->toContain('- `broken-story.vagueAndTitleCase`: "Save Order" is in Title Case')
+        ->toContain('- `broken-story.vagueAndTitleCase`: a notification title has no full stop')
         ->toContain('- `broken-story.unnamedIconButton`: [critical] button-name: Buttons must have discernible text')
         ->toContain('- `broken-story`: add description()')
         ->toContain('- `broken-story.works`: no placeholder()')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:41')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:42')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:25')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:26')
         ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:28')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:29')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 
@@ -231,7 +273,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 14 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 23 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
@@ -247,6 +289,18 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the line-item field `note` has no column in `parts`')
         ->toContain('- `CreateGadget`: `parts` reorders only by dragging')
         ->toContain('- `CreateGadget`: the read-only field `sku` is still saved')
+        ->toContain('- `ListGadgets`: `ship` has a button labelled "Submit"')
+        ->toContain('- `ListGadgets`: the action "Return Gadget" is in Title Case')
+        ->toContain('- `ListGadgets`: the column "Created At" is in Title Case')
+        ->toContain('- `ListGadgets`: `archive` asks "Are you sure you would like to do this?"')
+        ->toContain('- `ListGadgets`: `delete` is labelled "Remove selected", but it destroys the record')
+        ->toContain('- `CreateGadget`: the field label "Released On" is in Title Case')
+        ->toContain('- `CreateGadget`: the field label "Code:" ends with a colon')
+        ->toContain('- `CreateGadget`: the heading "Stock Keeping" is in Title Case')
+        // Sentence case, names, acronyms and Filament's own labels raise nothing.
+        ->not->toContain('"SKU"')
+        ->not->toContain('"Price"')
+        ->not->toContain('"Archive"')
         // A line-item field built right, under its own label as the header, raises nothing.
         ->not->toContain('`part`')
         ->not->toContain('"Part"')
@@ -261,8 +315,9 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 4 pages rendered, 0 failing, 25 warnings')
+        ->toStartWith('# 4 pages rendered, 0 failing, 38 warnings')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
+        ->toContain('- `EditGadget`: `delete` asks "Are you sure you would like to do this?"')
         ->toContain('- `ViewGadget`: it shows the record as a disabled form')
         ->toContain('- `ViewGadget`: its related lists are tabs')
         // The view page's disabled form isn't audited field by field; the warning above covers it.
@@ -294,6 +349,18 @@ it('refuses an app that does not meet the standard, saying what to change', func
 
     $this->artisan('storybook:install')->assertExitCode(1);
 });
+
+it('flags only Title Case someone typed, never sentence case, names or acronyms', function (string $label, string $name, bool $flagged): void {
+    expect(AuditPages::isTitleCase($label, $name))->toBe($flagged);
+})->with([
+    'a field labelled from its name' => ['Due Date', 'due_date', true],
+    'a heading' => ['Customer Details', 'Customer Details', true],
+    'sentence case' => ['Due date', 'due_date', false],
+    'a name in an action' => ['Export to Excel', 'exportToExcel', false],
+    'a name in a heading' => ['Notes for Xero', 'Notes for Xero', false],
+    'an acronym' => ['TIN Details', 'TIN Details', false],
+    'one word' => ['Price', 'price', false],
+]);
 
 it('skips pages the user may not open, and pages that need route parameters, instead of failing them', function (): void {
     GadgetResource::$creatable = false;

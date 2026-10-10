@@ -150,6 +150,20 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen (Carbon forms).";
             }
 
+            if (preg_match("/->(label|modalSubmitActionLabel)\\('(ok|okay|yes|done|submit|confirm)'\\)/i", $story['snippet'], $vague)) {
+                $warnings[] = "{$key}: a button labelled \"{$vague[2]}\" doesn't say what it does; use a verb, such as \"Approve order\" (Carbon modal and forms).";
+            }
+
+            if (preg_match_all("/(?:->(?:label|heading|modalHeading)|Section::make)\\('([^']+)'/", $story['snippet'], $texts)) {
+                foreach (array_filter($texts[1], fn (string $text): bool => AuditPages::isTitleCase($text, $text)) as $text) {
+                    $warnings[] = "{$key}: \"{$text}\" is in Title Case; write labels and headings in sentence case (Carbon content).";
+                }
+            }
+
+            if (preg_match("/->title\\('[^']*\\.'\\)/", $story['snippet'])) {
+                $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
+            }
+
             if (in_array($story['kind'], ['column', 'table'], true) && $stories->records() === []) {
                 $warnings[] = "{$key}: add sample rows in records(), so the table shows real values.";
             }

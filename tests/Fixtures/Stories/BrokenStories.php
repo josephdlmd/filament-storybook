@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories;
 
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Josephdlmd\FilamentStorybook\Stories;
 use RuntimeException;
@@ -45,5 +46,14 @@ class BrokenStories extends Stories
     public function unnamedIconButton(): Action
     {
         return Action::make('delete')->iconButton()->icon('heroicon-o-trash')->label('');
+    }
+
+    /** Renders, but its labels and its notification break the writing rules. */
+    public function vagueAndTitleCase(): Action
+    {
+        return Action::make('save')
+            ->label('Submit')
+            ->modalHeading('Save Order')
+            ->action(fn () => Notification::make()->title('Saved.')->send());
     }
 }

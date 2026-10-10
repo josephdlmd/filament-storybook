@@ -11,6 +11,7 @@ use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -33,11 +34,11 @@ class GadgetResource extends Resource
     {
         return $schema->components([
             TextInput::make('name')->label('Name')->required(),
-            TextInput::make('code')->label('Code')->placeholder('GAD-0001'),
-            TextInput::make('sku')->label('SKU')->readOnly(),
+            TextInput::make('code')->label('Code:')->placeholder('GAD-0001'),
+            Section::make('Stock Keeping')->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
             TextInput::make('serial')->label('Serial')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
-            DatePicker::make('released_on')->label('Released')->native(false),
+            DatePicker::make('released_on')->label('Released On')->native(false),
             FileUpload::make('manual')->label('Manual'),
             // `part` is built right; `quantity` hides its label under a header that reads differently; `note` has no column.
             Repeater::make('parts')
@@ -53,18 +54,19 @@ class GadgetResource extends Resource
                 TextColumn::make('code'),
                 TextColumn::make('name'),
                 TextColumn::make('price')->money('PHP'),
+                TextColumn::make('created_at')->label('Created At'),
             ])
             ->filters([
                 SelectFilter::make('code')->options(['A' => 'A']),
                 SelectFilter::make('name')->options(['B' => 'B']),
             ])
             ->recordActions([
-                Action::make('ship'),
-                Action::make('return'),
-                Action::make('archive'),
+                Action::make('ship')->label('Submit'),
+                Action::make('returnGadget')->label('Return Gadget'),
+                Action::make('archive')->requiresConfirmation(),
             ])
             ->toolbarActions([
-                DeleteBulkAction::make()->color('danger'),
+                DeleteBulkAction::make()->color('danger')->label('Remove selected'),
             ]);
     }
 

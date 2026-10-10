@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Agent eval: give a headless Claude Code an ordinary feature request in a throwaway Filament app
 # (with this package installed and only the app's Boost MCP server), then score how it used the stories.
-# Usage: eval/run.sh <app-dir> <out-dir>   (the app should be a disposable git worktree with a clean tree)
+# Usage: eval/run.sh <app-dir> <out-dir> [prompt]   (the app should be a disposable git worktree with a clean tree)
 set -euo pipefail
 app=$(realpath "$1"); out=$(realpath "$2"); mkdir -p "$out"
 
-PROMPT='Add a Suppliers feature to the admin panel. A supplier has a name, a TIN (Philippine tax identification number), a credit limit in pesos, payment terms (cash on delivery, 30 days or 60 days) and a status (active, on hold or blacklisted). Build the model, migration, factory and a Filament resource with a list table and a create/edit form, and add feature tests. Run the test suite before you finish.'
+PROMPT=${3:-'Add a Suppliers feature to the admin panel. A supplier has a name, a TIN (Philippine tax identification number), a credit limit in pesos, payment terms (cash on delivery, 30 days or 60 days) and a status (active, on hold or blacklisted). Build the model, migration, factory and a Filament resource with a list table and a create/edit form, and add feature tests. Run the test suite before you finish.'}
 
 (cd "$app" && claude -p "$PROMPT" \
   --mcp-config .mcp.json --strict-mcp-config \

@@ -93,7 +93,7 @@ class StoryRegistry
             'stories' => collect($stories->stories())
                 ->map(fn (ReflectionMethod $story, string $name): array => [
                     'name' => $name,
-                    'label' => Str::headline($name),
+                    'label' => Str::ucfirst(Str::snake($name, ' ')),
                     'description' => static::docblock($story),
                     'kind' => Stories::kind($story),
                     'snippet' => static::snippet($story, $source),

@@ -7,6 +7,10 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DetachAction;
+use Filament\Actions\DetachBulkAction;
+use Filament\Actions\DissociateAction;
+use Filament\Actions\DissociateBulkAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Forms\Components\BaseFileUpload;
@@ -17,6 +21,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
 use Filament\Schemas\Components\Component as SchemaComponent;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\ListRecords;
@@ -28,6 +35,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
@@ -185,6 +193,10 @@ class AuditPages extends Tool
             $visible = collect($table->getColumns())->reject(fn (Column $column): bool => $column->isHidden() || $column->isToggledHiddenByDefault());
 
             foreach ($visible as $column) {
+                if (static::isTitleCase((string) $column->getLabel(), $column->getName())) {
+                    $warn("the column \"{$column->getLabel()}\" is in Title Case; write it in sentence case, capitalising only the first word, names and acronyms (Carbon data table).");
+                }
+
                 if ($column instanceof TextColumn && $column->isMoney() && ! in_array($column->getAlignment(), [Alignment::End, Alignment::Right], true)) {
                     $warn("the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (USWDS table).");
                 }
@@ -221,6 +233,32 @@ class AuditPages extends Tool
             }
         }
 
+        foreach ([...$headerActions, ...$tableActions] as $action) {
+            $label = trim((string) $action->getLabel());
+            $verbs = $action->shouldOpenModal() ? [$label, trim($action->getModalSubmitActionLabel())] : [$label];
+
+            if ($vague = collect($verbs)->first(fn (string $verb): bool => (bool) preg_match('/^(ok|okay|yes|done|submit|confirm)$/i', $verb))) {
+                $warn("`{$action->getName()}` has a button labelled \"{$vague}\"; say what it does with a verb, such as \"Approve order\" (Carbon modal and forms).");
+            }
+
+            if (static::isTitleCase($label, $action->getName())) {
+                $warn("the action \"{$label}\" is in Title Case; write it in sentence case (Carbon button).");
+            }
+
+            $deletes = $action instanceof DeleteAction || $action instanceof ForceDeleteAction || $action instanceof DeleteBulkAction || $action instanceof ForceDeleteBulkAction;
+            $removes = $action instanceof DetachAction || $action instanceof DetachBulkAction || $action instanceof DissociateAction || $action instanceof DissociateBulkAction;
+
+            if (($deletes && ! preg_match('/\bdelete\b/i', $label)) || ($removes && preg_match('/\bdelete\b/i', $label))) {
+                $warn("`{$action->getName()}` is labelled \"{$label}\", but "
+                    .($deletes ? 'it destroys the record, which Carbon calls Delete; keep "Delete"' : 'the record stays, which Carbon calls Remove; keep "Remove"')
+                    .' (Carbon common actions).');
+            }
+
+            if ($action->isConfirmationRequired() && $action->getModalDescription() === __('filament-actions::modal.confirmation')) {
+                $warn("`{$action->getName()}` asks \"".__('filament-actions::modal.confirmation').'"; say the consequence in `modalDescription()`, such as "Its 3 payments are deleted too. This cannot be undone.", as `actions-delete` does, or drop the confirmation if the action is routine (Carbon dialogs).');
+            }
+        }
+
         if ($page instanceof ViewRecord) {
             if ($page->getSchema('infolist')?->getComponents() === []) {
                 $warn('it shows the record as a disabled form, which screen readers skip and which needn\'t meet contrast; give the resource an `infolist()` of read-only entries, as `records-view-page` does (Carbon read-only states, WCAG 1.4.3).');
@@ -243,6 +281,16 @@ class AuditPages extends Tool
 
             if (method_exists($field, 'isReadOnly') && $field->isReadOnly() && static::isSaved($field)) {
                 $warn("the read-only field `{$name}` is still saved, and its value can be changed in the browser; put it in a group with `->saved(false)`, as `records-locked` does, and set the value on the server (Filament docs).");
+            }
+
+            $label = trim((string) $field->getLabel());
+
+            if (static::isTitleCase($label, $name)) {
+                $warn("the field label \"{$label}\" is in Title Case; write it in sentence case (Carbon forms).");
+            }
+
+            if (str_ends_with($label, ':')) {
+                $warn("the field label \"{$label}\" ends with a colon; drop it (Carbon forms).");
             }
 
             if ($field->isLabelHidden()) {
@@ -282,11 +330,35 @@ class AuditPages extends Tool
             }
         }
 
+        $layouts = $page instanceof ListRecords ? [] : rescue(fn (): array => $page->getSchema($page instanceof ViewRecord ? 'infolist' : 'form')?->getFlatComponents(withHidden: true) ?? [], [], report: false);
+
+        foreach ($layouts as $layout) {
+            $heading = match (true) {
+                $layout instanceof Section => $layout->getHeading(),
+                $layout instanceof Fieldset, $layout instanceof Tab => $layout->getLabel(),
+                default => null,
+            };
+
+            if (filled($heading) && static::isTitleCase($heading = trim((string) $heading), $heading)) {
+                $warn("the heading \"{$heading}\" is in Title Case; write it in sentence case (Carbon content).");
+            }
+        }
+
         foreach (static::errorMessages($page) as $message) {
             $warn("the error \"{$message}\" doesn't say what to do; word it like \"Enter name\" or \"Select status\" (GOV.UK error message, NN/g 2023).");
         }
 
         return $warnings;
+    }
+
+    /**
+     * Title Case that someone typed: a label of several words that is its name with every word capitalised, "Due Date" for `due_date`.
+     * A heading is its own name, so "Customer Details" is caught and "Notes for Xero" or "TIN details" is not. A false warning costs
+     * more than a missed one, so a label mixing cases is left alone.
+     */
+    public static function isTitleCase(string $label, string $name): bool
+    {
+        return str_contains($label, ' ') && $label === Str::headline(Str::afterLast($name, '.'));
     }
 
     /** Whether a field's value reaches the save: neither it nor any group around it is `saved(false)`. */

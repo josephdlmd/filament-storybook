@@ -10,7 +10,7 @@ Every rule the patterns, `storybook-instructions`, `storybook-test` and `storybo
 - Carbon's guidance on usage and behaviour is adopted, not its look; apps keep their Filament theme.
 - **Business facts come from the owner,** such as the TIN format and decimal places. They don't need research. They're listed under "Business standards" and built into the patterns.
 
-Dates in brackets are the "updated" dates the pages showed when checked.
+Dates in brackets are the "updated" dates the pages showed when checked. On 2026-09-30 Carbon moved to a new site; its content guidelines (writing style and action labels) were taken down and now point to IBM Style, which needs a sign-in. Rules cite the live component and pattern pages, which carry their own content rules, and cite the archived `carbon-website` snapshot (2026-09-30) only where no live page covers a rule.
 
 ## Forms
 
@@ -43,15 +43,57 @@ Pattern `forms-line-items`. Checked against the live sources on 2026-10-10.
 
 ## Feedback and dialogs
 
-- **Confirm destructive or irreversible actions in a danger dialog, and don't confirm routine ones.** The title repeats the label of the action that opened it, the description says the consequence, and the confirm button uses the same verb. Carbon dialogs (Aug 2026) and modal (Sep 2026: "use the button label for the modal title"); WCAG 3.3.4 (changes to data are reversible, checked or confirmed). *Audit, pattern `actions-delete`.*
+- **Confirm destructive or irreversible actions in a danger dialog, and don't confirm routine ones.** The title repeats the label of the action that opened it, the description says the consequence (never Filament's "Are you sure you would like to do this?"), and the confirm button uses the same verb. Carbon dialogs (Aug 2026) and modal (Sep 2026: "use the button label for the modal title"); Carbon common actions (Aug 2026: low-impact deletes need no confirmation); WCAG 3.3.4 (changes to data are reversible, checked or confirmed). *Audit, pattern `actions-delete`.*
 - **Danger emphasis matches the action's place:** a delete among other actions is low-emphasis danger (tertiary, which Filament calls outlined, or ghost, a link); the button that confirms it is solid danger. Danger buttons always have a text label. Carbon button (Sep 2026). *Audit, house defaults.*
-- **Action buttons say what they do ("Delete order"), never OK, Yes or Done,** except a message that only needs acknowledging. Carbon modal (Sep 2026): "Avoid vague or passive words, such as Done or OK"; USWDS button ("Lead with a verb").
-- **Every save confirms what happened in a short, descriptive message that screen readers announce.** A notification with an action (such as Undo), and an error, stays until dismissed. Carbon notifications (Aug 2026: "Toast notifications with actions persist until dismissed"; no timed dismissal for critical messages); WCAG 4.1.3 (May 2026). *House defaults (errors stay open).*
-- **Notification colour follows the outcome:** success for a task completed as expected, warning for something that may have unexpected results, danger for an error or failure. Carbon notifications (Aug 2026).
-- **Two empty states.** With nothing yet, say what goes here and offer the next step. When nothing matches a search or filter, say so and suggest adjusting them. Carbon empty states (Aug 2026). *Audit, pattern `tables-list-table`.*
-- **Sentence case for labels, headings and buttons.** Carbon writing style (Sep 2026).
+- **Buttons say what they do with a verb, and its object where it helps ("Delete order", "New supplier"); never OK, Yes, Done, Submit or Confirm,** except a message that only needs acknowledging. A common action (Add, Edit, Delete, Cancel) may stand alone; a noun alone is never a label. A modal's title and confirm button repeat the label of the button that opened it. Carbon button (Sep 2026: "use the {verb} + {noun} content formula on buttons except in the case of common actions"; "Do not use only a noun as a button label"); Carbon modal (Sep 2026: "Avoid vague or passive words, such as Done or OK"; "if the icon name is New user, use New user as the modal title, not Create user"); Carbon forms (Aug 2026: "Abstract terms like "Submit" give the user the impression that the form is generic"); USWDS button ("Lead with a verb"). *Audit, test, house defaults (the confirm button repeats the action's label; the New modal is titled "New …").*
+- **Two empty states.** With nothing yet, say what goes here and offer the next step. When nothing matches a search or filter, say so and suggest adjusting them. The heading is short and, where it can be, positive ("No suppliers yet", "Start by adding suppliers"); the description says the next step. Carbon empty states (Aug 2026). *Audit, pattern `tables-list-table`.*
 - **Form size picks its container:** fewer than five inputs, a modal; more than five, a slide-over; long, complex or multi-step, its own page (a wizard). Carbon forms (Aug 2026) sets the five and leaves exactly five open; USWDS modal (no complex forms in modals).
 - **One primary action per screen; the rest are gray or in "…".** Carbon button (Sep 2026). *Audit.*
+
+### Notifications
+
+Pattern `feedback-notifications`. Checked against the live sources on 2026-10-11: Carbon notification usage and accessibility (Sep 2026), notifications pattern (Aug 2026).
+
+- **The kind follows what the message is about.** A toast says how something the user just did went (saved, deleted, sent); it slides in at the top right and needs no reply. An inline notification is about part of the page: it sits at the top of that part, never covers content, and stays until the issue is resolved; in Filament it is a `Callout`. Something the user must decide before going on is a dialog (see "Confirm destructive …"). Carbon notification usage (variants: inline, toast, actionable, callout) and notifications pattern (modal notifications are for "critical information that needs their attention or action"). *Pattern.* See "Where we differ from Carbon" for save feedback.
+- **Colour follows the outcome:** success for a task completed as expected, warning for something done that may have unexpected results, danger for an error or failure, info for something not tied to the current task. Carbon notification usage and notifications pattern (status table). *Pattern.*
+- **The title is short, says the most important thing, and has no full stop; after a failure it says what stopped or wasn't done** ("Order 1042 not saved"). **The body is one or two short sentences that don't repeat the title; after a failure it says how to fix it.** Plain words, no technical jargon. Filament's own titles ("Saved", "Created", "Deleted") meet this; naming the record is allowed, not required. Carbon notification usage (Content: "Don't use a period to end a title"; "User actions are mandatory for error messages"); notifications pattern ("Do not use technical jargon"); Carbon inline loading (Sep 2026: "Saved"). *Test (full stop), pattern.*
+- **At most one action in a notification, of one or two words, and optional:** it never blocks the user, and usually takes them where they can resolve the message. What it leads to can also be reached another way, since a toast can vanish. Carbon notification usage ("Only one action is allowed for each notification"; "Limit action labels to one or two words"; "ensure there are alternative routes"); notifications pattern ("should not block the user"). *Pattern.*
+- **A toast without an action may close itself after a few seconds,** and always has a close button. **A toast with an action, and an error, stays until the user dismisses it.** What a timed toast said can be found again afterwards, on the record or the list. Filament's 6 seconds conforms: Carbon's toast "can timeout and be coded to dismiss automatically after five seconds", and no qualifying source sets a number. Carbon notification usage ("the notification should remain on screen until the user dismisses it", for an actionable toast; "users should be able to access them elsewhere"); notifications pattern ("Don't use notifications that dismiss on a timer for critical or emergency messages"; error means "an error or critical failure"). *House defaults.*
+- **Screen readers announce a notification without it taking focus:** `role="status"`, and `role="alert"` for an error. Filament's toasts already do. WCAG 4.1.3 (May 2026); Carbon notification accessibility ("Use the roles alert, log, or status for notifications that do not require user action").
+
+### Action labels
+
+Carbon common actions (Aug 2026) is the live source; where it is silent, Carbon's archived action-label list (`carbon-website` snapshot, 2026-09-30) fills in, marked *(archived)*. Filament's defaults are listed with each, and corrected app-wide where they differ.
+
+| Label | Use it for | Not for | Filament |
+|---|---|---|---|
+| **New** *object* | The button that starts a record from scratch: "New supplier" *(archived: "use new to initiate the action and create to apply the user-supplied details")*. Its modal is titled the same (Carbon modal). | Putting an existing record somewhere (Add) | `CreateAction` is "New …"; house default titles its modal "New …", not "Create …" |
+| **Create** | The button that saves the new record *(archived)* | Starting the form (New) | Conforms |
+| **Add** | Putting an existing record into a list or relation: "Add inserts an existing object to a list, set, or system" | A new record (New) | House default: Attach and Associate are "Add" |
+| **Edit** | Opening a record to change it: "Edit allows data or values to be changed" | | Conforms |
+| **Save**, **Save changes** | Saving changes to a record (Carbon modal: "Add, Delete, and Save") | | Conforms |
+| **Delete** | Destroying a record: "Delete destroys an object. Delete actions cannot be easily undone." Confirm it unless the impact is low. | Taking it out of a list (Remove) | Conforms. *Audit:* a delete action labelled otherwise |
+| **Remove** | Taking a record out of a list or relation; "a removed item is not destroyed". Never emphasised as the primary action. | Destroying it (Delete) | House default: Detach and Dissociate are "Remove". *Audit:* a remove action labelled "Delete" |
+| **Cancel** | Stopping the current task and closing, without saving, as a secondary button or link; say what is lost if that matters | Dismissing something with nothing to save (Close) | Conforms |
+| **Close** | Dismissing something with nothing to save, such as a notification or a View modal: the × icon. "Do not use close in a button." | Stopping a task (Cancel) | House default: the View modal's footer Close button is removed; its × remains |
+| **Clear** | Emptying a field or selections ("Clear filters") | Values back to the last save (Reset) | Conforms |
+| **Reset** | Putting values back to their last saved state, usually as a link | | Conforms |
+| **Copy** | Making a new identical record: "Copy creates a new identical instance of the selected object(s)" | | House default: Replicate is "Copy" |
+| **Restore** | Bringing back a deleted record *(archived)* | | Conforms |
+| **Next**, **Back** | Moving through the steps of a wizard; the last step's button names the final action (Carbon modal) | | Conforms |
+| **Apply** | Applying settings or filters without closing *(archived)* | | Conforms |
+| **Undo** | Reverting the latest change *(archived)* | | No default action |
+| **Export**, **Import** | Taking data out of, or into, the app as a file *(archived)* | | Conforms |
+| **OK**, **Done** | Only to acknowledge a message that needs no decision (Carbon modal, dialogs) | Any action with a result | Filament's generic "Confirm" and "Submit" confirm buttons become the action's own label (house default) |
+
+## Writing
+
+Labels, headings, buttons, helper text, empty states, notifications and errors. Error messages and helper text follow GOV.UK (see Forms); the rest follows Carbon. Marketing and long-form guidance doesn't apply.
+
+- **Sentence case for labels, headings, buttons, column titles, tabs, badges and notification titles:** a capital only for the first word, names, product names and acronyms (TIN, VAT). Carbon content (Sep 2026: "Use sentence-style capitalization for headings, titles, labels, banners, and similar elements"); Carbon forms (Aug 2026: "except for product names and proper nouns"); Carbon data table (Sep 2026: "Column titles should use sentence-case capitalization"); Carbon button (Sep 2026: "sentence case for all button labels"). Filament writes its own labels in sentence case, but title-cases the model in some modal headings ("Delete selected Purchase Orders"), which the house defaults correct, and in resource page titles, navigation and breadcrumbs, which they can't: turning that off lower-cases the first word too. For a resource whose name has two or more words, set `$navigationLabel`, `$breadcrumb` and each page's `$title`. *Audit, test, house defaults (modal headings).*
+- **A label is one to three words that say what to enter, with no colon; a column title is one or two words.** Carbon forms (Aug 2026: "Use one to three words only"; "Do not use colons after label names"); Carbon text input (Sep 2026); Carbon data table (Sep 2026). *Audit (colons).*
+- **Plain words the user would use: no technical jargon and no internal codes.** Carbon notifications pattern (Aug 2026: "Do not use technical jargon or language unfamiliar to the user"); Carbon empty states (Aug 2026: "plain language (no codes)").
+- **An icon-only button's name is one or two words saying what it does.** Carbon tooltip (Sep 2026: "a concise one- or two-word description of the button's function"). See also the accessibility floor.
 
 ## Tables and finding
 
@@ -145,6 +187,20 @@ Approved by the owner on 2026-10-10.
 - **No input masks.** Carbon has no mask component; USWDS's own mask failed WCAG 2.1 AA, and WCAG wins.
 - **Truncated text is revealed on focus, on activation or on a linked page, never on hover alone.** Carbon's data table shows it "in a tooltip on hover"; WCAG 1.4.12 Understanding (Oct 2025) counts truncation as passing only with such a mechanism, and WCAG wins.
 - **Error messages say what to do ("Enter name").** Carbon's examples state the problem; form wording follows GOV.UK.
+- **Helper text has no full stop.** Carbon's text input asks for "full sentences with punctuation"; form wording follows GOV.UK, which asks for "a single short sentence, without any full stops".
+- **A save is confirmed in a toast, not inline.** Carbon's notifications pattern places feedback on a task "in the region of the page the user is working in". Filament leaves that region when it saves (Create goes to another page, and a modal closes), so its toast is where the user is when the message arrives. The toast is announced as a status message, which WCAG 4.1.3 asks of any such message. No qualifying source requires the inline form for this case; the owner may decide otherwise.
+
+## Not adopted from Carbon
+
+Carbon guidance that is no longer published, or that Filament can't follow app-wide (checked 2026-10-11):
+
+- **Carbon's taken-down writing guidance:** second person, present tense, active voice, no "please", contractions, exclamation marks, and spelling out abbreviations. The page was last changed in 2023 and removed on 2026-09-30, and IBM Style, which replaces it, can't be read without a sign-in. Re-check if IBM Style becomes readable.
+- **Carbon guidance Filament can't follow app-wide:**
+  - an actionable toast taking focus (Filament has no setting; its toasts stay reachable and are announced)
+  - "Move to trash" for a delete that can be restored (Filament's soft delete), keeping "Delete" for the permanent one (Filament's "Force delete"): Filament's delete, restore, force delete and trashed filter would all have to change together
+  - "Log in" and "Log out" (the archived list only), in place of Filament's "Sign in" and "Sign out"
+  - "View details" (the archived list only), in place of Filament's "View"
+  - Apply rather than "Save changes" (the archived list, for a dialog that stays open; Filament's closes)
 
 ## Dropped
 

@@ -42,7 +42,7 @@ class RecordDetailsStories extends Stories
             ->schema([
                 TextEntry::make('status')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => str($state)->headline())
+                    ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
                     ->color(fn (string $state): string => match ($state) {
                         'approved' => 'success',
                         'for_approval' => 'info',

@@ -44,7 +44,7 @@ The installer:
 
 It's safe to run again. Then:
 1. Once per machine, install Chromium for the accessibility checks: `npx playwright-core install chromium`.
-2. Run the tests. The house defaults change required-field errors to "Enter name" and outline delete buttons.
+2. Run the tests. The house defaults change required-field errors to "Enter name", outline delete buttons, keep error notifications open and relabel some actions (see House defaults).
 3. Restart your coding agent and ask it to run `storybook-audit`. On an app built before these rules, treat what it reports as a backlog to fix screen by screen.
 
 ### Accessibility checks
@@ -123,6 +123,9 @@ Shared standards change only in this repo, then reach the apps through a release
 Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 - A delete button among other actions is outlined (low-emphasis danger); the confirm button stays solid red (Carbon button).
 - A required field's error says what to do with its own label, "Enter name" or "Select payment terms", not "The name field is required" (GOV.UK error message).
+- An error notification, and a notification with an action, stay until dismissed; others still close after 6 seconds. An explicit `->duration()` or `->persistent()` wins (Carbon notifications).
+- A modal's confirm button repeats the action's label, never "Submit" or "Confirm"; the New modal is titled "New supplier", not "Create Supplier"; modal headings name the model in sentence case (Carbon modal, button and content).
+- Carbon's verbs replace Filament's: Attach and Associate are "Add", Detach and Dissociate are "Remove", Replicate is "Copy". The View modal closes with its × only, with no Close button (Carbon common actions).
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
