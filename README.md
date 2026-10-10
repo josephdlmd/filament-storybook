@@ -14,8 +14,11 @@ Storybook's ideas, rebuilt for native Filament components, so AI agents build UI
 
 ## Install
 
+Not on Packagist; add the repository first:
+
 ```bash
-composer require josephdlmd/filament-storybook
+composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
+composer require josephdlmd/filament-storybook:^0.1
 ```
 
 Register the plugin in the panel provider (the page is hidden in production):
