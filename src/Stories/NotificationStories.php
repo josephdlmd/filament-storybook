@@ -16,7 +16,7 @@ class NotificationStories extends Stories
 
     public function description(): string
     {
-        return 'Feedback on what the user just did. A toast says how a task went; it has no story kind of its own, so each toast story is the button that sends it: press it to see the toast. The title is short, says the most important thing and has no full stop; for a failure it says what was not done. The body is one or two sentences that don\'t repeat the title and, after a failure, say how to fix it. Colour follows the outcome: success, warning (done, but something may not be as expected), danger (failed). A failure, and a toast with an action, stay until dismissed; that is an app-wide default, so don\'t add `->persistent()`. On a resource\'s Create and Edit pages Filament already sends a success toast ("Created", "Saved"), which meets the rule; name the record with `getSavedNotificationTitle()` or `getCreatedNotificationTitle()` on the page, or with `->successNotificationTitle()` on an action. A message about part of a page that stays until it is resolved is not a toast but an inline `Callout` at the top of that part (`inline`). Basis: Carbon notification usage and accessibility (Sep 2026) and notifications pattern (Aug 2026); WCAG 4.1.3.';
+        return 'Feedback on what the user just did. A toast says how a task went; it has no story kind of its own, so each toast story is the button that sends it: press it to see the toast. The title is short, says the most important thing and has no full stop; for a failure it says what was not done. The body is one or two sentences that don\'t repeat the title and, after a failure, say how to fix it. Colour follows the outcome: success, warning (done, but something may not be as expected), danger (failed). A failure, and a toast with an action, stay until dismissed; that is an app-wide default, so don\'t add `->persistent()`. On a resource\'s Create and Edit pages Filament already sends a success toast ("Created", "Saved"), which meets the rule; name the record with `getSavedNotificationTitle()` or `getCreatedNotificationTitle()` on the page, or with `->successNotificationTitle()` on an action. A message about part of a page that stays until it is resolved is not a toast but an inline `Callout` at the top of that part (`inline`); a `Callout` isn\'t announced to screen readers, so it is only for a message that is there when the page loads. Basis: Carbon notification usage and accessibility (Sep 2026), notifications pattern (Aug 2026) and Callout component docs; WCAG 4.1.3.';
     }
 
     public function records(): array
@@ -78,7 +78,7 @@ class NotificationStories extends Stories
                 ->send());
     }
 
-    /** A message about part of the page, present until it is resolved: inline, at the top of that part, never a toast. */
+    /** A message about part of the page, there when it loads and until it is resolved: inline, at the top of that part. Not for feedback on an action, which screen readers wouldn't hear. */
     public function inline(): Callout
     {
         return Callout::make('No delivery date')

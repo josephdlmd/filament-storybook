@@ -81,6 +81,10 @@ class StorybookPlugin implements Plugin
         // Actions with their own (Create, Save changes, Delete) set it again in setUp(), which runs after this.
         Action::configureUsing(fn (Action $action) => $action->modalSubmitActionLabel(fn (Action $action): string => (string) $action->getLabel()));
 
+        // A modal with buttons (a form or a confirmation) closes only by its buttons, × or Esc, so a stray click loses no input;
+        // one with nothing to submit, such as View, also closes by clicking outside (Carbon modal: transactional and passive).
+        Action::configureUsing(fn (Action $action) => $action->closeModalByClickingAway(fn (Action $action): bool => $action->getModalSubmitAction() === null));
+
         // The modal a button opens is titled with that button's label: "New supplier", not "Create Supplier" (Carbon modal).
         CreateAction::configureUsing(fn (CreateAction $action) => $action->modalHeading(fn (CreateAction $action): string => (string) $action->getLabel()));
 

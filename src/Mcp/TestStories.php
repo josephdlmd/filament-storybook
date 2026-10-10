@@ -160,6 +160,10 @@ class TestStories extends Tool
                 }
             }
 
+            if (preg_match("/lorem ipsum|'(option|section|item|step|label|title|text) \\d+'/i", $story['snippet'], $filler)) {
+                $warnings[] = "{$key}: \"{$filler[0]}\" is placeholder content; use realistic content from a real task, so the story shows whether the pattern reads clearly (Carbon story guidelines).";
+            }
+
             if (preg_match("/->title\\('[^']*\\.'\\)/", $story['snippet'])) {
                 $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
             }

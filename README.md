@@ -126,6 +126,7 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 - An error notification, and a notification with an action, stay until dismissed; others still close after 6 seconds. An explicit `->duration()` or `->persistent()` wins (Carbon notifications).
 - A modal's confirm button repeats the action's label, never "Submit" or "Confirm"; the New modal is titled "New supplier", not "Create Supplier"; modal headings name the model in sentence case (Carbon modal, button and content).
 - Carbon's verbs replace Filament's: Attach and Associate are "Add", Detach and Dissociate are "Remove", Replicate is "Copy". The View modal closes with its × only, with no Close button (Carbon common actions).
+- A modal with buttons (a form or a confirmation) doesn't close when the user clicks outside it, so a stray click loses no input; a View modal still does (Carbon modal).
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 

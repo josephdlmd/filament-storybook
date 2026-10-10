@@ -190,6 +190,11 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
         ->and(Filament\Actions\ReplicateAction::make()->getLabel())->toBe('Copy')
         ->and(Filament\Actions\ViewAction::make()->getModalCancelAction())->toBeNull()
         ->and(Filament\Actions\ViewAction::make()->hasModalCloseButton())->toBeTrue()
+        // A stray click outside a form or a confirmation loses nothing; a View modal still closes that way.
+        ->and(Filament\Actions\EditAction::make()->isModalClosedByClickingAway())->toBeFalse()
+        ->and(Filament\Actions\DeleteAction::make()->isModalClosedByClickingAway())->toBeFalse()
+        ->and(Filament\Actions\ViewAction::make()->isModalClosedByClickingAway())->toBeTrue()
+        ->and(Filament\Actions\EditAction::make()->closeModalByClickingAway()->isModalClosedByClickingAway())->toBeTrue()
         ->and(__('filament-actions::detach.single.notifications.detached.title'))->toBe('Removed')
         ->and(__('filament-actions::attach.single.modal.actions.attach_another.label'))->toBe('Add & add another')
         // Lines the house defaults don't change are still Filament's.
@@ -226,7 +231,8 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 3 passing, 3 failing, 8 warnings, 1 accessibility issues')
+        ->toStartWith('# 3 passing, 3 failing, 9 warnings, 1 accessibility issues')
+        ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Save Order" is in Title Case')
         ->toContain('- `broken-story.vagueAndTitleCase`: a notification title has no full stop')

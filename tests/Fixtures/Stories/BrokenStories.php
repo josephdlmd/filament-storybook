@@ -54,6 +54,7 @@ class BrokenStories extends Stories
         return Action::make('save')
             ->label('Submit')
             ->modalHeading('Save Order')
+            ->modalDescription('Lorem ipsum dolor sit amet.')
             ->action(fn () => Notification::make()->title('Saved.')->send());
     }
 }
