@@ -7,6 +7,7 @@ app=$(realpath "$1"); out=$(realpath "$2"); mkdir -p "$out"
 
 PROMPT=${3:-'Add a Suppliers feature to the admin panel. A supplier has a name, a TIN (Philippine tax identification number), a credit limit in pesos, payment terms (cash on delivery, 30 days or 60 days) and a status (active, on hold or blacklisted). Build the model, migration, factory and a Filament resource with a list table and a create/edit form, and add feature tests. Run the test suite before you finish.'}
 
+printf '%s' "$PROMPT" > "$out/prompt.txt"
 (cd "$app" && claude -p "$PROMPT" \
   --mcp-config .mcp.json --strict-mcp-config \
   --permission-mode acceptEdits \

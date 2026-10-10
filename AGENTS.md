@@ -7,10 +7,12 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | Path | What it is |
 |---|---|
 | `src/Stories.php` | Base class: one public method per story. The return type picks the canvas (component, column, action, or a whole `Table`/`Schema`). |
+| `src/Stories/Imports`, `src/Stories/Widgets` | Classes a pattern needs besides its stories (an importer, a chart widget). A pattern lists them in `examples()`; `storybook-show` prints their source for agents to copy. |
+| `src/Concerns/HasSentenceCaseLabels.php` | A trait apps add to each resource, for the titles Filament title-cases and a plugin can't reach. |
 | `src/StoryRegistry.php` | Finds stories in `src/Stories` (shared patterns) and the app's `app/Stories`. Builds the manifest: snippets, imports, and an API section of real signatures (a tokenizer follows each call chain). |
 | `src/Livewire/StoryCanvas.php` | Renders one story in its own Livewire component, like Storybook's iframe. Only registered story classes can render. |
 | `src/Pages/Storybook.php` | The `/<panel>/storybook` catalogue. Not in navigation; blocked in production. |
-| `src/Mcp/*` | The five Boost MCP tools: `storybook-list`, `storybook-show`, `storybook-instructions`, `storybook-test` (patterns) and `storybook-audit` (the app's real resource pages). |
+| `src/Mcp/*` | The five Boost MCP tools: `storybook-list`, `storybook-show`, `storybook-instructions`, `storybook-test` (patterns) and `storybook-audit` (the app's real resource pages, their related lists and the dashboard's widgets). |
 | `src/Accessibility.php` + `resources/a11y/axe.mjs` | WCAG 2.1 AA checks with axe-core in headless Chromium, shared by the test and audit tools. |
 | `src/StorybookPlugin.php` | Registers the page and the **house defaults**: Filament defaults corrected app-wide where they break a rule. |
 | `resources/boost/guidelines/core.blade.php` | The guideline Boost puts in each app's `AGENTS.md`. Keep it short: Storybook found that long agent instructions get truncated. |
@@ -29,7 +31,7 @@ The package defines one standard: the `filament-starter` stack (Filament 5 with 
 - **A rule beyond or against Carbon needs a current source:** W3C WAI, USWDS, NIST SP 800-63B-4, or research from about 2022 on. It goes under "Where we differ from Carbon" if it departs from Carbon.
 - **No house preferences and no rules backed only by old research.** If no source sets a number (rows per page, column counts), there is no rule.
 - **Mobbin** (real apps) can confirm or question a rule, never justify one. GOV.UK's style guide is UK content convention; formats follow the app's locale.
-- **Carbon supplies guidance only.** Patterns use native Filament components and the app's Filament theme. Never install Carbon code, CSS, fonts or tokens. (Carbon MCP needs an IBMid, which the owner can't have. Read the public carbondesignsystem.com pages instead; `carbon-design-system/carbon-website` is an archived Markdown snapshot from 2026-09-30.)
+- **Carbon supplies guidance only.** Patterns use native Filament components and the app's Filament theme. Never install Carbon code, CSS, fonts or tokens. (Carbon MCP needs an IBMid, which the owner can't have. Read the public carbondesignsystem.com pages instead; `carbon-design-system/carbon-website` is an archived Markdown snapshot from 2026-09-30. Carbon's content guidelines and action-label list were taken down that day and point to IBM Style, which needs a sign-in: cite the live component and pattern pages, and the snapshot only where they are silent, marked *(archived)*.)
 - **The package is public.** Shared patterns stay generic: no company names, real TINs or client data. App-specific patterns live in each app's `app/Stories`.
 
 ## The owner adds to the standards

@@ -18,6 +18,8 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Put a one-line docblock on every variant saying what is different and why.
 - Columns and entries need sample data. Return rows from `records()`, keyed by record id, covering the edge cases: a negative amount, an empty value, a long label.
 - The canvas gives every story an unsaved record made from the first sample row, so a condition on `$record` (`fn (?Model $record): bool => …`) works as it does in a resource.
+- In a table story, type the record in a row action's closures nullable, `fn (?Order $record)`: a table calls them without a record while it has no rows.
+- A pattern that needs a class besides its stories (an importer, a widget) lists it in `examples()`; `storybook-show` prints its source to copy.
 - Keep stories pure. Do not query the database, read the session or call external services; sample data goes in `records()`.
 - Use realistic content from a real task ("Order 1042", "Abra Medical Supply"), never lorem ipsum or "Option 1", "Section 1": placeholder wording can make a pattern look clear when it isn't. One component per story, so the snippet copies cleanly; put variants in their own stories.
 - Use the field names and labels a real screen would use, in sentence case, so the snippet pastes into a resource unchanged. A button's label is a verb ("Approve order"), never OK, Done or Submit.

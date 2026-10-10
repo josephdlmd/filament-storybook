@@ -76,8 +76,14 @@ checks = {
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")
+# Checks for a feature the prompt doesn't ask for show as "-", so a ✗ is always a miss.
+prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __import__("os").path.exists(transcript.rsplit("/", 1)[0] + "/prompt.txt") else ""
+asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
+        "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell"}
 print("pattern reuse:")
 for k, v in checks.items():
-    print(f"  {'✓' if v else '✗'} {k}")
+    topic = next((t for t in asks if k.startswith(t)), None)
+    applies = not prompt or topic is None or asks[topic] in prompt
+    print(f"  {('✓' if v else '✗') if applies else '-'} {k}")
 if result:
     print(f"\nresult: {result.get('subtype')}, turns {result.get('num_turns')}, cost ${result.get('total_cost_usd', 0):.2f}, {result.get('duration_ms', 0) // 1000}s")
