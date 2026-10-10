@@ -20,6 +20,13 @@ class GadgetResource extends Resource
 {
     protected static ?string $model = Gadget::class;
 
+    public static bool $creatable = true;
+
+    public static function canCreate(): bool
+    {
+        return static::$creatable;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -60,6 +67,7 @@ class GadgetResource extends Resource
             'index' => Pages\ListGadgets::route('/'),
             'create' => Pages\CreateGadget::route('/create'),
             'edit' => Pages\EditGadget::route('/{record}/edit'),
+            'report' => Pages\ReportGadgets::route('/report/{year}'),
         ];
     }
 }

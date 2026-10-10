@@ -17,20 +17,35 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 
 ## Install
 
-Not on Packagist; add the repository first:
+### The standard
+
+The package works with apps that follow one standard: the `filament-starter` template's stack.
+- Laravel with Filament 5, and a default panel in `app/Providers/Filament`
+- Laravel Boost, installed for development
+- Pest
+- npm (the `package.json` Laravel ships with)
+
+Apps are brought up to this standard; the package doesn't adapt to exceptions. The installer checks it first and, if anything is missing, says what to change and touches nothing.
+
+### Connect an app
 
 ```bash
 composer config repositories.filament-storybook vcs https://github.com/josephdlmd/filament-storybook
-composer require josephdlmd/filament-storybook:^0.9
+composer require josephdlmd/filament-storybook:^0.10
+php artisan storybook:install
 ```
 
-Register the plugin in the panel provider. The page is left out of the navigation (open `/<panel>/storybook`, or the link `storybook-show` gives) and is blocked in production:
+The installer:
+- adds the plugin to the default panel;
+- registers the package with Boost and refreshes the agent guidelines;
+- writes the standard `tests/Feature/StoriesTest.php`, which renders every story and fails if Boost stops serving the tools;
+- publishes the house CSS and ignores it in git;
+- installs the accessibility check packages.
 
-```php
-->plugin(\Josephdlmd\FilamentStorybook\StorybookPlugin::make())
-```
-
-Add `"josephdlmd/filament-storybook"` to `packages` in `boost.json`, then run `php artisan boost:update` so agents get the guideline. The four MCP tools join Boost's server automatically.
+It's safe to run again. Then:
+1. Once per machine, install Chromium for the accessibility checks: `npx playwright-core install chromium`.
+2. Run the tests. The house defaults change required-field errors to "Enter name" and outline delete buttons.
+3. Restart your coding agent and ask it to run `storybook-audit`. On an app built before these rules, treat what it reports as a backlog to fix screen by screen.
 
 ### Accessibility checks
 
@@ -105,33 +120,7 @@ Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
 ## Render every story in the app's tests
 
-Copy this into the app as `tests/Feature/StoriesTest.php`. The first test renders every story; the second fails the build if a Boost update ever stops giving agents the tools (they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file).
-
-```php
-use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
-use Josephdlmd\FilamentStorybook\Mcp;
-use Josephdlmd\FilamentStorybook\StoryRegistry;
-use Laravel\Boost\Mcp\ToolRegistry;
-use Livewire\Livewire;
-
-it('renders every stories pattern', function () {
-    foreach (app(StoryRegistry::class)->all() as $stories) {
-        foreach (array_keys($stories->stories()) as $story) {
-            Livewire::test(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story])->assertOk();
-        }
-    }
-});
-
-it('gives agents the storybook tools through Boost', function () {
-    expect(ToolRegistry::getAvailableTools())->toContain(
-        Mcp\ListStories::class,
-        Mcp\ShowStories::class,
-        Mcp\ShowInstructions::class,
-        Mcp\TestStories::class,
-        Mcp\AuditPages::class,
-    );
-});
-```
+`storybook:install` writes the standard `tests/Feature/StoriesTest.php` ([stubs/StoriesTest.php](stubs/StoriesTest.php)). The first test renders every story. The second fails the build if a Boost update ever stops giving agents the tools: they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file. Every app has the same file, so don't edit it there; change the stub.
 
 ## Agent eval
 

@@ -19,6 +19,10 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `docs/rules.md` | **The rulebook:** every rule with its source and date, where we differ from Carbon, and what was dropped and why. |
 | `eval/` | A headless agent eval: an ordinary feature prompt in a throwaway app, scored on whether the agent used the patterns. |
 
+## Apps conform to the package
+
+The package defines one standard: the `filament-starter` stack (Filament 5 with a default panel in `app/Providers/Filament`, Laravel Boost, Pest, npm). Apps are brought up to it; the package does not add variants for apps that differ. `storybook:install` (`src/Commands/InstallCommand.php`) checks the standard, refuses with a list of what to change, and otherwise connects the app. Its edits are idempotent. The app test is one shared file, `stubs/StoriesTest.php`; change the stub, never a copy. The package itself passes Pest's `php`, `security` and `laravel` architecture presets (`tests/ArchTest.php`), because the apps run them.
+
 ## Rules policy (decided by the owner, 2026-10-10)
 
 - **Carbon is the base design system.** GOV.UK covers form wording and error messages, and WCAG 2.2 AA always wins. A rule that follows Carbon needs no further evidence.

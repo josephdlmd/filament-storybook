@@ -1,6 +1,7 @@
 <?php
 
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
+use Josephdlmd\FilamentStorybook\Commands\InstallCommand;
 use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
 use Josephdlmd\FilamentStorybook\Mcp\ShowInstructions;
@@ -16,6 +17,7 @@ use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
 use Josephdlmd\FilamentStorybook\Stories\TinInputStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget;
+use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Laravel\Mcp\Request;
 use Livewire\Livewire;
@@ -189,16 +191,12 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
 });
 
 it('says how to enable the accessibility check when it cannot run', function (): void {
-    putenv('STORYBOOK_CHROMIUM=/nonexistent/chrome');
+    config(['filament-storybook.chromium' => '/nonexistent/chrome']);
 
-    try {
-        expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-tin']]))->content())
-            ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues')
-            ->toContain('Accessibility not checked (')
-            ->toContain('npx playwright-core install chromium');
-    } finally {
-        putenv('STORYBOOK_CHROMIUM');
-    }
+    expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-tin']]))->content())
+        ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toContain('Accessibility not checked (')
+        ->toContain('npx playwright-core install chromium');
 });
 
 it('gives agents the story-writing rules', function (): void {
@@ -243,4 +241,42 @@ it('audits edit pages against an existing record', function (): void {
         ->toStartWith('# 3 pages rendered, 0 failing, 14 warnings')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
         ->toContain('- `EditGadget`: the field `code` uses placeholder()');
+});
+
+it('installs into an app that meets the standard, and changing nothing on a second run', function (): void {
+    $provider = "<?php\n\nnamespace App\\Providers\\Filament;\n\nuse Filament\\Panel;\n\nclass AdminPanelProvider\n{\n    public function panel(Panel \$panel): Panel\n    {\n        return \$panel\n            ->default()\n            ->id('admin')\n            ->path('admin');\n    }\n}\n";
+    $installed = InstallCommand::addPlugin($provider);
+
+    expect($installed)
+        ->toContain("            ->id('admin')\n            ->plugin(StorybookPlugin::make())\n            ->path('admin');")
+        ->toContain("use Josephdlmd\\FilamentStorybook\\StorybookPlugin;")
+        ->and(InstallCommand::addPlugin($installed))->toBe($installed);
+
+    $boost = InstallCommand::addBoostPackage('{"agents": ["claude_code"], "packages": ["filament/filament"]}');
+    expect(json_decode($boost, true)['packages'])->toBe(['filament/filament', 'josephdlmd/filament-storybook'])
+        ->and(InstallCommand::addBoostPackage($boost))->toBe($boost)
+        ->and(InstallCommand::addGitignoreLine("/vendor\n"))->toBe("/vendor\n/public/css/josephdlmd\n")
+        ->and(InstallCommand::addGitignoreLine("/vendor\n/public/css/josephdlmd\n"))->toBe("/vendor\n/public/css/josephdlmd\n");
+});
+
+it('refuses an app that does not meet the standard, saying what to change', function (): void {
+    expect(InstallCommand::unmetRequirements(boost: true, pest: true, npm: true, defaultPanel: true))->toBe([])
+        ->and(InstallCommand::unmetRequirements(boost: true, pest: false, npm: true, defaultPanel: false))->toHaveCount(2)
+        ->and(implode(' ', InstallCommand::unmetRequirements(boost: false, pest: false, npm: false, defaultPanel: false)))
+        ->toContain('Laravel Boost')->toContain('Pest')->toContain('package.json')->toContain('default Filament panel');
+
+    $this->artisan('storybook:install')->assertExitCode(1);
+});
+
+it('skips pages the user may not open, and pages that need route parameters, instead of failing them', function (): void {
+    GadgetResource::$creatable = false;
+
+    try {
+        expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+            ->toContain('0 failing')
+            ->toContain('- `CreateGadget`: tester@example.com may not open it; pass "as" with a user who can.')
+            ->toContain("- `ReportGadgets`: it needs route parameters the audit can't supply");
+    } finally {
+        GadgetResource::$creatable = true;
+    }
 });

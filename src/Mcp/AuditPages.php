@@ -21,6 +21,7 @@ use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
@@ -90,6 +91,14 @@ class AuditPages extends Tool
 
                 try {
                     $page = Livewire::test($registration->getPage(), $parameters);
+
+                    // Livewire's test harness returns no component when the page refuses or redirects while opening.
+                    if ($page->instance() === null) {
+                        $skipped[] = "- `{$key}`: ".static::userLabel($user).' may not open it; pass "as" with a user who can.';
+
+                        continue;
+                    }
+
                     $rendered[$key] = $page->html();
                     $warnings = [...$warnings, ...static::warnings($key, $page->instance())];
                     $passing[] = "- `{$key}`";
@@ -98,6 +107,12 @@ class AuditPages extends Tool
                 } catch (Throwable $e) {
                     while ($e->getPrevious() !== null) {
                         $e = $e->getPrevious();
+                    }
+
+                    if ($e instanceof BindingResolutionException) {
+                        $skipped[] = "- `{$key}`: it needs route parameters the audit can't supply; open it in the browser to check it.";
+
+                        continue;
                     }
 
                     $failing[] = "- `{$key}`: ".class_basename($e).': '.$e->getMessage().' at '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $e->getFile()).':'.$e->getLine();

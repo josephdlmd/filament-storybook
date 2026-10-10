@@ -198,7 +198,10 @@ class StoryRegistry
                     $parameter->isDefaultValueConstant() => $parameter->getDefaultValueConstantName(),
                     $value === null => 'null',
                     is_array($value) => $value === [] ? '[]' : '[...]',
-                    default => var_export($value, true),
+                    is_bool($value) => $value ? 'true' : 'false',
+                    is_string($value) => "'".addcslashes($value, "'\\")."'",
+                    is_scalar($value) => (string) $value,
+                    default => get_debug_type($value),
                 };
             }
 

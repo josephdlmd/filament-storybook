@@ -24,7 +24,7 @@ class Accessibility
         )));
 
         $result = Process::path(base_path())->timeout(120)
-            ->env(array_filter(['STORYBOOK_CHROMIUM' => getenv('STORYBOOK_CHROMIUM') ?: env('STORYBOOK_CHROMIUM')]))
+            ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
             ->input((string) json_encode(['css' => $css, 'stories' => array_map(
                 fn (string $key, string $html): array => ['key' => $key, 'html' => $html],
                 array_keys($rendered),

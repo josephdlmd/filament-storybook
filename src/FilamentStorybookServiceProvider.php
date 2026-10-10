@@ -5,6 +5,7 @@ namespace Josephdlmd\FilamentStorybook;
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
+use Josephdlmd\FilamentStorybook\Commands\InstallCommand;
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
@@ -18,6 +19,8 @@ class FilamentStorybookServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__.'/../config/filament-storybook.php', 'filament-storybook');
+
         // Shared patterns ship with the package; each app adds its own in app/Stories.
         $this->app->singleton(StoryRegistry::class, fn (): StoryRegistry => (new StoryRegistry)
             ->discover(__DIR__.'/Stories', __NAMESPACE__.'\\Stories')
@@ -27,6 +30,10 @@ class FilamentStorybookServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'filament-storybook');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([InstallCommand::class]);
+        }
 
         Livewire::component('filament-storybook.story-canvas', StoryCanvas::class);
 
