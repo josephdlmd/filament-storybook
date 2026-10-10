@@ -41,6 +41,8 @@ checks = {
     "terms: ToggleButtons": "ToggleButtons" in code,
     "TIN story added in app/Stories": "app/Stories" in untracked,
     "no placeholder() format examples": "->placeholder(" not in code,
+    "record form screen: inlineLabel()": "inlineLabel()" in code,
+    "list table screen: defaultPaginationPageOption(25)": "defaultPaginationPageOption(25)" in code,
 }
 print("pattern reuse:")
 for k, v in checks.items():
