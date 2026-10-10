@@ -98,7 +98,7 @@ A whole screen is a story too. It takes and returns what the resource's `configu
 ```php
 public function default(Table $table): Table
 {
-    return $table->columns([...])->filters([...])->defaultSort('name');
+    return $table->columns([...])->filters([...]);
 }
 ```
 

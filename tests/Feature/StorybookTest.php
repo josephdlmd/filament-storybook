@@ -128,7 +128,7 @@ it('gives agents the real signatures of the methods a pattern uses', function ()
 it('credits each method in a screen story to the class it is called on', function (): void {
     $api = collect(app(StoryRegistry::class)->manifest(app(ListTableStories::class))['api'])->pluck('signature', 'method');
 
-    expect($api->keys()->all())->toContain('Table::columns', 'TextColumn::make', 'TextColumn::money', 'SelectFilter::options', 'Table::defaultSort')
+    expect($api->keys()->all())->toContain('Table::columns', 'TextColumn::make', 'TextColumn::money', 'SelectFilter::options', 'Table::persistFiltersInSession')
         ->not->toContain('Table::make', 'Table::money', 'TextColumn::columns');
 });
 
@@ -165,7 +165,7 @@ it('tells an agent the valid ids instead of letting it guess', function (): void
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 23 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 22 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -354,16 +354,15 @@ it('builds the View page pattern on a real resource page: related lists in the m
     expect((fn (): array => static::warnings('ViewGadgetInLayout', $page->instance()))->call(new AuditPages))->toBe([]);
 });
 
-it('links a missing value to where it is added', function (): void {
+it('shows a record\'s facts in their field patterns\' formats, with nothing invented for a missing value', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordDetailsStories::class, 'story' => 'default'])
-        ->assertSee('Add due date')
+        ->assertDontSee('Add due date')
         ->assertSee('123-456-789-000')
         ->assertSee('₱2,363.71');
 });
 
 it('keeps a locked record\'s values out of the save, even when changed in the browser', function (): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordLockedStories::class, 'story' => 'default'])
-        ->assertSee('This bill is approved, so only its notes can change')
         ->assertSeeHtml('readonly')
         ->assertSee('30 days')
         ->set('data.reference', 'CHANGED')

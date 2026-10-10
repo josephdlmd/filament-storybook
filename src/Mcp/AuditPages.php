@@ -177,7 +177,7 @@ class AuditPages extends Tool
             ->filter(fn ($action): bool => $action instanceof Action && $action->isVisible() && in_array($action->getColor() ?? 'primary', ['primary'], true));
 
         if ($primary->count() > 1) {
-            $warn("{$primary->count()} primary actions in the header; keep one primary and make the rest `->color('gray')` or put them in an `ActionGroup` (Carbon button, GOV.UK button).");
+            $warn("{$primary->count()} primary actions in the header; keep one primary and make the rest `->color('gray')` or put them in an `ActionGroup` (Carbon button).");
         }
 
         if (method_exists($page, 'getTable') && $page->getTable()->getColumns() !== []) {
@@ -227,7 +227,7 @@ class AuditPages extends Tool
             }
 
             if (count($page->getCachedRelationManagers()) > 1 || $page->hasCombinedRelationManagerTabsWithContent()) {
-                $warn('its related lists are tabs; stack each relation manager in the main column with `Livewire::make()`, as `records-view-page` does (NN/g tabs 2024).');
+                $warn('its related lists are tabs; stack each relation manager in the main column with `Livewire::make()`, as `records-view-page` does, unless they are rarely used (Carbon tabs, NN/g tabs 2024).');
             }
         }
 

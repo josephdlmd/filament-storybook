@@ -7,7 +7,6 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +21,7 @@ class RecordLockedStories extends Stories
 
     public function description(): string
     {
-        return 'A record that can no longer change, such as a posted entry, an approved bill or a closed period. Which statuses lock a record is a business fact: each app sets its own, ideally on its status enum, and uses that condition in place of `$record?->status === \'approved\'` in its own `app/Stories`. The policy is the lock: when nothing can change, `update()` and `delete()` return false, so Filament hides Edit and Delete and refuses the Edit page. The record then opens on its View page, which says why first in the main column (`reason`): what state it is in and what to do instead. Never let Edit vanish without a reason. When some fields can still change (`default`), the form says what is locked, the locked fields are read-only (`readOnly()`, so they stay readable, focusable and copyable at full contrast) inside a group that is not saved, and choice fields, which have no read-only state in Filament, show their value as text. Disabled is only for a control that becomes available after the user does something on the same screen. Basis: Carbon read-only states (Locked; read-only stays navigable, text passes 4.5:1, never disabled for something users must read) and disabled states (hide what the user may not do; an inline notification says how to re-enable); WCAG 1.4.3 (the contrast exemption covers disabled controls only); WAI-ARIA 1.2 aria-readonly (still focusable and copyable); Filament docs (a read-only field is still submitted unless it is not saved).';
+        return 'A record the user may no longer change, such as a posted entry, an approved bill or a closed period. Which statuses lock a record is a business fact: each app sets its own, ideally on its status enum, and uses that condition in place of `$record?->status === \'approved\'` in its own `app/Stories`. The policy is the lock: when nothing can change, `update()` and `delete()` return false, so Filament hides Edit and Delete and refuses the Edit page, and the record opens on its View page (`records-view-page`), whose values are read-only text. When some fields can still change (`default`), the locked fields are read-only (`readOnly()`: readable, focusable and copyable at full contrast, styled read-only by the house CSS) inside a group that is not saved, and choice fields, which have no read-only state in Filament, show their value as text. Disabled is only for something unavailable for now, such as while a process runs. Basis: Carbon read-only states (Permissions: the user may view but not modify; read-only stays navigable and passes 4.5:1; never disabled for something users must read) and disabled states (hide an action the user may not take); WCAG 1.4.3 (the contrast exemption covers disabled controls only); WAI-ARIA 1.2 aria-readonly; Filament docs (a read-only field is still submitted unless it is not saved).';
     }
 
     public function records(): array
@@ -43,10 +42,6 @@ class RecordLockedStories extends Stories
         return $schema
             ->columns(1)
             ->components([
-                Callout::make('This bill is approved, so only its notes can change')
-                    ->description('To correct anything else, cancel the bill and record a new one')
-                    ->info()
-                    ->visible(fn (?Model $record): bool => $record?->status === 'approved'),
                 Group::make([
                     TextInput::make('reference')
                         ->label('Supplier invoice number')
@@ -83,12 +78,4 @@ class RecordLockedStories extends Stories
             ]);
     }
 
-    /** Why a record that can't change at all has no Edit: first in the main column of its View page. */
-    public function reason(): Callout
-    {
-        return Callout::make('This bill is approved, so it can\'t be changed')
-            ->description('To correct it, cancel it and record a new bill')
-            ->info()
-            ->visible(fn (?Model $record): bool => $record?->status === 'approved');
-    }
 }

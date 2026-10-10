@@ -15,7 +15,7 @@ class ChoiceStories extends Stories
 
     public function description(): string
     {
-        return 'Picking one option. Show the options as radios when there are few enough to read at a glance; only a long list, such as provinces, goes in a searchable select. Basis: GOV.UK select (a select is a last resort, because users in research could not close or scroll one) and GOV.UK radios.';
+        return 'Picking one option. Up to five options are radios; more than five, such as provinces, go in a searchable select. Basis: Carbon forms pattern 2026 (more than five options: a select list); USWDS select 2026 (a select is the "UI of last resort").';
     }
 
     public function fewOptions(): Radio

@@ -19,7 +19,7 @@ class ListTableStories extends Stories
 
     public function description(): string
     {
-        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, the columns follow in order of importance, money is right-aligned and status is a badge. With more than one filter, the filters sit above the table; the list remembers its filters, search and sort; and an empty list says what goes here and offers the next step (on a resource, `CreateAction::make()`). Basis: NN/g data tables 2022, GOV.UK and USWDS tables (right-align numbers), Carbon filtering, search and empty states (2026).';
+        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first and is searchable, the columns follow in order of importance, money is right-aligned and status is a badge. With more than one filter, the filters sit above the table; applied filters stay applied for the session; and an empty list says what goes here and offers the next step (on a resource, `CreateAction::make()`). Basis: NN/g data tables 2022 (identifier first, columns by importance, sortable); USWDS table (right-align numbers); Carbon filtering, search (filters persist for the session) and empty states (2026).';
     }
 
     public function records(): array
@@ -55,9 +55,6 @@ class ListTableStories extends Stories
                     ->label('Has a credit limit'),
             ], layout: FiltersLayout::AboveContentCollapsible)
             ->persistFiltersInSession()
-            ->persistSearchInSession()
-            ->persistSortInSession()
-            ->defaultSort('name')
             ->emptyStateHeading('No suppliers yet')
             ->emptyStateDescription('Suppliers you add appear here.')
             ->emptyStateActions([

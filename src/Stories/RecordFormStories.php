@@ -17,7 +17,7 @@ class RecordFormStories extends Stories
 
     public function description(): string
     {
-        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: W3C WAI forms tutorial 2024 and GOV.UK text input (visible labels above their fields); GOV.UK question pages and USWDS form (optional fields say "(optional)"); USWDS and GOV.UK text input (input width matches the answer); GOV.UK radios (choices as radios).';
+        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: W3C WAI forms tutorial 2024 (visible labels above their fields); Carbon forms 2026 (mark the smaller group, so optional fields say "(optional)"; up to five options as radios); USWDS text input (input width matches the answer).';
     }
 
     public function records(): array
