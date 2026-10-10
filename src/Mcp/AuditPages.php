@@ -20,6 +20,8 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Resources\RelationManagers\RelationGroup;
+use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Pages\ViewRecord;
@@ -53,7 +55,7 @@ class AuditPages extends Tool
 {
     protected string $name = 'storybook-audit';
 
-    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view) signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.1 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
+    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view) and their related lists, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.1 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -128,7 +130,28 @@ class AuditPages extends Tool
                         continue;
                     }
 
-                    $failing[] = "- `{$key}`: ".class_basename($e).': '.$e->getMessage().' at '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $e->getFile()).':'.$e->getLine();
+                    $failing[] = "- `{$key}`: ".static::failure($e);
+                }
+            }
+
+            // Related lists render inside the View or Edit page; read them from the resource, since a View page may embed them itself.
+            $owner = $resource::getEloquentQuery()->first();
+            $pageClass = ($resource::getPages()['view'] ?? $resource::getPages()['edit'] ?? null)?->getPage();
+
+            foreach ($owner === null || $pageClass === null ? [] : static::relationManagers($resource::getRelations()) as $manager) {
+                if (! $manager::canViewForRecord($owner, $pageClass)) {
+                    continue;
+                }
+
+                $key = class_basename($manager);
+
+                try {
+                    $list = Livewire::test($manager, ['ownerRecord' => $owner, 'pageClass' => $pageClass]);
+                    $rendered[$key] = $list->html();
+                    $warnings = [...$warnings, ...static::warnings($key, $list->instance())];
+                    $passing[] = "- `{$key}`";
+                } catch (Throwable $e) {
+                    $failing[] = "- `{$key}`: ".static::failure($e);
                 }
             }
         }
@@ -145,6 +168,28 @@ class AuditPages extends Tool
         }
 
         return Response::text($text.($failing === [] && $issues === [] && $warnings === [] ? '' : "\nFix each one, then run storybook-audit again until none remain.\n"));
+    }
+
+    /** The innermost error, which names the actual mistake, with the line to fix. */
+    protected static function failure(Throwable $e): string
+    {
+        while ($e->getPrevious() !== null) {
+            $e = $e->getPrevious();
+        }
+
+        return class_basename($e).': '.$e->getMessage().' at '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $e->getFile()).':'.$e->getLine();
+    }
+
+    /**
+     * @param  array<class-string|RelationGroup|RelationManagerConfiguration>  $relations
+     * @return list<class-string>
+     */
+    protected static function relationManagers(array $relations): array
+    {
+        return collect($relations)
+            ->flatMap(fn ($relation): array => $relation instanceof RelationGroup ? $relation->getManagers() : [$relation])
+            ->map(fn ($manager): string => $manager instanceof RelationManagerConfiguration ? $manager->relationManager : $manager)
+            ->values()->all();
     }
 
     protected static function userLabel(Authenticatable $user): string
@@ -228,7 +273,7 @@ class AuditPages extends Tool
                 $warn('the empty list gives no next step; add `emptyStateDescription()` and `emptyStateActions()`, as `tables-list-table` does (Carbon empty states).');
             }
 
-            $tableActions = static::flatten([...$table->getRecordActions(), ...$table->getToolbarActions()]);
+            $tableActions = static::flatten([...$table->getHeaderActions(), ...$table->getRecordActions(), ...$table->getToolbarActions()]);
         }
 
         foreach ([...$headerActions, ...$tableActions] as $action) {

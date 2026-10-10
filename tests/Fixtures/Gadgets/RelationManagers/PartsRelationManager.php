@@ -2,6 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\RelationManagers;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -12,6 +14,10 @@ class PartsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('name')]);
+        // Breaks the rules a related list can: Title Case, a delete called Remove, and Filament's "Are you sure" text.
+        return $table
+            ->columns([TextColumn::make('name'), TextColumn::make('created_at')->label('Created At')])
+            ->headerActions([CreateAction::make()])
+            ->recordActions([DeleteAction::make()->label('Remove')]);
     }
 }

@@ -332,7 +332,12 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 4 pages rendered, 0 failing, 39 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 42 warnings')
+        // Related lists are audited too, read from the resource, since a View page may embed them itself.
+        ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
+        ->toContain('- `PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')
+        ->toContain('- `PartsRelationManager`: `delete` asks "Are you sure you would like to do this?"')
+        ->not->toContain('- `SparePartsRelationManager`:')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
         ->toContain('- `EditGadget`: `delete` asks "Are you sure you would like to do this?"')
         ->toContain('- `ViewGadget`: it shows the record as a disabled form')
