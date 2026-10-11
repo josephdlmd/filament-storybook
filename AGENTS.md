@@ -22,6 +22,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `resources/css/house.css` | CSS for rules Filament has no setting for, published by `filament:upgrade`. |
 | `docs/rules.md` | **The rulebook:** every rule with its source and date, where we differ from Carbon, and what was dropped and why. |
 | `docs/carbon-coverage.md` | Every Carbon page checked against the rules and `compact()`: one row per page with its updated date, and each gap as a numbered finding with its status. Re-check a page when its date changes. |
+| `docs/filament-coverage.md` | Every Filament component and the guidance that covers it (a pattern, a rule, general rules, or a gap), so a new component or a gap is visible. |
 | `docs/roadmap.md` | What is covered, what comes next, and the business facts to ask the owner first. |
 | `eval/` | A headless agent eval: an ordinary feature prompt in a throwaway app, scored on whether the agent used the patterns. |
 
