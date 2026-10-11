@@ -64,6 +64,8 @@ class DocumentLifecycleStories extends Stories
             ->successNotificationTitle('Invoice posted')
             ->action(function (Model $record, array $data, Action $action): void {
                 // On a resource: DB::transaction(fn () => $record->update(['number' => $data['number'], 'status' => InvoiceStatus::Posted, 'posted_at' => now()]));
+                // A unique index on sales_invoices.number is the real guard: if two users post the same serial at once, catch
+                // UniqueConstraintViolationException and fail with the same message as the field's check.
                 $action->success();
             });
     }

@@ -64,6 +64,21 @@ class DocumentTotals
     }
 
     /**
+     * The rates a customer withholds from an invoice, by their withholding type: a government office 1% income tax and
+     * 5% VAT, except no income tax on a single purchase of ₱10,000 or less (RA 10963); a top withholding agent 1%.
+     *
+     * @return array{income_tax: string, vat: string}
+     */
+    public static function customerRates(?string $type, string $total): array
+    {
+        return match ($type) {
+            'government' => ['income_tax' => bccomp($total, '10000', 2) <= 0 ? '0' : '0.01', 'vat' => '0.05'],
+            'top_withholding_agent' => ['income_tax' => '0.01', 'vat' => '0'],
+            default => ['income_tax' => '0', 'vat' => '0'],
+        };
+    }
+
+    /**
      * What a customer is expected to withhold from a payment of `$amount` against an invoice: the rate on the
      * VAT-exclusive share of it. A proposal only; the user records what the customer's BIR Form 2307 shows.
      */

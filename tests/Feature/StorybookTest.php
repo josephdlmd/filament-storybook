@@ -601,6 +601,17 @@ it('proposes what a government office withholds: 1% income tax and 5% VAT on the
     expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('2363.71', '3363.71', '360.40', '0.01'))->toBe('21.10');
 });
 
+it('sets what a customer withholds by type, with no income tax on a government purchase of ₱10,000 or less', function (?string $type, string $total, array $rates): void {
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::customerRates($type, $total))->toBe($rates);
+})->with([
+    'government, over ₱10,000' => ['government', '10000.01', ['income_tax' => '0.01', 'vat' => '0.05']],
+    'government, exactly ₱10,000' => ['government', '10000.00', ['income_tax' => '0', 'vat' => '0.05']],
+    'government, a small purchase' => ['government', '2500.00', ['income_tax' => '0', 'vat' => '0.05']],
+    'a top withholding agent' => ['top_withholding_agent', '2500.00', ['income_tax' => '0.01', 'vat' => '0']],
+    'no withholding' => ['none', '112000.00', ['income_tax' => '0', 'vat' => '0']],
+    'not set' => [null, '112000.00', ['income_tax' => '0', 'vat' => '0']],
+]);
+
 it('offers a top withholding agent\'s codes for a supplier only when the company is one', function (bool $agent, array $codes): void {
     config(['company.top_withholding_agent' => $agent]);
 
