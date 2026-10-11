@@ -46,7 +46,7 @@ These are business facts, so the owner is the source. Record the answers under "
 
 - Sending: which documents are emailed, to whom (the customer's billing contact?), and from which address
 - When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit
-- Reports: which reports, the ageing buckets, and whether amounts are VAT-inclusive
+- Reports: which reports, and whether amounts are VAT-inclusive (ageing buckets decided 2026-10-11; see Business standards)
 - The CPA review in `rules.md`: rounding, VAT per document and withholding on partial supplier payments
 
 ## How

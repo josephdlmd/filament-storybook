@@ -288,6 +288,7 @@ Approved by the owner on 2026-10-10.
 - **A supplier's invoice is recorded as printed:** its total and its VAT as the supplier wrote them, since the printed VAT supports the input tax; the app shows its own figure beside it to catch typing mistakes.
 - **A supplier's invoice is recorded on its purchase order,** not as a document of its own (owner, 2026-10-11): the order holds the supplier's invoice number, date and printed figures, its withholding and its payments. *Patterns `forms-document-totals.supplierInvoice`, `records-view-page`.*
 - **Payments may be partial;** a payment never settles more than the balance due.
+- **Ageing** (statements of account and the ageing report) counts days past the due date, in five buckets: Current, 1–30, 31–60, 61–90 and over 90 days (owner, 2026-10-11). Which documents are emailed, from which address, and what a statement lists are still to be decided.
 - **A serial is used once:** a unique index on each document's number is the real guard, and a form's check gives the message; the index also catches two users entering the same serial at once. A void document's serial stays used.
 
 **Good business practice, recommended at the owner's request and approved by the owner (2026-10-11):**
