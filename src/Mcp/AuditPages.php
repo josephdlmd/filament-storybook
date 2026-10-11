@@ -321,6 +321,22 @@ class AuditPages extends Tool
                 }
             }
 
+            if ($visible->count() < 3) {
+                $warn("the table shows {$visible->count()} column(s); a table needs three or more, so show these as a list of labels and values, as `records-details` does (Carbon data table: \"Tables require three or more columns\").");
+            }
+
+            $toolbar = collect([...$header, ...$table->getHeaderActions(), ...$table->getToolbarActions()])->filter(fn ($action): bool => ($action instanceof Action || $action instanceof ActionGroup) && $action->isVisible());
+
+            if ($toolbar->count() > 5) {
+                $warn("{$toolbar->count()} actions above the table; keep five at most and put the rest in a menu (Carbon data table: \"Include up to five actions within the table toolbar\").");
+            }
+
+            foreach (collect($table->getRecordActions())->filter(fn ($action): bool => $action instanceof ActionGroup) as $group) {
+                if (count($actions = $group->getFlatActions()) < 3) {
+                    $warn('a row menu holds only '.count($actions).' action(s); show them inline instead (Carbon data table: "When the overflow menu contains fewer than three options, keep the actions inline").');
+                }
+            }
+
             $inline = collect($table->getRecordActions())->filter(fn ($action): bool => $action instanceof Action);
 
             if ($inline->count() > 2) {
@@ -488,6 +504,10 @@ class AuditPages extends Tool
         $layouts = $page instanceof ListRecords ? [] : rescue(fn (): array => $page->getSchema($page instanceof ViewRecord ? 'infolist' : 'form')?->getFlatComponents(withHidden: true) ?? [], [], report: false);
 
         foreach ($layouts as $layout) {
+            if ($layout instanceof Section && $layout->isCollapsible() && ! $layout->isCollapsed()) {
+                $warn("the section \"{$layout->getHeading()}\" can collapse but starts open; start it collapsed with `->collapsed()`, or don't make it collapsible (Carbon accordion: \"begin by default in the collapsed state\").");
+            }
+
             $heading = match (true) {
                 $layout instanceof Section => $layout->getHeading(),
                 $layout instanceof Fieldset, $layout instanceof Tab => $layout->getLabel(),
@@ -519,7 +539,23 @@ class AuditPages extends Tool
             $warnings[] = '- `navigation`: the sidebar shrinks to icons only, so the menu loses its words; use `->sidebarFullyCollapsibleOnDesktop()`, which hides it whole (NN/g menu design: icons support text labels, never replace them).';
         }
 
+        if (! $panel->hasDarkMode()) {
+            $warnings[] = '- `navigation`: dark mode is off; keep Filament\'s light and dark modes and its theme switcher (Carbon color: switching modes "is highly encouraged").';
+        }
+
         foreach ($panel->getNavigation() as $group) {
+            foreach ($group->getItems() as $item) {
+                $name = trim((string) $item->getLabel());
+
+                if (preg_match('/^(Create|New|Add|Edit|Manage|View|Import|Export)\b/', $name)) {
+                    $warnings[] = "- `navigation`: \"{$name}\" names an action; name the place, such as \"Suppliers\" (Carbon UI shell header: \"Avoid using verbs as header links\").";
+                }
+
+                if (filled($item->getBadge())) {
+                    $warnings[] = "- `navigation`: \"{$name}\" shows a count; drop `getNavigationBadge()`, since a number badge is only for new items that clear once seen (Carbon status indicators).";
+                }
+            }
+
             $label = trim((string) $group->getLabel());
 
             if (static::isTitleCase($label, $label)) {

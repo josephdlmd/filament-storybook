@@ -182,8 +182,8 @@ it('starts confirmations on the left and narrows the menu under compact(), as in
         ->and($panel->getSidebarWidth())->toBe('16rem');
 });
 
-it('keeps the compact selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
-    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css').file_get_contents(__DIR__.'/../../resources/css/compact.css'), $classes);
+it('keeps the compact and house selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
+    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css').file_get_contents(__DIR__.'/../../resources/css/compact.css').file_get_contents(__DIR__.'/../../resources/css/house.css'), $classes);
     $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css');
 
     foreach (array_unique($classes[1]) as $class) {
@@ -236,6 +236,10 @@ it('leaves form errors to the app, keeps amounts as text and marks optional fiel
         ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
         ->and(Filament\Facades\Filament::getPanel('fixture')->hasUnsavedChangesAlerts())->toBeTrue()
         ->and(__('filament-panels::auth/pages/login.messages.failed'))->toBe('Incorrect email or password. Try again.');
+});
+
+it('shows a skeleton while a table reloads', function (): void {
+    expect(Filament\Tables\Table::make(new Josephdlmd\FilamentStorybook\Livewire\StoryCanvas)->hasLoadingSkeleton())->toBeTrue();
 });
 
 it('says Log in and Log out, as Carbon does', function (): void {
@@ -385,7 +389,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 12 passing, 3 failing, 20 warnings, 4 accessibility issues')
+        ->toStartWith('# 13 passing, 3 failing, 21 warnings, 4 accessibility issues')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -402,14 +406,15 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.successCallout`: a callout is info or warning only')
         ->toContain('- `broken-story.nestedMenus`: a menu opens inside another menu')
         ->toContain('- `broken-story.crampedChoices`: stack radio and checkbox options, without inline()')
+        ->toContain('- `broken-story.openCollapsible`: a collapsible section starts collapsed')
         ->toContain('- `broken-story.crampedChoices`: the wizard step "Choose the supplier now" is longer than 16 characters')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:49')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:50')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:33')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:34')
         ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:36')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:37')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 
@@ -443,11 +448,14 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 38 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 41 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
         ->toContain('- `ListGadgets`: 4 buttons in the header; show at most three')
+        ->toContain('- `ListGadgets`: 7 actions above the table; keep five at most')
+        ->toContain('- `ListGadgets`: a row menu holds only 1 action(s); show them inline')
+        ->toContain('- `CreateGadget`: the section "Stock Keeping" can collapse but starts open')
         ->toContain('- `ListGadgets`: the icon-only action `print` has no tooltip')
         ->toContain('- `CreateGadget`: the field `serial` explains itself in a hint icon\'s tooltip')
         ->toContain('- `CreateGadget`: the optional field "Owner" doesn\'t say so')
@@ -503,6 +511,9 @@ it('audits the panel\'s menu on a full audit: two levels at most, groups in sent
     expect((string) (new AuditPages)->handle(new Request)->content())
         ->toContain('- `navigation`: the sidebar shrinks to icons only')
         ->toContain('- `navigation`: the group "Stock Control" is in Title Case')
+        ->toContain('- `navigation`: "Export gadgets" names an action; name the place')
+        ->toContain('- `navigation`: "Export gadgets" shows a count')
+        ->toContain('- `navigation`: dark mode is off')
         ->toContain('- `navigation`: "Gadgets" in "Stock Control" has items under it, a third level')
         ->not->toContain('"Help"');
 
@@ -522,10 +533,11 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 67 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 72 warnings')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
         ->toContain('- `PartsRelationManager`: the empty list offers 2 actions')
+        ->toContain('- `PartsRelationManager`: the table shows 2 column(s); a table needs three or more')
         ->toContain('- `PartsRelationManager`: the empty list\'s button is a second primary')
         ->toContain('- `PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')
         ->toContain('- `PartsRelationManager`: `delete` asks "Are you sure you would like to do this?"')

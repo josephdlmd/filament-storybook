@@ -57,7 +57,7 @@
  * text) is underlined, so it doesn't rely on colour alone (WCAG 1.4.1; Carbon link: inline links are "styled with an
  * underline"). Filament underlines its links only on hover.
  */
-:is(.fi-modal-description, .fi-section-header-description, .fi-no-notification-body, .fi-callout-description, .fi-sc-text, .fi-fo-field-label-hint) a {
+:is(.fi-modal-description, .fi-section-header-description, .fi-no-notification-body, .fi-callout-description, .fi-sc-text) a {
     text-decoration-line: underline;
 }
 
@@ -72,4 +72,49 @@
 
 .fi-input-wrp:has(:is(input, textarea)[readonly]) :is(input, textarea) {
     cursor: default;
+}
+
+/*
+ * Tables. Every row highlights on hover, not only clickable ones (Carbon data table: hover "should always be enabled …
+ * even if the row is not interactive"), in the colours Filament uses for clickable rows. The pagination keeps its range
+ * and total at every width (Carbon pagination: they "remain" on small screens); Filament hides them in a table narrower
+ * than 56rem. An empty state is left-aligned as a block (Carbon empty states); Filament centres it.
+ */
+.fi-ta-row:hover {
+    background-color: var(--gray-50);
+}
+
+.dark .fi-ta-row:hover {
+    background-color: color-mix(in oklab, var(--color-white) 5%, transparent);
+}
+
+.fi-pagination .fi-pagination-overview {
+    display: inline;
+}
+
+.fi-ta-empty-state .fi-ta-empty-state-content {
+    margin-inline: 0;
+    justify-items: start;
+    text-align: start;
+}
+
+.fi-ta-empty-state .fi-ta-actions {
+    justify-content: flex-start;
+}
+
+/*
+ * Navigation. A List page's tabs start on the left (Carbon content switcher: "should never be centered"). Breadcrumbs
+ * leave out the current page, and disappear when only one item would be left (Carbon breadcrumb: "the current page is
+ * not listed"); Filament ends every trail with List, Create, Edit or View.
+ */
+.fi-tabs:not(.fi-contained, .fi-vertical) {
+    margin-inline: 0;
+}
+
+.fi-breadcrumbs li:last-child {
+    display: none;
+}
+
+.fi-breadcrumbs:not(:has(li:nth-child(3))) {
+    display: none;
 }

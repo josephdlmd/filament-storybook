@@ -13,6 +13,6 @@ class SparePartsRelationManager extends PartsRelationManager
     /** Built right, so it raises nothing. */
     public function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('name')]);
+        return $table->columns([TextColumn::make('name'), TextColumn::make('created_at')->label('Added'), TextColumn::make('updated_at')->label('Changed')]);
     }
 }

@@ -8,6 +8,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Callout;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Tables\Columns\TextColumn;
@@ -119,6 +120,12 @@ class BrokenStories extends Stories
                 Radio::make('terms')->options(['cod' => 'Cash on delivery', 'net_30' => '30 days'])->inline()->required(),
             ]),
         ]);
+    }
+
+    /** Renders, but a collapsible section starts open. */
+    public function openCollapsible(): Section
+    {
+        return Section::make('Delivery')->collapsible()->schema([TextInput::make('address')]);
     }
 
     /** Renders, but works out money with floats. */

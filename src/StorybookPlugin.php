@@ -36,6 +36,7 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Table;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
@@ -238,6 +239,12 @@ class StorybookPlugin implements Plugin
         // One convention throughout: optional fields say "(optional)", required ones carry no asterisk (Carbon form; owner, 2026-10-11).
         // A required input still has the required attribute, and a required radio group aria-required, for screen readers.
         Field::configureUsing(fn (Field $field) => $field->markAsRequired(false));
+
+        // A table shows a skeleton while it reloads, not a spinner (Carbon data table: "use skeleton states instead of spinners").
+        // Filament added the setting in a later 5.x; on an older one, tables keep the spinner.
+        if (method_exists(Table::class, 'loadingSkeleton')) {
+            Table::configureUsing(fn (Table $table) => $table->loadingSkeleton());
+        }
 
         // A toggle in a table shows a tick when on, so on and off don't differ by colour alone (Carbon toggle; WCAG 1.4.1).
         ToggleColumn::configureUsing(fn (ToggleColumn $column) => $column->onIcon(Heroicon::Check));

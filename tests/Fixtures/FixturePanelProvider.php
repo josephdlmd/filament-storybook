@@ -33,7 +33,10 @@ class FixturePanelProvider extends PanelProvider
                 NavigationItem::make('Stock report')->group('Stock Control')->parentItem('Gadgets')->url('#'),
                 NavigationItem::make('Help')->icon(Heroicon::OutlinedQuestionMarkCircle)->url('#'),
                 NavigationItem::make('Shortcuts')->parentItem('Help')->url('#'),
+                // An action, not a place, with a count.
+                NavigationItem::make('Export gadgets')->url('#')->badge('3'),
             ])
+            ->darkMode(false)
             ->middleware([
                 EncryptCookies::class,
                 StartSession::class,

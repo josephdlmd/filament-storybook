@@ -204,6 +204,10 @@ class TestStories extends Tool
                 }
             }
 
+            if (preg_match('/->collapsible\\(\\)/', $story['snippet']) && ! str_contains($story['snippet'], '->collapsed(')) {
+                $warnings[] = "{$key}: a collapsible section starts collapsed, `->collapsed()`; one that should start open isn't collapsible (Carbon accordion).";
+            }
+
             // A tooltip on a column, an entry or a hint icon shows on mouse hover only; on an action it is on a button.
             if (preg_match('/->hintIcon\\([^;]*?tooltip:|->hintIconTooltip\\(|(?:Column|Entry)::make\\((?:(?!::make\\().)*?->tooltip\\(/s', $story['snippet'])) {
                 $warnings[] = "{$key}: a tooltip on a column, entry or hint icon shows on mouse hover only; put the text in helperText() or the column's description() (WCAG 2.1.1; Carbon tooltip).";

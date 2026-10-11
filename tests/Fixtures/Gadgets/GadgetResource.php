@@ -41,7 +41,7 @@ class GadgetResource extends Resource
         return $schema->components([
             TextInput::make('name')->label('Name')->required(),
             TextInput::make('code')->label('Code:')->placeholder('GAD-0001'),
-            Section::make('Stock Keeping')->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
+            Section::make('Stock Keeping')->collapsible()->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
             TextInput::make('serial')->label('Serial')->hintIcon('heroicon-o-information-circle', tooltip: 'On the back of the gadget')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
             \Filament\Forms\Components\Radio::make('colour')->label('Colour (optional)')->options(['red' => 'Red', 'blue' => 'Blue'])->inline(),
@@ -72,6 +72,11 @@ class GadgetResource extends Resource
                 Action::make('ship')->label('Submit'),
                 Action::make('returnGadget')->label('Return Gadget'),
                 Action::make('archive')->requiresConfirmation(),
+                \Filament\Actions\ActionGroup::make([Action::make('inspect')]),
+            ])
+            ->headerActions([
+                Action::make('report')->color('gray'),
+                Action::make('labels')->color('gray'),
             ])
             ->toolbarActions([
                 DeleteBulkAction::make()->color('danger')->label('Remove selected'),
