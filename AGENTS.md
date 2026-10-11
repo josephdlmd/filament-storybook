@@ -8,6 +8,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 |---|---|
 | `src/Stories.php` | Base class: one public method per story. The return type picks the canvas (component, column, action, or a whole `Table`/`Schema`). |
 | `src/Stories/Imports`, `src/Stories/Widgets`, `src/Stories/Documents` | Classes a pattern needs besides its stories (an importer, a chart widget, the document money and numbering). A pattern lists them in `examples()`; `storybook-show` prints their source for agents to copy. The example models there (`Customer`, `SalesInvoice`) stand in for the app's own; `Customer` keeps its sample rows in an in-memory SQLite database, so a story can use a real relationship (`Stories::model()`). |
+| `resources/views/documents` | The shared print layout for every document (`print` wraps `document` as a full page for the PDF; the Storybook page previews `document`). |
 | `src/Concerns/HasSentenceCaseLabels.php` | A trait apps add to each resource, for the titles Filament title-cases and a plugin can't reach. |
 | `src/StoryRegistry.php` | Finds stories in `src/Stories` (shared patterns) and the app's `app/Stories`. Builds the manifest: snippets, imports, and an API section of real signatures (a tokenizer follows each call chain). |
 | `src/Livewire/StoryCanvas.php` | Renders one story in its own Livewire component, like Storybook's iframe. Only registered story classes can render. |

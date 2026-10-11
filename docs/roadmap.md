@@ -6,13 +6,13 @@ What the package covers at v0.25.0 (2026-10-11), and what comes next.
 
 Generic screens: list tables (search, filters, money, status, import and export), record forms (every field pattern, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications and dashboards.
 
-Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. The owner's answers are under "Business standards" in `rules.md`, with what is still to decide.
+Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing every document as a PDF in one shared layout (spatie/laravel-pdf, chosen by the owner). The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
 
 ## Next
 
 In this order (a proposal; the owner confirms):
 
-1. Printing and sending documents (PDF; needs a package choice by the owner)
+1. Sending documents by email (the PDF as an attachment)
 2. Reports (date range, a totals row, grouping such as ageing)
 3. Bulk actions
 4. Contact fields (email, Philippine phone number, address)
@@ -40,9 +40,10 @@ Then, as an app needs them:
 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
-- Printing and sending: which PDF package (the owner picks), which documents are printed or emailed, and what a printed invoice must show (BIR's required fields, and whether the forms are pre-printed)
+- Sending: which documents are emailed, to whom (the customer's billing contact?), and from which address
+- When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit
 - Reports: which reports, the ageing buckets, and whether amounts are VAT-inclusive
-- The still-to-decide items in `rules.md`: withholding on partial supplier payments (with the CPA), payment prefixes, short receipts, and voiding a document that has payments
+- The CPA review in `rules.md`: rounding, VAT per document and withholding on partial supplier payments
 
 ## How
 

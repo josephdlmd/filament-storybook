@@ -83,6 +83,7 @@ checks = {
     "posting: numbered on posting, with a row lock": "lockForUpdate" in app_code,
     "cancel: Void, with a reason": "make('void')" in code and "reason" in code,
     "payments: checked against the balance": "balance" in code and ("maxValue(" in code or "$fail(" in code),
+    "printing: the shared, tagged PDF layout": "filament-storybook::documents.print" in app_code and "->tagged()" in app_code,
     "customer picker: searchable relationship": bool(re.search(r"relationship\('customer'(?:(?!make\().)*?->searchable\(", code, re.S)),
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
@@ -91,7 +92,7 @@ print("patterns looked up:", sorted(shown) or "none")
 prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __import__("os").path.exists(transcript.rsplit("/", 1)[0] + "/prompt.txt") else ""
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
-        "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment", "customer picker": "customer"}
+        "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment", "customer picker": "customer", "printing": "print"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
