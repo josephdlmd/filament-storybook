@@ -25,7 +25,7 @@ class TinInputStories extends Stories
     public function default(): TextInput
     {
         return TextInput::make('tin')
-            ->label('TIN')
+            ->label('TIN (optional)')
             ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
             ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
             ->helperText('For example, 123-456-789-000')

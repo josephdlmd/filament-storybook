@@ -20,7 +20,7 @@ class ChoiceStories extends Stories
 
     public function fewOptions(): Radio
     {
-        return Radio::make('terms')
+        return Radio::make('payment_terms')
             ->options([
                 'cod' => 'Cash on delivery',
                 'net_30' => '30 days',
@@ -34,6 +34,8 @@ class ChoiceStories extends Stories
     {
         return Select::make('province')
             ->options(['abra' => 'Abra', 'benguet' => 'Benguet', 'cebu' => 'Cebu', 'davao_del_sur' => 'Davao del Sur'])
-            ->searchable();
+            ->searchable()
+            ->required()
+            ->maxWidth('xs');
     }
 }

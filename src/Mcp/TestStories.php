@@ -154,6 +154,15 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: keep the visible label; hiddenLabel() leaves the field unnamed on screen (Carbon forms).";
             }
 
+            // Each field's chain runs to the next ::make(); a checkbox is a yes or no, never optional.
+            if (preg_match_all('/(?<![\\w\\\\])(?:TextInput|Textarea|Select|DatePicker|DateTimePicker|TimePicker|FileUpload|Radio|CheckboxList|ToggleButtons|TagsInput)::make\\(\'(\\w+)\'\\)((?:(?!::make\\().)*)/s', $story['snippet'], $fields, PREG_SET_ORDER)) {
+                foreach ($fields as [, $name, $chain]) {
+                    if (! preg_match('/->(required|readOnly|disabled)\\(|\\(optional\\)/', $chain)) {
+                        $warnings[] = "{$key}: the field `{$name}` is neither required() nor labelled \"(optional)\"; label an optional field \"… (optional)\" and leave required ones unmarked (Carbon form: one convention throughout).";
+                    }
+                }
+            }
+
             if (preg_match("/->(label|modalSubmitActionLabel)\\('(ok|okay|yes|done|submit|confirm)'\\)/i", $story['snippet'], $vague)) {
                 $warnings[] = "{$key}: a button labelled \"{$vague[2]}\" doesn't say what it does; use a verb, such as \"Approve order\" (Carbon modal and forms).";
             }

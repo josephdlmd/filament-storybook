@@ -5,6 +5,7 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Callout;
+use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class NotificationStories extends Stories
@@ -21,7 +22,7 @@ class NotificationStories extends Stories
 
     public function records(): array
     {
-        return [1 => ['number' => '1042']];
+        return [1 => ['name' => 'Abra Medical Supply']];
     }
 
     /** Success after saving, from an action: the title says what happened. */
@@ -29,7 +30,7 @@ class NotificationStories extends Stories
     {
         return Action::make('save')
             ->label('Save')
-            ->successNotificationTitle('Order 1042 saved')
+            ->successNotificationTitle(fn (?Model $record): string => "{$record?->name} saved")
             ->action(fn (Action $action) => $action->success());
     }
 
@@ -40,8 +41,8 @@ class NotificationStories extends Stories
             ->label('Save')
             ->action(fn () => Notification::make()
                 ->warning()
-                ->title('Order 1042 saved')
-                ->body('It has no delivery date yet. Add one before the order ships.')
+                ->title('Abra Medical Supply saved')
+                ->body('It has no TIN yet. Add one before you record its invoices.')
                 ->send());
     }
 
@@ -53,8 +54,8 @@ class NotificationStories extends Stories
             ->action(function (Action $action): void {
                 Notification::make()
                     ->danger()
-                    ->title('Order 1042 not saved')
-                    ->body('Someone changed the stock. Check it and save again.')
+                    ->title('Abra Medical Supply not saved')
+                    ->body('Someone else changed it while you were editing. Check their changes and save again.')
                     ->send();
 
                 $action->halt();
@@ -68,11 +69,11 @@ class NotificationStories extends Stories
             ->label('Create')
             ->action(fn () => Notification::make()
                 ->success()
-                ->title('Order 1042 created')
+                ->title('Abra Medical Supply created')
                 ->actions([
                     Action::make('view')
-                        ->label('View order')
-                        // On a resource: OrderResource::getUrl('view', ['record' => $record])
+                        ->label('View supplier')
+                        // On a resource: SupplierResource::getUrl('view', ['record' => $record])
                         ->url('#'),
                 ])
                 ->send());

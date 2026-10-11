@@ -32,6 +32,7 @@ class QuantityStories extends Stories
             ->suffix('kg')
             ->helperText('Up to 3 decimal places')
             ->maxWidth('xs')
+            ->required()
             ->validationMessages(['decimal' => 'Enter the quantity with at most 3 decimal places, such as 12.5']);
     }
 }

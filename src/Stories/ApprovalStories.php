@@ -16,43 +16,50 @@ class ApprovalStories extends Stories
 
     public function description(): string
     {
-        return 'Deciding on a record that waits for approval, such as a purchase order. Put both in the View page\'s `getHeaderActions()`. They show only while the record waits for approval and only to users who may decide: add `->authorize(\'approve\')` with an `approve()` method on the policy (the canvas has no policy, so the stories leave it out). Approve is the page\'s one primary button and acts at once; only if approving can\'t be undone in your process does it confirm, under the rule for irreversible actions. Reject is gray, the negative action of the pair, not danger, because nothing is destroyed, and always asks for a reason, so the person who raised the record knows what to change. The statuses are "For approval" (info, blue), "Approved" (success, green) and "Rejected" (danger, red), as the owner\'s business standards set. Each ends with a toast naming the outcome, and the status badge (`tables-status-badge`) shows the new state. Basis: Carbon button (Sep 2026: secondary is "the negative action of the set"; danger is for "destructive effects"), Carbon action labels (archived: Approve "typically initiates the next step", Reject "typically blocks the process"), Carbon disabled states (hide what the user may not do), Carbon dialogs (confirm only what can\'t be undone).';
+        return 'Deciding on a document that waits for approval, such as a purchase order. Approval is a step in the document lifecycle (`records-document-lifecycle`): Draft, then For approval, then Posted. Put both in the View page\'s `getHeaderActions()`. They show only while the document waits for approval and only to users who may decide: add `->authorize(\'approve\')` with an `approve()` method on the policy (the canvas has no policy, so the stories leave it out). Approve is the page\'s one primary button and posts the document: it takes the next number in its series and locks, so it confirms in the same danger dialog as Post, inside the same transaction. Reject is gray, the negative action of the pair, not danger, because nothing is destroyed; it always asks for a reason and returns the document to Draft, where the person who raised it sees the reason (an inline `Callout`, `feedback-notifications.inline`) and can change it and send it again. The statuses are Draft (gray), For approval (info, blue), Posted (green) and Void (red), as the owner\'s business standards set. Each ends with a toast naming the outcome, and the status badge (`tables-status-badge`) shows the new state. Business standard from the owner (2026-10-11): approval is a step in the lifecycle. Basis: Carbon button (Sep 2026: secondary is "the negative action of the set"; danger is for "destructive effects"), Carbon modal (Sep 2026: a transactional danger modal for an irreversible action), Carbon action labels (archived: Approve "typically initiates the next step", Reject "typically blocks the process"), Carbon disabled states (hide what the user may not do), Carbon notifications pattern ("Do not leave users without next steps").';
     }
 
     public function records(): array
     {
-        return [1 => ['number' => '1042', 'status' => 'for_approval']];
+        // The number Approve gives the order; the canvas has no number series to take it from.
+        return [1 => ['number' => 'PO-000042', 'status' => 'for_approval']];
     }
 
-    /** Approve: the primary button, one click, and a toast naming the outcome. */
+    /** Approve: the primary button, which posts the order, so it confirms in a danger dialog, then a toast naming the outcome. */
     public function default(): Action
     {
         return Action::make('approve')
             ->label('Approve')
             ->visible(fn (?Model $record): bool => $record?->status === 'for_approval')
+            ->requiresConfirmation()
+            ->modalHeading('Approve order?')
+            ->modalDescription('It gets the next purchase order number and can no longer be changed or deleted. To correct it later, void it and issue a new one.')
+            ->modalSubmitAction(fn (Action $action): Action => $action->color('danger'))
+            ->modalSubmitActionLabel('Approve')
             ->successNotificationTitle(fn (?Model $record): string => "Order {$record?->number} approved")
             ->action(function (Model $record, Action $action): void {
-                // On a resource: $record->update(['status' => OrderStatus::Approved]);
+                // On a resource: DB::transaction(fn () => $record->update(['number' => DocumentNumber::next('PO'), 'status' => OrderStatus::Posted, 'posted_at' => now()]));
                 $action->success();
             });
     }
 
-    /** Reject: gray, asking for the reason the person who raised it will see. */
+    /** Reject: gray, asking for the reason the person who raised it will see, and back to Draft. */
     public function reject(): Action
     {
         return Action::make('reject')
             ->label('Reject')
             ->color('gray')
             ->visible(fn (?Model $record): bool => $record?->status === 'for_approval')
-            ->modalHeading(fn (?Model $record): string => "Reject order {$record?->number}?")
+            ->modalHeading('Reject order?')
+            ->modalDescription('It goes back to draft, with your reason, for the person who raised it.')
             ->schema([
                 Textarea::make('reason')
                     ->required()
                     ->rows(3),
             ])
-            ->successNotificationTitle(fn (?Model $record): string => "Order {$record?->number} rejected")
+            ->successNotificationTitle('Order rejected')
             ->action(function (Model $record, array $data, Action $action): void {
-                // On a resource: $record->update(['status' => OrderStatus::Rejected, 'rejection_reason' => $data['reason']]);
+                // On a resource: $record->update(['status' => OrderStatus::Draft, 'rejection_reason' => $data['reason']]);
                 $action->success();
             });
     }

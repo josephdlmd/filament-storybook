@@ -29,7 +29,8 @@ class DateStories extends Stories
         return DatePicker::make('due_on')
             ->label('Due date')
             ->maxWidth('xs')
-            ->minDate(today());
+            ->minDate(today())
+            ->required();
     }
 
     /** A date that has happened, such as an invoice date. */
@@ -38,7 +39,8 @@ class DateStories extends Stories
         return DatePicker::make('invoiced_on')
             ->label('Invoice date')
             ->maxWidth('xs')
-            ->maxDate(today());
+            ->maxDate(today())
+            ->required();
     }
 
     /** A range: two fields side by side, labelled From and To, in a group named for what the dates are. */
@@ -49,11 +51,13 @@ class DateStories extends Stories
             ->schema([
                 DatePicker::make('invoiced_from')
                     ->label('From')
-                    ->maxWidth('xs'),
+                    ->maxWidth('xs')
+                    ->required(),
                 DatePicker::make('invoiced_until')
                     ->label('To')
                     ->maxWidth('xs')
-                    ->afterOrEqual('invoiced_from'),
+                    ->afterOrEqual('invoiced_from')
+                    ->required(),
             ]);
     }
 }

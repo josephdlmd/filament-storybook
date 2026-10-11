@@ -20,6 +20,7 @@ class FileUploadStories extends Stories
     public function default(): FileUpload
     {
         return FileUpload::make('supporting_document')
+            ->label('Supporting document (optional)')
             ->acceptedFileTypes(['application/pdf', 'image/jpeg'])
             ->maxSize(10240)
             ->helperText('PDF or JPG, up to 10 MB')

@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class FormContainerStories extends Stories
@@ -25,21 +26,31 @@ class FormContainerStories extends Stories
         return 'Where a form goes, by its size and use. A short, infrequent task with fewer than five inputs goes in a modal (`default`). More than five inputs, or a task repeated while looking at the information it changes, goes in a slide-over (`slideOver`). A long, complex or multi-step task gets its own page; when it is a linear task of three or more steps, a wizard (`wizard`). Exactly five is left to judgment. No tabs or collapsed sections in a modal or slide-over. A modal or slide-over focuses its first field, keeps the user\'s input when they click outside it (an app-wide default), and stays open with the errors marked when validation fails. In a wizard, each step is named in one or two words saying what it does, is checked before the next, and Back returns to review; on a Create page use `HasWizard` and return the steps from `getSteps()`, where the last button is "Create". A step with item lines uses `forms-line-items`. Basis: Carbon forms (Aug 2026: dialog under five inputs, side panel over five; multistep forms), Carbon modal (Sep 2026: short, non-frequent tasks; focus, validation; "the Next button label should change to reflect the final action"), Carbon dialogs (Aug 2026: no complex forms; no tabs or accordions), Carbon progress indicator (Sep 2026: three or more linear steps; labels).';
     }
 
+    public function records(): array
+    {
+        return [1 => ['name' => 'Cebu Diagnostics Laboratory']];
+    }
+
     /** Fewer than five inputs, done now and then: a modal. */
     public function default(): Action
     {
-        return Action::make('changeDueDate')
-            ->label('Change due date')
+        return Action::make('changeCreditLimit')
+            ->label('Change credit limit')
             ->schema([
-                DatePicker::make('due_on')
-                    ->label('Due date')
+                TextInput::make('credit_limit')
+                    ->numeric()
+                    ->prefix('₱')
+                    ->step(0.01)
+                    ->minValue(0)
+                    ->rules(['decimal:0,2'])
+                    ->required()
                     ->maxWidth('xs')
-                    ->required(),
+                    ->validationMessages(['decimal' => 'Enter the credit limit with at most 2 decimal places, such as 250000.00']),
                 Textarea::make('note')
                     ->label('Note (optional)')
                     ->rows(3),
             ])
-            ->successNotificationTitle('Due date changed')
+            ->successNotificationTitle(fn (?Model $record): string => "Credit limit of {$record?->name} changed")
             ->action(fn (Action $action) => $action->success());
     }
 
@@ -63,14 +74,16 @@ class FormContainerStories extends Stories
                 TextInput::make('city')
                     ->required()
                     ->maxWidth('md'),
-                DatePicker::make('delivery_date')
-                    ->maxWidth('xs')
-                    ->required(),
+                Select::make('province')
+                    ->options(['abra' => 'Abra', 'benguet' => 'Benguet', 'cebu' => 'Cebu', 'davao_del_sur' => 'Davao del Sur'])
+                    ->searchable()
+                    ->required()
+                    ->maxWidth('xs'),
                 Textarea::make('instructions')
                     ->label('Instructions (optional)')
                     ->rows(3),
             ])
-            ->successNotificationTitle('Delivery details saved')
+            ->successNotificationTitle(fn (?Model $record): string => "Delivery details of {$record?->name} saved")
             ->action(fn (Action $action) => $action->success());
     }
 
@@ -84,9 +97,11 @@ class FormContainerStories extends Stories
                         ->schema([
                             Select::make('supplier_id')
                                 ->label('Supplier')
-                                ->options([1 => 'Abra Medical Supply', 2 => 'Benguet Trading'])
+                                // On a resource, the record picker (`forms-record-picker`): the relationship, searched by code and name.
+                                ->options([1 => 'SUP-0001 Abra Medical Supply', 2 => 'SUP-0002 Benguet Trading'])
                                 ->searchable()
-                                ->required(),
+                                ->required()
+                                ->maxWidth('md'),
                         ]),
                     Step::make('Set terms')
                         ->schema([

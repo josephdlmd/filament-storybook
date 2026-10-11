@@ -68,11 +68,11 @@ class DownloadPdfStories extends Stories
                 'number' => '001232',
                 'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
                 'party' => ['label' => 'Sold to', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
-                'details' => ['Date' => 'October 11, 2026', 'Terms' => '30 days', 'Due date' => 'November 10, 2026'],
+                'details' => ['Date' => 'Oct 11, 2026', 'Terms' => '30 days', 'Due date' => 'Nov 10, 2026'],
                 'columns' => [
                     'description' => ['label' => 'Description'],
                     'quantity' => ['label' => 'Quantity', 'format' => 'quantity'],
-                    'unit_price' => ['label' => 'Unit price', 'format' => 'money'],
+                    'unit_price' => ['label' => 'Unit price', 'format' => 'unit price'],
                     'vat' => ['label' => 'VAT'],
                     'amount' => ['label' => 'Amount', 'format' => 'money'],
                 ],
@@ -96,11 +96,11 @@ class DownloadPdfStories extends Stories
                 'number' => 'PO-000042',
                 'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
                 'party' => ['label' => 'Supplier', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600', 'tin' => '234-567-890-000'],
-                'details' => ['Date' => 'October 11, 2026', 'Deliver by' => 'October 18, 2026', 'Deliver to' => 'Main warehouse'],
+                'details' => ['Date' => 'Oct 11, 2026', 'Deliver by' => 'Oct 18, 2026', 'Deliver to' => 'Main warehouse'],
                 'columns' => [
                     'description' => ['label' => 'Description'],
                     'quantity' => ['label' => 'Quantity', 'format' => 'quantity'],
-                    'unit_price' => ['label' => 'Unit price', 'format' => 'money'],
+                    'unit_price' => ['label' => 'Unit price', 'format' => 'unit price'],
                     'amount' => ['label' => 'Amount', 'format' => 'money'],
                 ],
                 'lines' => [
@@ -122,7 +122,7 @@ class DownloadPdfStories extends Stories
                 'number' => 'PV-000087',
                 'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
                 'party' => ['label' => 'Paid to', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600', 'tin' => '234-567-890-000'],
-                'details' => ['Date' => 'October 25, 2026', 'Paid by' => 'Check 0051177'],
+                'details' => ['Date' => 'Oct 25, 2026', 'Paid by' => 'Check 0051177'],
                 'columns' => [
                     'order' => ['label' => 'Purchase order'],
                     'invoice' => ['label' => 'Supplier\'s invoice'],

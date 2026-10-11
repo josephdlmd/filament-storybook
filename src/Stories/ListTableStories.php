@@ -46,7 +46,9 @@ class ListTableStories extends Stories
                     ->alignEnd()
                     ->sortable(),
                 TextColumn::make('status')
-                    ->badge(),
+                    ->badge()
+                    // On hold needs attention, so it is warning (`tables-status-badge`); in an app, put the colour on the status enum.
+                    ->color(fn (string $state): string => $state === 'On hold' ? 'warning' : 'success'),
             ])
             ->searchPlaceholder('Search by code or name')
             ->filters([

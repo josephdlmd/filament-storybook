@@ -123,8 +123,8 @@ class PaymentStories extends Stories
                     ->maxWidth('xs'),
             ])
             ->modalSubmitActionLabel('Record payment')
-            ->successNotificationTitle('Payment recorded')
-            ->failureNotificationTitle('Payment not recorded')
+            ->successNotificationTitle(fn (array $data): string => "Receipt {$data['number']} recorded")
+            ->failureNotificationTitle(fn (array $data): string => "Receipt {$data['number']} not recorded")
             ->action(function (Model $record, array $data, Action $action): void {
                 try {
                     // On a resource, inside DB::transaction(): lock the invoice with lockForUpdate(), check again that it is posted and the amounts fit its balance,
@@ -199,7 +199,7 @@ class PaymentStories extends Stories
                     ->maxWidth('xs'),
             ])
             ->modalSubmitActionLabel('Record payment')
-            ->successNotificationTitle('Payment recorded')
+            ->successNotificationTitle(fn (?Model $record): string => "Payment to {$record?->supplier} recorded")
             ->action(function (Model $record, array $data, Action $action): void {
                 // On a resource, in DB::transaction(): lock the order with lockForUpdate(), check again that it is posted and the amount fits its balance,
                 // create the payment under DocumentNumber::next('PV'), and lower balance_due by the amount.

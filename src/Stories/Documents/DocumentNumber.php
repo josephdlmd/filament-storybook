@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
- * Gives a document its number when it is posted, such as SI-000124: a prefix per document type and a 6-digit series
+ * Gives a document its number when it is posted, such as PO-000042: a prefix per document type and a 6-digit series
  * that never resets, with no gaps and no number used twice. Copy it into the app, with a `document_numbers` table
  * (`prefix` unique, `last` unsigned integer) whose migration inserts one row per prefix, starting at 0.
  */

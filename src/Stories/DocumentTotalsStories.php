@@ -197,8 +197,7 @@ class DocumentTotalsStories extends Stories
                         : null)
                     ->money('PHP'),
             ])
-            ->modalSubmitActionLabel('Record invoice')
-            ->successNotificationTitle('Supplier\'s invoice recorded')
+            ->successNotificationTitle(fn (?Model $record): string => "Supplier's invoice for order {$record?->number} recorded")
             ->action(function (Model $record, array $data, Action $action): void {
                 // On a resource: work the tax withheld out again with DocumentTotals::withholding(), store it with the supplier's TIN and the code,
                 // and set the order's balance_due to the net payable.

@@ -22,14 +22,16 @@ class RecordDetailsStories extends Stories
     public function records(): array
     {
         return [1 => [
-            'number' => 'BILL-0042',
-            'status' => 'for_approval',
+            'number' => 'PO-000042',
+            'status' => 'posted',
+            'payment_status' => 'partly_paid',
             'supplier' => 'Abra Medical Supply',
             'supplier_tin' => '123-456-789-000',
-            'bill_date' => '2026-10-02',
+            'order_date' => '2026-10-02',
+            'supplier_invoice_number' => '20391',
             'due_date' => null,
-            'total' => '3363.71',
-            'balance_due' => '2363.71',
+            'total' => '3649.21',
+            'balance_due' => '2649.21',
         ]];
     }
 
@@ -44,16 +46,27 @@ class RecordDetailsStories extends Stories
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
                     ->color(fn (string $state): string => match ($state) {
-                        'approved' => 'success',
                         'for_approval' => 'info',
+                        'posted' => 'success',
+                        'void' => 'danger',
+                        default => 'gray',
+                    }),
+                TextEntry::make('payment_status')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
+                    ->color(fn (string $state): string => match ($state) {
+                        'partly_paid' => 'info',
+                        'paid' => 'success',
                         'overdue' => 'danger',
                         default => 'gray',
                     }),
                 TextEntry::make('supplier'),
                 TextEntry::make('supplier_tin')
                     ->label('Supplier TIN'),
-                TextEntry::make('bill_date')
+                TextEntry::make('order_date')
                     ->date(),
+                TextEntry::make('supplier_invoice_number')
+                    ->label('Supplier\'s invoice number'),
                 TextEntry::make('due_date')
                     ->date(),
                 TextEntry::make('total')

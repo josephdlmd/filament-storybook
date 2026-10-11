@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
+use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -46,16 +47,16 @@ class PrintedDocument
                 'address' => data_get($invoice, 'customer.address'),
                 'tin' => data_get($invoice, 'customer.tin'),
             ],
-            // A missing value leaves its line out; Carbon would read a missing date as today.
+            // A missing value leaves its line out; Carbon would read a missing date as today. Dates read as on screen, in Filament's format.
             'details' => array_filter([
-                'Date' => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->isoFormat('LL') : null,
+                'Date' => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->translatedFormat(Schema::make()->getDefaultDateDisplayFormat()) : null,
                 'Terms' => $invoice->terms,
-                'Due date' => $invoice->due_date ? Carbon::parse($invoice->due_date)->isoFormat('LL') : null,
+                'Due date' => $invoice->due_date ? Carbon::parse($invoice->due_date)->translatedFormat(Schema::make()->getDefaultDateDisplayFormat()) : null,
             ], 'filled'),
             'columns' => [
                 'description' => ['label' => 'Description'],
                 'quantity' => ['label' => 'Quantity', 'format' => 'quantity'],
-                'unit_price' => ['label' => 'Unit price', 'format' => 'money'],
+                'unit_price' => ['label' => 'Unit price', 'format' => 'unit price'],
                 'vat' => ['label' => 'VAT'],
                 'amount' => ['label' => 'Amount', 'format' => 'money'],
             ],

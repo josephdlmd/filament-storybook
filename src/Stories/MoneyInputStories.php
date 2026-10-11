@@ -25,6 +25,7 @@ class MoneyInputStories extends Stories
     public function default(): TextInput
     {
         return TextInput::make('amount')
+            ->label('Amount (optional)')
             ->numeric()
             ->prefix('₱')
             ->step(0.01)

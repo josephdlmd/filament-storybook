@@ -39,7 +39,7 @@ it('describes a story the way a components manifest does', function (): void {
             'name' => 'default',
             'label' => 'Default',
             'kind' => 'component',
-            'snippet' => "TextInput::make('amount')\n    ->numeric()\n    ->prefix('₱')\n    ->step(0.01)\n    ->minValue(0)\n    ->rules(['decimal:0,2'])\n    ->maxWidth('xs')\n    ->validationMessages(['decimal' => 'Enter the amount with at most 2 decimal places, such as 1250.50'])",
+            'snippet' => "TextInput::make('amount')\n    ->label('Amount (optional)')\n    ->numeric()\n    ->prefix('₱')\n    ->step(0.01)\n    ->minValue(0)\n    ->rules(['decimal:0,2'])\n    ->maxWidth('xs')\n    ->validationMessages(['decimal' => 'Enter the amount with at most 2 decimal places, such as 1250.50'])",
         ])
         ->and($manifest['stories'][1]['description'])->toBe('A required amount says what to do when it is left empty.');
 });
@@ -385,7 +385,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 58 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 59 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -398,7 +398,8 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 13 passing, 3 failing, 21 warnings, 4 accessibility issues')
+        ->toStartWith('# 13 passing, 3 failing, 25 warnings, 4 accessibility issues')
+        ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -680,7 +681,7 @@ it('shows a record\'s facts in their field patterns\' formats, with nothing inve
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordDetailsStories::class, 'story' => 'default'])
         ->assertDontSee('Add due date')
         ->assertSee('123-456-789-000')
-        ->assertSee('₱2,363.71');
+        ->assertSee('₱2,649.21');
 });
 
 it('keeps a locked record\'s values out of the save, even when changed in the browser', function (): void {
@@ -724,7 +725,7 @@ it('records a supplier\'s invoice as printed, withholding at the supplier\'s cod
     expect($schema->getComponent('tax_withheld')->getState())->toBe('47.30')
         ->and($schema->getComponent('net_payable')->getState())->toBe('5250.70');
 
-    $canvas->callMountedAction()->assertHasNoActionErrors()->assertNotified('Supplier\'s invoice recorded');
+    $canvas->callMountedAction()->assertHasNoActionErrors()->assertNotified('Supplier\'s invoice for order PO-000042 recorded');
 });
 
 it('numbers posted documents in one series per prefix, with no gaps', function (): void {
@@ -853,7 +854,7 @@ it('leaves a missing date off the printed copy instead of printing today', funct
     $invoice = (new Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice)->forceFill(['number' => '001232', 'invoice_date' => '2026-10-11', 'terms' => 'Cash', 'due_date' => null]);
 
     expect(Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::salesInvoice($invoice)['details'])
-        ->toBe(['Date' => 'October 11, 2026', 'Terms' => 'Cash']);
+        ->toBe(['Date' => 'Oct 11, 2026', 'Terms' => 'Cash']);
 });
 
 it('refuses a serial another user saved after the form was checked, keeping the form open and saying what to check', function (string $stories, string $action, string $model, array $data, string $title): void {
@@ -867,6 +868,6 @@ it('refuses a serial another user saved after the form was checked, keeping the 
         ->assertNotified($title)
         ->assertActionMounted(Filament\Actions\Testing\TestAction::make($action)->schemaComponent('story', 'form'));
 })->with([
-    'a receipt' => [Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'recordPayment', Josephdlmd\FilamentStorybook\Stories\Documents\Payment::class, ['paid_on' => '2026-10-11', 'number' => '004520', 'amount' => '1000', 'tax_withheld' => '0', 'vat_withheld' => '0'], 'Payment not recorded'],
-    'an invoice' => [Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'post', Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::class, ['number' => '001240'], 'Invoice not posted'],
+    'a receipt' => [Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'recordPayment', Josephdlmd\FilamentStorybook\Stories\Documents\Payment::class, ['paid_on' => '2026-10-11', 'number' => '004520', 'amount' => '1000', 'tax_withheld' => '0', 'vat_withheld' => '0'], 'Receipt 004520 not recorded'],
+    'an invoice' => [Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'post', Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::class, ['number' => '001240'], 'Invoice 001240 not posted'],
 ]);

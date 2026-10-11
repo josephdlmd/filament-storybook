@@ -1,13 +1,15 @@
 {{--
     A printed document: the shared layout for sales invoice copies, purchase orders, receiving reports and payments.
     `$document` holds: title, number_label, number, company (name, address, tin, vat), party (label, name, address, tin),
-    details (label => value), columns (key => [label, format: text|quantity|money]), lines (rows keyed like columns),
+    details (label => value), columns (key => [label, format: text|quantity|money|unit price]), lines (rows keyed like columns),
     totals (label => amount; the last is the total), notes, signatures (labels) and statement (BIR's wording, if any).
 --}}
 @php
     $format = fn (mixed $value, string $as = 'text'): string => match (true) {
         blank($value) => '',
         $as === 'money' => \Illuminate\Support\Number::currency((float) $value, 'PHP'),
+        // A unit price keeps the decimals it was stored with (2 to 4), so quantity × price still gives the line's amount.
+        $as === 'unit price' => \Illuminate\Support\Number::currency((float) $value, 'PHP', precision: max(2, strlen(rtrim(strstr((string) $value, '.') ?: '.', '0')) - 1)),
         $as === 'quantity' => \Illuminate\Support\Number::format((float) $value, maxPrecision: 3),
         default => (string) $value,
     };
