@@ -1,10 +1,8 @@
 /*
  * Compact tables, for data-dense apps (StorybookPlugin::make()->compactTables()): Carbon data table's small size,
  * 32px plus Filament's 1px divider, with the same 14px text. The header row matches the rows, as Carbon asks; so do
- * the controls in the toolbar and the pagination, with 8px above and below them (Carbon's toolbar margin), which is
- * also Filament's own spacing for the pagination, so only the toolbar needs it here. Filament has no setting
- * for any of it; it pads each part instead, so these selectors follow its classes, and
- * tests/Feature/StorybookTest.php fails if Filament renames one.
+ * the controls in the strips above and below the table. Filament has no setting for any of it; it pads each part
+ * instead, so these selectors follow its classes, and tests/Feature/StorybookTest.php fails if Filament renames one.
  */
 
 /* Header and rows: Filament pads each cell's content, by column type. */
@@ -17,10 +15,20 @@
     padding-block: 0.25rem;
 }
 
-/* The toolbar (search, bulk actions, column picker): Carbon's small toolbar, its controls as tall as the rows,
-   with $spacing-03 (8px) above and below. The filters above it are a form and keep the theme's spacing. */
-.fi-ta-header-toolbar {
-    padding-block: 0.5rem;
+/* The strips around the table: the toolbar (search, bulk actions, column picker), a header holding only actions (a
+   related list's New button) and the pagination. Their controls are Carbon's small 32px, with 4px above and below:
+   Carbon's 8px margin sits outside its borderless toolbar, while Filament's framed controls sit inside a bordered
+   strip, where 8px made the strip half as tall again as the rows (owner, 2026-10-11). The filters above the table are
+   a form and keep the theme's spacing. */
+.fi-ta-header-toolbar,
+.fi-ta-header:not(:has(.fi-ta-header-heading)),
+.fi-pagination {
+    padding-block: 0.25rem;
+}
+
+/* Filament pulls a header's actions 4px into its padding to line up with its heading; with no heading, that ate the gaps. */
+.fi-ta-header:not(:has(.fi-ta-header-heading)) > .fi-ta-actions {
+    margin-block: 0;
 }
 
 .fi-ta-header-toolbar > * {
@@ -28,11 +36,11 @@
 }
 
 /* 32px: a field's 24px line, a button's 20px. */
-.fi-ta-header-toolbar :is(.fi-input, .fi-select-input) {
+:is(.fi-ta-header-toolbar, .fi-pagination) :is(.fi-input, .fi-select-input) {
     padding-block: 0.25rem;
 }
 
-.fi-ta-header-toolbar .fi-btn {
+:is(.fi-ta-header-toolbar, .fi-ta-header) .fi-btn {
     padding-block: 0.375rem;
 }
 
