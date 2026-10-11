@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber;
 
@@ -18,7 +19,7 @@ class DocumentLifecycleStories extends Stories
 
     public function description(): string
     {
-        return 'A sales invoice, purchase order, receiving report or payment goes from Draft to Posted, and a posted one may be voided (`actions-void`). A draft can be edited and deleted. Posting gives it its number and locks it for good. A sales invoice takes the serial of the BIR pre-printed form it was written on, typed by the user and checked against the serials already used (`default`), as does a collection (`actions-record-payment`); a purchase order, receiving report or supplier payment takes the next number in the app\'s own series (`withSeries`, with `DocumentNumber` from the examples: a prefix per type, PO, RR or PV, and 6 digits that never reset, with no gaps). Once posted, the policy\'s `update()` and `delete()` return false, so Filament hides Edit and Delete and the document opens on its View page (`records-locked`, `records-view-page`). A posted document is never edited or deleted; to correct one, void it and issue a new one. Post is the View page\'s one primary button, shown only on a draft, and because it can\'t be undone it confirms in a danger dialog that says so. Work the totals out again (`forms-document-totals`) and take the number in the same database transaction as the status change. The statuses are Draft (gray), Posted (green) and Void (red), each with its word. Business standards from the owner (2026-10-11): one company; never edit a posted document; the form\'s serial for sales invoices and the numbering format for the rest; Void in red. Basis: Carbon modal (Sep 2026: "If the action is destructive or irreversible, then use a transactional danger modal"; the title and button reflect the action), Carbon action labels (archived: Post "adds status to a log or record"), Carbon status indicators (Aug 2026: gray for drafts, green for normal or success), Carbon disabled states (hide what the user may not do).';
+        return 'A sales invoice, purchase order, receiving report or payment goes from Draft to Posted, and a posted one may be voided (`actions-void`). A draft can be edited and deleted. Posting gives it its number and locks it for good. A sales invoice takes the serial of the BIR pre-printed form it was written on, typed by the user and checked against the serials already used (`default`), as does a collection (`actions-record-payment`); a purchase order, receiving report or supplier payment takes the next number in the app\'s own series (`withSeries`, with `DocumentNumber` from the examples: a prefix per type, PO, RR or PV, and 6 digits that never reset, with no gaps). Once posted, the policy\'s `update()` and `delete()` return false, so Filament hides Edit and Delete and the document opens on its View page (`records-locked`, `records-view-page`). A posted document is never edited or deleted; to correct one, void it and issue a new one. Post is the View page\'s one primary button, shown only on a draft, and because it can\'t be undone it confirms in a danger dialog that says so. Work the totals out again (`forms-document-totals`) and take the number in the same database transaction as the status change. Give the number column a unique index: it is the real guard against a serial two users enter at once, and the action catches its error and says what to check. The statuses are Draft (gray), Posted (green) and Void (red), each with its word. Business standards from the owner (2026-10-11): one company; never edit a posted document; the form\'s serial for sales invoices and the numbering format for the rest; Void in red. Basis: Carbon modal (Sep 2026: "If the action is destructive or irreversible, then use a transactional danger modal"; the title and button reflect the action), Carbon action labels (archived: Post "adds status to a log or record"), Carbon status indicators (Aug 2026: gray for drafts, green for normal or success), Carbon disabled states (hide what the user may not do).';
     }
 
     // Not imported, so the snippet's imports stay what a resource needs.
@@ -35,9 +36,9 @@ class DocumentLifecycleStories extends Stories
     public function records(): array
     {
         return [
-            1 => ['number' => null, 'status' => 'draft', 'customer' => 'Abra Medical Supply'],
-            2 => ['number' => '001232', 'status' => 'posted', 'customer' => 'Cebu Diagnostics Laboratory'],
-            3 => ['number' => '001231', 'status' => 'void', 'customer' => 'Davao Family Clinic'],
+            1 => ['id' => 4, 'number' => null, 'status' => 'draft'],
+            2 => ['number' => '001232', 'status' => 'posted'],
+            3 => ['number' => '001231', 'status' => 'void'],
         ];
     }
 
@@ -62,10 +63,18 @@ class DocumentLifecycleStories extends Stories
             ->modalSubmitAction(fn (Action $action): Action => $action->color('danger'))
             ->modalSubmitActionLabel('Post invoice')
             ->successNotificationTitle('Invoice posted')
+            ->failureNotificationTitle('Invoice not posted')
             ->action(function (Model $record, array $data, Action $action): void {
-                // On a resource: DB::transaction(fn () => $record->update(['number' => $data['number'], 'status' => InvoiceStatus::Posted, 'posted_at' => now()]));
-                // A unique index on sales_invoices.number is the real guard: if two users post the same serial at once, catch
-                // UniqueConstraintViolationException and fail with the same message as the field's check.
+                try {
+                    // On a resource, inside DB::transaction(), with InvoiceStatus::Posted and a posted_at date.
+                    $record->update(['number' => $data['number'], 'status' => 'posted']);
+                } catch (UniqueConstraintViolationException) {
+                    // The unique index on sales_invoices.number caught a serial another user posted after this form was checked.
+                    $action->failureNotificationBody("Invoice {$data['number']} was just posted by someone else. Check the serial on the form you wrote.");
+                    $action->sendFailureNotification();
+                    $action->halt();
+                }
+
                 $action->success();
             });
     }

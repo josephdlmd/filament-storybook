@@ -40,6 +40,11 @@ class SampleDatabase
             $table->foreignId('sales_invoice_id');
             $table->string('number')->unique();
             $table->string('status');
+            $table->date('paid_on')->nullable();
+            $table->decimal('amount', 15, 2)->default(0);
+            $table->decimal('tax_withheld', 15, 2)->default(0);
+            $table->decimal('vat_withheld', 15, 2)->default(0);
+            $table->string('reference')->nullable();
         });
 
         DB::connection('storybook')->table('customers')->insert([
@@ -57,6 +62,7 @@ class SampleDatabase
             ['number' => '001231', 'status' => 'void'],
             ['number' => '001232', 'status' => 'posted'],
             ['number' => '001234', 'status' => 'posted'],
+            ['number' => null, 'status' => 'draft'],
         ]);
 
         // Invoice 001232 has a live payment; 001234 has only a void one.

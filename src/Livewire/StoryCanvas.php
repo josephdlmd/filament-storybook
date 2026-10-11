@@ -90,8 +90,12 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
     {
         $class = $this->instance()->model();
 
-        // Synced, so the record looks loaded from the database, as Filament's checks on the original id expect.
-        return ($class === null ? new class extends Model {} : new $class)->forceFill($attributes)->syncOriginal();
+        $model = ($class === null ? new class extends Model {} : new $class)->forceFill($attributes)->syncOriginal();
+
+        // A sample row with an id stands for a saved record, loaded from the database, as Filament's checks on the original id expect.
+        $model->exists = array_key_exists($model->getKeyName(), $attributes);
+
+        return $model;
     }
 
     public function kind(): ?string

@@ -13,6 +13,8 @@ class SalesInvoice extends Model
 
     protected $guarded = [];
 
+    public $timestamps = false;
+
     protected static function booted(): void
     {
         SampleDatabase::boot();

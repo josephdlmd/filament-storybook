@@ -668,3 +668,18 @@ it('downloads a posted document as a tagged A4 PDF in the shared layout, an invo
     expect($pdf->tagged)->toBeTrue()
         ->and((fn (): ?string => $this->format)->call($pdf))->toBe('a4');
 });
+
+it('refuses a serial another user saved after the form was checked, keeping the form open and saying what to check', function (string $stories, string $action, string $model, array $data, string $title): void {
+    // Another user saves the same serial between this form's check and its save; only the unique index can catch that.
+    $model::saving(fn (Illuminate\Database\Eloquent\Model $saved) => Illuminate\Support\Facades\DB::connection('storybook')->table($saved->getTable())->insert(
+        $saved->getTable() === 'payments' ? ['sales_invoice_id' => 3, 'number' => $saved->number, 'status' => 'posted'] : ['number' => $saved->number, 'status' => 'posted'],
+    ));
+
+    Livewire::test(StoryCanvas::class, ['stories' => $stories, 'story' => 'default'])
+        ->callAction(Filament\Actions\Testing\TestAction::make($action)->schemaComponent('story', 'form'), $data)
+        ->assertNotified($title)
+        ->assertActionMounted(Filament\Actions\Testing\TestAction::make($action)->schemaComponent('story', 'form'));
+})->with([
+    'a receipt' => [Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'recordPayment', Josephdlmd\FilamentStorybook\Stories\Documents\Payment::class, ['paid_on' => '2026-10-11', 'number' => '004520', 'amount' => '1000', 'tax_withheld' => '0', 'vat_withheld' => '0'], 'Payment not recorded'],
+    'an invoice' => [Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'post', Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::class, ['number' => '001240'], 'Invoice not posted'],
+]);
