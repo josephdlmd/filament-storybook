@@ -165,13 +165,14 @@ it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on 
         ->toContain('0 failing, 0 warnings, 0 accessibility issues');
 });
 
-it('starts confirmations on the left under compact(), like Carbon\'s modal', function (): void {
+it('starts confirmations on the left and narrows the menu under compact(), as in Carbon', function (): void {
     expect(Filament\Actions\DeleteAction::make()->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Center);
 
-    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->compact()->register(Filament\Panel::make()->id('compact'));
+    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->compact()->register($panel = Filament\Panel::make()->id('compact'));
     $delete = Filament\Actions\DeleteAction::make();
 
-    expect($delete->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Start);
+    expect($delete->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Start)
+        ->and($panel->getSidebarWidth())->toBe('16rem');
 });
 
 it('keeps the compact selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {

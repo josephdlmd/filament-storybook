@@ -105,6 +105,11 @@ class StorybookPlugin implements Plugin
             ->implode(''));
 
         if ($this->compact) {
+            // The menu is 256px wide (Carbon UI shell left panel); Filament's is 320px. A width the app sets wins.
+            if ($panel->getSidebarWidth() === '20rem') {
+                $panel->sidebarWidth('16rem');
+            }
+
             // Carbon's modal starts on the left, like every form modal; Filament centres a confirmation round a 48px
             // icon, which compact.css hides. An action that sets its own alignment keeps it.
             Action::configureUsing(fn (Action $action): Action => $action->modalAlignment(Alignment::Start));

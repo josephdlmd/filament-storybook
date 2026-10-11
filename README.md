@@ -135,7 +135,7 @@ Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
 For a data-dense app, `StorybookPlugin::make()->compactTables()` gives every table Carbon's small size: rows, header, filters, toolbar and pagination at 32px instead of Filament's 41 to 49px, with the same 14px text. It's off by default, since Filament's rows are Carbon's default size. A package test fails if a Filament upgrade renames the classes it adjusts.
 
-`StorybookPlugin::make()->compact()` goes further, for an app that is data-dense throughout: compact tables, plus Carbon's small sizes wherever Filament's Compact theme is looser. Menu items are 32px with no gap, a field's label sits 8px above its input and its helper text 4px below, stacked radios are 8px apart and checkboxes 4px, breadcrumbs are 12px, and line items fit their 32px fields with 4px above and below. Use it with the Compact theme, which already makes inputs and buttons 32px.
+`StorybookPlugin::make()->compact()` goes further, for an app that is data-dense throughout: compact tables, plus Carbon's small sizes wherever Filament's Compact theme is looser. The menu is 256px wide with 32px items, no gap and 16px icons, a field's label sits 8px above its input and its helper text 4px below, stacked radios are 8px apart and checkboxes 4px, breadcrumbs are 12px, and line items fit their 32px fields with 4px above and below. Use it with the Compact theme, which already makes inputs and buttons 32px.
 
 One thing a plugin can't reach: Filament title-cases the model in each resource's page titles, navigation and breadcrumbs ("Create Supplier"). Add `use \Josephdlmd\FilamentStorybook\Concerns\HasSentenceCaseLabels;` and a `$recordTitleAttribute` to each resource; `storybook-audit` warns where it's missing.
 

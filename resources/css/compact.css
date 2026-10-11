@@ -5,13 +5,26 @@
  * classes, and tests/Feature/StorybookTest.php fails if Filament renames one.
  */
 
-/* Menu and page sub-navigation: 32px items with no gap between them (Carbon UI shell left panel). */
+/* Menu and page sub-navigation: 32px items and group headings, with no gap between items (Carbon UI shell left panel). */
 .fi-sidebar-group-items {
     row-gap: 0;
 }
 
-.fi-sidebar-item-btn {
+.fi-sidebar-item-btn,
+.fi-sidebar-group-btn {
+    min-height: 2rem;
     padding-block: 0.25rem;
+}
+
+/* Menu icons are 16px, and the story list in the Storybook is 256px wide like the menu (Carbon UI shell left panel;
+   the menu's width is set on the panel). */
+:is(.fi-sidebar-item-btn, .fi-sidebar-group-btn) > .fi-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.fi-page-sub-navigation-sidebar-ctn {
+    width: 16rem;
 }
 
 /* A field's label is 8px above its input, and the helper text 4px below it (Carbon text input). */
