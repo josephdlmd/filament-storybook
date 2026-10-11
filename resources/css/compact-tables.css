@@ -12,8 +12,18 @@
     padding-block: 0.625rem;
 }
 
-.fi-ta-table > tbody > tr > td :is(.fi-ta-text, .fi-ta-icon, .fi-ta-image, .fi-ta-select, .fi-ta-color, .fi-ta-toggle, .fi-ta-text-input, .fi-ta-checkbox):not(.fi-inline) {
+.fi-ta-table > tbody > tr > td :is(.fi-ta-text, .fi-ta-icon, .fi-ta-image, .fi-ta-color, .fi-ta-toggle, .fi-ta-checkbox):not(.fi-inline) {
     padding-block: 0.5rem;
+}
+
+/* A toggle sat on the text's baseline, 3px taller than itself, which made its row 43px. */
+.fi-ta-table > tbody > tr > td .fi-ta-toggle > .fi-toggle {
+    vertical-align: top;
+}
+
+/* An editable cell's 32px field has 4px above and below, like a line item, so its row stays 40px. */
+.fi-ta-table > tbody > tr > td :is(.fi-ta-select, .fi-ta-text-input):not(.fi-inline) {
+    padding-block: 0.25rem;
 }
 
 /* The strips around the table: the toolbar (search, bulk actions, column picker), a header holding only actions (a

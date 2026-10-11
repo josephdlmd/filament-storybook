@@ -118,3 +118,11 @@
 .fi-breadcrumbs:not(:has(li:nth-child(3))) {
     display: none;
 }
+
+/*
+ * A table's bulk-action slot is empty until rows are selected (its menu is hidden), but Filament still gives it a line:
+ * on a phone, where the toolbar wraps, it pushed the search box 48px down. Hidden until it has something to show.
+ */
+.fi-ta-header-toolbar > .fi-ta-actions:not(:has(> :not([style*="display: none"]))) {
+    display: none;
+}

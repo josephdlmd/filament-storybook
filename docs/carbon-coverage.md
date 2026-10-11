@@ -317,6 +317,7 @@ One line each, with the reason.
 - 20px radio (Radio button): bigger, and the label is part of the target.
 - 48×24 toggle and small 32×16 toggle (Toggle): look; the small one is below WCAG 2.5.8's 24px.
 - 14px slider handle on a 4px track (Slider): below WCAG 2.5.8's 24px; Filament's 28×34px handle stays (measured 2026-10-11).
+- Small (32px) controls and 16px section padding on phones (all components): the Compact theme keeps Filament's 36px controls and 24px padding below its small breakpoint ("Mobile keeps Filament's default spacing"), bigger targets for touch; measured 2026-10-11 at 390px, light and dark.
 - On/Off text beside a toggle (Toggle): Filament has none; FRM-12's tick is Carbon's alternative.
 - Arrow-key stepping, lost with `type('text')` (Number input): acceptable, since Carbon steers prices away from number input.
 - Count tag, and selected options moving to the top (Dropdown): Filament's component internals.

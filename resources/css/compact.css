@@ -62,6 +62,16 @@
     }
 }
 
+/* Each option's text sits on the 20px line of other 14px text, not Filament's 24px, which added 4px to every gap above;
+   the 16px box is centred on it. */
+:is(.fi-fo-radio-label-text, .fi-fo-checkbox-list-option-text) {
+    line-height: 1.25rem;
+}
+
+:is(.fi-fo-radio-label, .fi-fo-checkbox-list-option) > :is(.fi-radio-input, .fi-checkbox-input) {
+    margin-top: 0.125rem;
+}
+
 /* Small breadcrumbs, "commonly used in page headers": 12px regular (Carbon breadcrumb). */
 .fi-breadcrumbs li {
     font-size: 0.75rem;
