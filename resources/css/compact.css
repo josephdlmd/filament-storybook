@@ -178,6 +178,13 @@
     line-height: 1rem;
 }
 
+/* The helper text's own box takes the same size and line; on Filament's 14px text and 20px line, the 12px text sat
+   on a taller line box and showed 7px below the field instead of 4px. */
+.fi-fo-field-content-col > .fi-sc:has(.fi-sc-text) {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
 .fi-section-header-heading {
     font-size: 0.875rem;
     line-height: 1.125rem;

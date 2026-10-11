@@ -316,6 +316,7 @@ One line each, with the reason.
 - Error text replacing the helper text (Text input): GOV.UK keeps the hint beside the error.
 - 20px radio (Radio button): bigger, and the label is part of the target.
 - 48×24 toggle and small 32×16 toggle (Toggle): look; the small one is below WCAG 2.5.8's 24px.
+- 14px slider handle on a 4px track (Slider): below WCAG 2.5.8's 24px; Filament's 28×34px handle stays (measured 2026-10-11).
 - On/Off text beside a toggle (Toggle): Filament has none; FRM-12's tick is Carbon's alternative.
 - Arrow-key stepping, lost with `type('text')` (Number input): acceptable, since Carbon steers prices away from number input.
 - Count tag, and selected options moving to the top (Dropdown): Filament's component internals.
