@@ -97,7 +97,7 @@ print("patterns looked up:", sorted(shown) or "none")
 prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __import__("os").path.exists(transcript.rsplit("/", 1)[0] + "/prompt.txt") else ""
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
-        "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment", "customer picker": "customer", "printing": "print", "purchases": "purchase"}
+        "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "customer", "printing": "print", "purchases": "purchase"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)

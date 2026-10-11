@@ -177,6 +177,11 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: sets its own padding or margin; leave spacing to the theme's scale, through Filament's sections, groups and columns (Carbon spacing).";
             }
 
+            // Inline font size, weight or colour, or a Tailwind class for them, on any extra*Attributes(): type and colour the theme doesn't set.
+            if (preg_match('/->extra\\w*Attributes\\((?:(?!->).)*?(?:font-size|font-weight|(?<![\\w-])color\\s*:|background|[\'"\\s](?:text-(?:xs|sm|base|lg|\\d?xl|\\[[^\\]]+\\])|font-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|(?:text|bg|border)-(?:[a-z]+-\\d{2,3}|white|black|\\[#[^\\]]+\\]))[\'"\\s])/s', $story['snippet'])) {
+                $warnings[] = "{$key}: sets its own font size, weight or colour; use Filament's size(), weight() and color() options, which take the theme's type styles and colour tokens and follow dark mode (Carbon typography and colour).";
+            }
+
             if (preg_match("/->title\\('[^']*\\.'\\)/", $story['snippet'])) {
                 $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
             }

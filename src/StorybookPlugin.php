@@ -27,6 +27,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
+use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
@@ -84,6 +85,9 @@ class StorybookPlugin implements Plugin
             : '');
 
         if ($this->houseDefaults) {
+            // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.
+            $panel->maxContentWidth($panel->getMaxContentWidth() ?? Width::Full);
+
             static::applyHouseDefaults();
         }
     }

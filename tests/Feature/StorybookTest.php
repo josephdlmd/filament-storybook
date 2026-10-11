@@ -169,6 +169,15 @@ it('keeps the compact-table selectors on classes Filament still uses, so an upgr
     }
 });
 
+it('gives every page the full width, unless the app sets its own', function (): void {
+    expect(Filament\Facades\Filament::getPanel('fixture')->getMaxContentWidth())->toBe(Filament\Support\Enums\Width::Full);
+
+    $panel = Filament\Panel::make()->id('narrow')->maxContentWidth(Filament\Support\Enums\Width::SevenExtraLarge);
+    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->register($panel);
+
+    expect($panel->getMaxContentWidth())->toBe(Filament\Support\Enums\Width::SevenExtraLarge);
+});
+
 it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
     $delete = Filament\Actions\DeleteAction::make();
 
@@ -310,7 +319,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 6 passing, 3 failing, 12 warnings, 1 accessibility issues')
+        ->toStartWith('# 7 passing, 3 failing, 13 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -321,6 +330,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.works`: no placeholder()')
         ->toContain('- `broken-story.floatMoney`: round() works on floats')
         ->toContain('- `broken-story.ownSpacing`: sets its own padding or margin')
+        ->toContain('- `broken-story.ownTypeAndColour`: sets its own font size, weight or colour')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:44')

@@ -74,6 +74,12 @@ class BrokenStories extends Stories
         return TextInput::make('code')->extraAttributes(['class' => 'mt-3 px-[13px]'])->extraInputAttributes(['style' => 'padding: 3px']);
     }
 
+    /** Renders, but sets its own type and colour instead of the theme's. */
+    public function ownTypeAndColour(): TextColumn
+    {
+        return TextColumn::make('code')->extraAttributes(['class' => 'text-lg font-bold text-red-600']);
+    }
+
     /** Renders, but works out money with floats. */
     public function floatMoney(): TextColumn
     {

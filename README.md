@@ -129,6 +129,7 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 - Filament's import wording: the failed-rows link is "Download errors", and a row's system error has no "please" (Carbon notifications, GOV.UK error message).
 - Carbon's verbs replace Filament's: Attach and Associate are "Add", Detach and Dissociate are "Remove", Replicate is "Copy". The View modal closes with its × only, with no Close button (Carbon common actions).
 - A modal with buttons (a form or a confirmation) doesn't close when the user clicks outside it, so a stray click loses no input; a View modal still does (Carbon modal).
+- Pages use the full width of the browser instead of stopping at 1280px, unless the panel sets its own `maxContentWidth()` (Carbon 2x grid).
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
