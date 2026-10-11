@@ -19,7 +19,7 @@ class ListTableStories extends Stories
 
     public function description(): string
     {
-        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first; one search field says what it searches; the columns follow in order of importance, money is right-aligned and status is a badge. With more than one filter, the filters sit above the table; applied filters stay applied for the session; and an empty list says what goes here and offers the next step (on a resource, `CreateAction::make()`). Basis: NN/g data tables 2022 (identifier first, columns by importance, sortable); USWDS table (right-align numbers); Carbon data table, filtering, search (the placeholder says what it searches; filters persist for the session) and empty states (2026).';
+        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first; one search field says what it searches; the columns follow in order of importance, money is right-aligned and status is a badge. With more than one filter, the filters sit above the table; applied filters stay applied for the session; and an empty list says what goes here and offers one next step, outlined because the page header already has the primary New button (on a resource, `CreateAction::make()->outlined()`). Basis: NN/g data tables 2022 (identifier first, columns by importance, sortable); USWDS table (right-align numbers); Carbon data table, filtering, search (the placeholder says what it searches; filters persist for the session) and empty states (2026: one action, "using a tertiary button for the call to action").';
     }
 
     public function records(): array
@@ -59,8 +59,10 @@ class ListTableStories extends Stories
             ->emptyStateHeading('No suppliers yet')
             ->emptyStateDescription('Suppliers you add appear here.')
             ->emptyStateActions([
+                // The page header already has the primary New button, so this one is outlined (Carbon empty states: tertiary).
                 Action::make('create')
-                    ->label('New supplier'),
+                    ->label('New supplier')
+                    ->outlined(),
             ]);
     }
 }

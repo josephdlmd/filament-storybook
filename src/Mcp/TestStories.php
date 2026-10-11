@@ -182,6 +182,18 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: sets its own font size, weight or colour; use Filament's size(), weight() and color() options, which take the theme's type styles and colour tokens and follow dark mode (Carbon typography and colour).";
             }
 
+            if (str_contains($story['snippet'], '->iconButton()') && ! str_contains($story['snippet'], '->tooltip(')) {
+                $warnings[] = "{$key}: an icon-only action needs a tooltip saying what it does, `->tooltip('…')`, shown on hover and focus (Carbon tooltip).";
+            }
+
+            if (substr_count($story['snippet'], 'ActionGroup::make(') > 1 && ! str_contains($story['snippet'], 'dropdown(false)')) {
+                $warnings[] = "{$key}: a menu opens inside another menu; give the inner `ActionGroup` `->dropdown(false)`, so its actions sit in the outer menu under a divider (Carbon disclosures: \"Do not nest one disclosure within another\").";
+            }
+
+            if (preg_match("/Callout::make\\((?:(?!::make\\().)*?->(?:success\\(\\)|danger\\(\\)|color\\('(?:success|danger)'\\))/s", $story['snippet'])) {
+                $warnings[] = "{$key}: a callout is info or warning only; say how something went in a toast (Carbon notification: \"The callout variant only includes informational and warning statuses\").";
+            }
+
             // A tooltip on a column, an entry or a hint icon shows on mouse hover only; on an action it is on a button.
             if (preg_match('/->hintIcon\\([^;]*?tooltip:|->hintIconTooltip\\(|(?:Column|Entry)::make\\((?:(?!::make\\().)*?->tooltip\\(/s', $story['snippet'])) {
                 $warnings[] = "{$key}: a tooltip on a column, entry or hint icon shows on mouse hover only; put the text in helperText() or the column's description() (WCAG 2.1.1; Carbon tooltip).";

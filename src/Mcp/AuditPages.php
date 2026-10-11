@@ -294,6 +294,12 @@ class AuditPages extends Tool
             $warn("{$primary->count()} primary actions in the header; keep one primary and make the rest `->color('gray')` or put them in an `ActionGroup` (Carbon button).");
         }
 
+        $shown = collect($header)->filter(fn ($action): bool => ($action instanceof Action || $action instanceof ActionGroup) && $action->isVisible());
+
+        if ($shown->count() > 3) {
+            $warn("{$shown->count()} buttons in the header; show at most three and put the rest in a labelled menu, `ActionGroup::make([...])->label('More')->button()` (Carbon button: \"Any more than three actions should be grouped meaningfully using menu buttons\").");
+        }
+
         if (method_exists($page, 'getTable') && $page->getTable()->getColumns() !== []) {
             $table = $page->getTable();
             $visible = collect($table->getColumns())->reject(fn (Column $column): bool => $column->isHidden() || $column->isToggledHiddenByDefault());
@@ -326,7 +332,23 @@ class AuditPages extends Tool
                 $warn('the empty list gives no next step; add `emptyStateDescription()` and `emptyStateActions()`, as `tables-list-table` does (Carbon empty states).');
             }
 
+            $emptyActions = collect($table->getEmptyStateActions())->filter(fn ($action): bool => $action instanceof Action && $action->isVisible());
+
+            if ($emptyActions->count() > 1) {
+                $warn("the empty list offers {$emptyActions->count()} actions; offer the most important one (Carbon empty states: \"Don't cover multiple options in one empty state\").");
+            }
+
+            $tablePrimary = collect($table->getHeaderActions())->contains(fn ($action): bool => $action instanceof Action && $action->isVisible() && ($action->getColor() ?? 'primary') === 'primary');
+
+            if (($primary->isNotEmpty() || $tablePrimary) && $emptyActions->contains(fn (Action $action): bool => ($action->getColor() ?? 'primary') === 'primary' && ! $action->isOutlined())) {
+                $warn("the empty list's button is a second primary beside the page's own; make it `->outlined()` (Carbon empty states: \"using a tertiary button for the call to action\").");
+            }
+
             $tableActions = static::flatten([...$table->getHeaderActions(), ...$table->getRecordActions(), ...$table->getToolbarActions()]);
+        }
+
+        foreach (collect([...$headerActions, ...$tableActions])->filter(fn (Action $action): bool => $action->isIconButton() && blank($action->getTooltip()))->unique(fn (Action $action): string => $action->getName()) as $action) {
+            $warn("the icon-only action `{$action->getName()}` has no tooltip; add `->tooltip('{$action->getLabel()}')`, shown on hover and focus (Carbon tooltip: \"Every icon-only button needs a tooltip\").");
         }
 
         foreach ([...$headerActions, ...$tableActions] as $action) {

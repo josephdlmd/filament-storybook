@@ -17,7 +17,8 @@ class PartsRelationManager extends RelationManager
         // Breaks the rules a related list can: Title Case, a delete called Remove, and Filament's "Are you sure" text.
         return $table
             ->columns([TextColumn::make('name'), TextColumn::make('created_at')->label('Created At')])
-            ->headerActions([CreateAction::make()])
+            ->headerActions([CreateAction::make(), \Filament\Actions\Action::make('printParts')->label('Print parts')])
+            ->emptyStateActions([\Filament\Actions\Action::make('newPart')->label('New part'), \Filament\Actions\Action::make('importParts')->label('Import parts')])
             ->recordActions([DeleteAction::make()->label('Remove')]);
     }
 }

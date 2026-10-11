@@ -3,8 +3,10 @@
 namespace Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Callout;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +86,26 @@ class BrokenStories extends Stories
     public function hoverOnlyTooltip(): TextColumn
     {
         return TextColumn::make('code')->tooltip('The supplier\'s own code');
+    }
+
+    /** Renders, but an icon-only action has no tooltip. */
+    public function iconOnlyAction(): Action
+    {
+        return Action::make('print')->label('Print')->icon('heroicon-o-printer')->iconButton();
+    }
+
+    /** Renders, but a success message is a callout, which isn't announced. */
+    public function successCallout(): Callout
+    {
+        return Callout::make('Order 1042 saved')->success();
+    }
+
+    /** Renders, but a menu opens inside another menu. */
+    public function nestedMenus(Table $table): Table
+    {
+        return $table
+            ->columns([TextColumn::make('code')])
+            ->recordActions([ActionGroup::make([Action::make('open'), ActionGroup::make([Action::make('archive')])])]);
     }
 
     /** Renders, but works out money with floats. */

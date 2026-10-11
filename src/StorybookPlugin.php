@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;
 use Filament\Actions\CreateAction;
@@ -28,8 +29,10 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
@@ -147,6 +150,22 @@ class StorybookPlugin implements Plugin
         // one with nothing to submit, such as View, also closes by clicking outside (Carbon modal: transactional and passive).
         Action::configureUsing(fn (Action $action) => $action->closeModalByClickingAway(fn (Action $action): bool => $action->getModalSubmitAction() === null));
 
+        // In a modal or slide-over, Cancel is on the left and the primary button on the right (Carbon modal and dialogs). Filament
+        // puts them in that order, in the page as on screen, only when the footer is centred. A full-page form keeps its primary first.
+        Action::configureUsing(fn (Action $action) => $action->modalFooterActionsAlignment(Alignment::Center));
+
+        // A form modal keeps its header and buttons in view while the fields scroll (Carbon modal). Confirmations are short.
+        Action::configureUsing(fn (Action $action) => $action
+            ->stickyModalHeader(fn (Action $action): bool => ! $action->isConfirmationRequired())
+            ->stickyModalFooter(fn (Action $action): bool => ! $action->isConfirmationRequired()));
+
+        // An icon-only menu ("…") says what it holds in a tooltip, on hover and focus; a labelled one ends with a chevron
+        // (Carbon tooltip: "Every icon-only button needs a tooltip"; Carbon menu buttons: "always be a caret").
+        ActionGroup::configureUsing(fn (ActionGroup $group) => $group
+            ->tooltip(fn (ActionGroup $group): ?string => $group->isIconButton() ? (string) $group->getLabel() : null)
+            ->icon(fn (ActionGroup $group): ?Heroicon => $group->isButton() ? Heroicon::ChevronDown : null)
+            ->iconPosition(fn (ActionGroup $group): IconPosition => $group->isButton() ? IconPosition::After : IconPosition::Before));
+
         // An import states its row limit before the upload, beside Filament's example file (USWDS file input: limits up front).
         ImportAction::configureUsing(fn (ImportAction $action) => $action->modalDescription(fn (ImportAction $action): Htmlable => new HtmlString(
             ($action->getMaxRows() ? e('A CSV file of up to '.Number::format($action->getMaxRows()).' rows.').' ' : '').$action->getModalAction('downloadExample')->toHtml(),
@@ -178,6 +197,14 @@ class StorybookPlugin implements Plugin
                 $lines = Arr::dot((array) trans("filament-actions::{$group}", [], 'en'), "{$group}.");
 
                 app('translator')->addLines(array_map(fn (string $line): string => str_replace($search, [ucfirst($done), $done, ucfirst($verb), $verb], $line), $lines), 'en', 'filament-actions');
+            }
+
+            // Carbon's words for signing in and out: "Log in", "Log out" (Carbon login pattern; owner's decision, 2026-10-11).
+            foreach (['auth/pages/login', 'auth/pages/register', 'auth/pages/password-reset/request-password-reset', 'layout', 'widgets/account-widget'] as $group) {
+                $lines = Arr::dot((array) trans("filament-panels::{$group}", [], 'en'), "{$group}.");
+                $lines = array_map(fn (mixed $line): mixed => is_string($line) ? str_replace(['Sign in', 'sign in', 'Sign out', 'back to login', 'Login'], ['Log in', 'log in', 'Log out', 'back to log in', 'Log in'], $line) : $line, $lines);
+
+                app('translator')->addLines(array_filter($lines, 'is_string'), 'en', 'filament-panels');
             }
 
             // Import wording: a notification action of one or two words (Carbon notifications); no "please" in an error (GOV.UK error message).
