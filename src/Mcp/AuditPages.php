@@ -14,8 +14,11 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\BaseFileUpload;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -427,6 +430,18 @@ class AuditPages extends Tool
 
             if (filled($field->getHintIconTooltip())) {
                 $warn("the field `{$name}` explains itself in a hint icon's tooltip, which shows on mouse hover only; put the text in `helperText()` (WCAG 2.1.1; Carbon form: the info icon \"is a button, which is in the tab order\").");
+            }
+
+            if (! $field->isRequired() && ! $field instanceof Checkbox && ! $field instanceof Toggle && ! $field instanceof Hidden && ! (method_exists($field, 'isReadOnly') && $field->isReadOnly()) && ! $field->isDisabled() && filled($label) && ! str_contains($label, '(optional)')) {
+                $warn("the optional field \"{$label}\" doesn't say so; label it \"{$label} (optional)\", and leave required fields unmarked (Carbon form: \"The pattern used should be consistent throughout your product\").");
+            }
+
+            if ($field instanceof Radio && ! $field->isRequired() && ! collect($field->getOptions())->keys()->merge(array_values($field->getOptions()))->contains(fn ($option): bool => strcasecmp((string) $option, 'none') === 0)) {
+                $warn("the radio group `{$name}` is optional but can't be cleared once picked; make it `required()` or add a \"None\" option (Carbon radio button and forms).");
+            }
+
+            if (($field instanceof Radio || $field instanceof CheckboxList) && $field->isInline()) {
+                $warn("the options of `{$name}` sit side by side; stack them, without `inline()` (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\").");
             }
 
             if ($field->isLabelHidden()) {

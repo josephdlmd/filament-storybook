@@ -41,9 +41,9 @@ class LineItemsStories extends Stories
     {
         return Repeater::make('lines')
             ->table([
-                TableColumn::make('Description')->markAsRequired()->alignStart(),
-                TableColumn::make('Quantity')->markAsRequired()->alignEnd()->width('7rem'),
-                TableColumn::make('Unit price')->markAsRequired()->alignEnd()->width('9rem'),
+                TableColumn::make('Description')->alignStart(),
+                TableColumn::make('Quantity')->alignEnd()->width('7rem'),
+                TableColumn::make('Unit price')->alignEnd()->width('9rem'),
                 TableColumn::make('Line total')->alignEnd()->width('8rem'),
             ])
             ->schema([

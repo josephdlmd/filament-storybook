@@ -20,6 +20,6 @@ class YesNoStories extends Stories
     public function default(): Checkbox
     {
         return Checkbox::make('send_invoice_by_email')
-            ->label('Send invoice by email');
+            ->label('Email the invoice');
     }
 }

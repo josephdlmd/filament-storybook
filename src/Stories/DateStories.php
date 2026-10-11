@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Schemas\Components\Fieldset;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class DateStories extends Stories
@@ -38,5 +39,21 @@ class DateStories extends Stories
             ->label('Invoice date')
             ->maxWidth('xs')
             ->maxDate(today());
+    }
+
+    /** A range: two fields side by side, labelled From and To, in a group named for what the dates are. */
+    public function range(): Fieldset
+    {
+        return Fieldset::make('Invoice dates')
+            ->columns(2)
+            ->schema([
+                DatePicker::make('invoiced_from')
+                    ->label('From')
+                    ->maxWidth('xs'),
+                DatePicker::make('invoiced_until')
+                    ->label('To')
+                    ->maxWidth('xs')
+                    ->afterOrEqual('invoiced_from'),
+            ]);
     }
 }

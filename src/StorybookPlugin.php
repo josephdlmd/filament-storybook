@@ -25,14 +25,17 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
+use Filament\Schemas\Components\Form;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
@@ -119,6 +122,11 @@ class StorybookPlugin implements Plugin
         }
 
         if ($this->houseDefaults) {
+            // Leaving a form with unsaved changes asks first (Carbon global header: "If state or progress will be lost, inform users").
+            if (! $panel->hasUnsavedChangesAlerts()) {
+                $panel->unsavedChangesAlerts();
+            }
+
             // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.
             $panel->maxContentWidth($panel->getMaxContentWidth() ?? Width::Full);
 
@@ -207,6 +215,9 @@ class StorybookPlugin implements Plugin
                 app('translator')->addLines(array_filter($lines, 'is_string'), 'en', 'filament-panels');
             }
 
+            // A failed log in says what happened and what to do (Carbon login: "Incorrect IBMid or password. Try again.").
+            app('translator')->addLines(['auth/pages/login.messages.failed' => 'Incorrect email or password. Try again.'], 'en', 'filament-panels');
+
             // Import wording: a notification action of one or two words (Carbon notifications); no "please" in an error (GOV.UK error message).
             app('translator')->load('filament-actions', 'import', 'en');
             app('translator')->addLines([
@@ -214,6 +225,22 @@ class StorybookPlugin implements Plugin
                 'import.failure_csv.system_error' => 'A system error stopped this row. Contact support.',
             ], 'en', 'filament-actions');
         });
+
+        // The browser's own validation is off, so a form's errors are ours, worded as GOV.UK asks, instead of "Please fill out
+        // this field." (GOV.UK validation: "Turn off HTML5 validation"). A page form and a modal window are each a <form>.
+        Form::configureUsing(fn (Form $form) => $form->extraAttributes(['novalidate' => true], merge: true));
+        Action::configureUsing(fn (Action $action) => $action->extraModalWindowAttributes(['novalidate' => true], merge: true));
+
+        // An amount or quantity is a text input with a numeric keypad, not type="number", which rounds, steps and silently refuses
+        // what is typed (Carbon number input: avoid it "for continuous variables such as prices"; GOV.UK text input).
+        TextInput::configureUsing(fn (TextInput $input) => $input->type(fn (TextInput $input): ?string => $input->isNumeric() ? 'text' : null));
+
+        // One convention throughout: optional fields say "(optional)", required ones carry no asterisk (Carbon form; owner, 2026-10-11).
+        // A required input still has the required attribute, and a required radio group aria-required, for screen readers.
+        Field::configureUsing(fn (Field $field) => $field->markAsRequired(false));
+
+        // A toggle in a table shows a tick when on, so on and off don't differ by colour alone (Carbon toggle; WCAG 1.4.1).
+        ToggleColumn::configureUsing(fn (ToggleColumn $column) => $column->onIcon(Heroicon::Check));
 
         // Errors say what to do with the field's own label: "Enter name", not "The name field is required" (GOV.UK error message).
         Field::configureUsing(fn (Field $field) => $field->validationMessages([

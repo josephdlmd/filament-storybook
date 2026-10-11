@@ -4,9 +4,12 @@ namespace Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories;
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Callout;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -106,6 +109,16 @@ class BrokenStories extends Stories
         return $table
             ->columns([TextColumn::make('code')])
             ->recordActions([ActionGroup::make([Action::make('open'), ActionGroup::make([Action::make('archive')])])]);
+    }
+
+    /** Renders, but its options sit side by side and a wizard step's name is too long. */
+    public function crampedChoices(): Wizard
+    {
+        return Wizard::make([
+            Step::make('Choose the supplier now')->schema([
+                Radio::make('terms')->options(['cod' => 'Cash on delivery', 'net_30' => '30 days'])->inline()->required(),
+            ]),
+        ]);
     }
 
     /** Renders, but works out money with floats. */

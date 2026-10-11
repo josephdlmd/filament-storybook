@@ -53,10 +53,10 @@ class DocumentTotalsStories extends Stories
             ->components([
                 Repeater::make('lines')
                     ->table([
-                        TableColumn::make('Description')->markAsRequired()->alignStart(),
-                        TableColumn::make('VAT class')->markAsRequired()->alignStart()->width('8rem'),
-                        TableColumn::make('Quantity')->markAsRequired()->alignEnd()->width('6rem'),
-                        TableColumn::make('Unit price')->markAsRequired()->alignEnd()->width('9rem'),
+                        TableColumn::make('Description')->alignStart(),
+                        TableColumn::make('VAT class')->alignStart()->width('8rem'),
+                        TableColumn::make('Quantity')->alignEnd()->width('6rem'),
+                        TableColumn::make('Unit price')->alignEnd()->width('9rem'),
                         TableColumn::make('Line total')->alignEnd()->width('8rem'),
                     ])
                     ->schema([
@@ -179,9 +179,10 @@ class DocumentTotalsStories extends Stories
                     ->label('Withholding')
                     ->options(fn (): array => [
                         // A top withholding agent withholds from every regular supplier; BIR says which companies are.
-                        ...(config('company.top_withholding_agent') ? ['WC158' => 'WC158, 1% on goods', 'WC160' => 'WC160, 2% on services'] : []),
+                        ...(config('company.top_withholding_agent') ? ['WC158' => 'WC158', 'WC160' => 'WC160'] : []),
                         'none' => 'None',
                     ])
+                    ->descriptions(['WC158' => '1% on goods', 'WC160' => '2% on services'])
                     ->default(fn (?Model $record): ?string => $record?->supplier_atc)
                     ->required()
                     ->live(),

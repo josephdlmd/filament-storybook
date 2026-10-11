@@ -222,6 +222,22 @@ it('names an icon-only menu in a tooltip and ends a labelled one with a chevron'
         ->and($overflow->getIcon())->toBe(Filament\Support\Icons\Heroicon::EllipsisVertical);
 });
 
+it('leaves form errors to the app, keeps amounts as text and marks optional fields, not required ones', function (): void {
+    $form = Filament\Schemas\Components\Form::make([]);
+    $modal = Filament\Actions\Action::make('changeDueDate');
+    $amount = Filament\Forms\Components\TextInput::make('amount')->numeric();
+
+    expect($form->getExtraAttributes())->toHaveKey('novalidate')
+        ->and($modal->getExtraModalWindowAttributes())->toHaveKey('novalidate')
+        ->and($amount->getType())->toBe('text')
+        ->and($amount->getInputMode())->toBe('decimal')
+        ->and(Filament\Forms\Components\TextInput::make('email')->email()->getType())->toBe('email')
+        ->and(Filament\Forms\Components\TextInput::make('name')->required()->isMarkedAsRequired())->toBeFalse()
+        ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
+        ->and(Filament\Facades\Filament::getPanel('fixture')->hasUnsavedChangesAlerts())->toBeTrue()
+        ->and(__('filament-panels::auth/pages/login.messages.failed'))->toBe('Incorrect email or password. Try again.');
+});
+
 it('says Log in and Log out, as Carbon does', function (): void {
     expect(__('filament-panels::auth/pages/login.heading'))->toBe('Log in')
         ->and(__('filament-panels::auth/pages/login.form.actions.authenticate.label'))->toBe('Log in')
@@ -356,7 +372,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 55 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 56 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -369,7 +385,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 11 passing, 3 failing, 18 warnings, 3 accessibility issues')
+        ->toStartWith('# 12 passing, 3 failing, 20 warnings, 4 accessibility issues')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -385,13 +401,15 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.iconOnlyAction`: an icon-only action needs a tooltip')
         ->toContain('- `broken-story.successCallout`: a callout is info or warning only')
         ->toContain('- `broken-story.nestedMenus`: a menu opens inside another menu')
+        ->toContain('- `broken-story.crampedChoices`: stack radio and checkbox options, without inline()')
+        ->toContain('- `broken-story.crampedChoices`: the wizard step "Choose the supplier now" is longer than 16 characters')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:46')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:49')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:30')
-        ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:33')
+        ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:36')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 
@@ -425,13 +443,16 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 29 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 38 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
         ->toContain('- `ListGadgets`: 4 buttons in the header; show at most three')
         ->toContain('- `ListGadgets`: the icon-only action `print` has no tooltip')
         ->toContain('- `CreateGadget`: the field `serial` explains itself in a hint icon\'s tooltip')
+        ->toContain('- `CreateGadget`: the optional field "Owner" doesn\'t say so')
+        ->toContain('- `CreateGadget`: the radio group `colour` is optional but can\'t be cleared once picked')
+        ->toContain('- `CreateGadget`: the options of `colour` sit side by side')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
@@ -501,7 +522,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 51 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 67 warnings')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
         ->toContain('- `PartsRelationManager`: the empty list offers 2 actions')

@@ -17,7 +17,7 @@ class RecordFormStories extends Stories
 
     public function description(): string
     {
-        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column, labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: W3C WAI forms tutorial 2024 (visible labels above their fields); Carbon forms 2026 (mark the smaller group, so optional fields say "(optional)"; up to five options as radios); USWDS text input (input width matches the answer).';
+        return 'The create and edit form of every resource, pasted into the resource form\'s `configure()`. One column (fields side by side only when they belong together, such as a date range), labels above their fields, no boxed sections, each field as wide as its answer, in the order the record\'s details read. Optional fields say "(optional)" and required ones carry no mark; the app-wide default removes Filament\'s asterisk. A radio group is required, or has a "None" option, since a picked radio can\'t be cleared. The first field takes focus (`autofocus()`); many optional fields go in a section of their own. Save and Cancel stay at the bottom. Build each field from its own pattern (`forms-tin`, `forms-money-input`, `forms-choice`). Basis: Carbon forms 2026 ("Carbon generally recommends single-column forms"; "The pattern used should be consistent throughout your product"; "provide a radio button with the label \'None\'"; the first required input "should receive focus"; "Do not top align primary and secondary action buttons"; up to five options as radios); W3C WAI forms tutorial 2024 (visible labels above their fields); USWDS text input (input width matches the answer).';
     }
 
     public function records(): array
@@ -32,6 +32,7 @@ class RecordFormStories extends Stories
             ->components([
                 TextInput::make('name')
                     ->required()
+                    ->autofocus()
                     ->maxWidth('md'),
                 TextInput::make('tin')
                     ->label('TIN')
@@ -41,6 +42,7 @@ class RecordFormStories extends Stories
                     ->maxWidth('xs')
                     ->required(),
                 TextInput::make('credit_limit')
+                    ->label('Credit limit (optional)')
                     ->numeric()
                     ->prefix('₱')
                     ->step(0.01)
@@ -53,7 +55,8 @@ class RecordFormStories extends Stories
                         'cod' => 'Cash on delivery',
                         'net_30' => '30 days',
                         'net_60' => '60 days',
-                    ]),
+                    ])
+                    ->required(),
                 Textarea::make('notes')
                     ->label('Notes (optional)')
                     ->rows(3),

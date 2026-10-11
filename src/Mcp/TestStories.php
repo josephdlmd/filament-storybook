@@ -194,6 +194,16 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: a callout is info or warning only; say how something went in a toast (Carbon notification: \"The callout variant only includes informational and warning statuses\").";
             }
 
+            if (preg_match('/(?:Radio|CheckboxList)::make\\((?:(?!::make\\().)*?->inline\\(\\)/s', $story['snippet'])) {
+                $warnings[] = "{$key}: stack radio and checkbox options, without inline() (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\").";
+            }
+
+            if (preg_match_all("/Step::make\\('([^']{17,})'\\)/", $story['snippet'], $steps)) {
+                foreach ($steps[1] as $step) {
+                    $warnings[] = "{$key}: the wizard step \"{$step}\" is longer than 16 characters; name it in one or two words (Carbon progress indicator).";
+                }
+            }
+
             // A tooltip on a column, an entry or a hint icon shows on mouse hover only; on an action it is on a button.
             if (preg_match('/->hintIcon\\([^;]*?tooltip:|->hintIconTooltip\\(|(?:Column|Entry)::make\\((?:(?!::make\\().)*?->tooltip\\(/s', $story['snippet'])) {
                 $warnings[] = "{$key}: a tooltip on a column, entry or hint icon shows on mouse hover only; put the text in helperText() or the column's description() (WCAG 2.1.1; Carbon tooltip).";

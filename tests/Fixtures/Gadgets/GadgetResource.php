@@ -44,13 +44,14 @@ class GadgetResource extends Resource
             Section::make('Stock Keeping')->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
             TextInput::make('serial')->label('Serial')->hintIcon('heroicon-o-information-circle', tooltip: 'On the back of the gadget')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
+            \Filament\Forms\Components\Radio::make('colour')->label('Colour (optional)')->options(['red' => 'Red', 'blue' => 'Blue'])->inline(),
             Select::make('owner_id')->label('Owner')->relationship('owner', 'name'),
             DatePicker::make('released_on')->label('Released On')->native(false),
             FileUpload::make('manual')->label('Manual'),
             // `part` is built right; `quantity` hides its label under a header that reads differently; `note` has no column.
             Repeater::make('parts')
                 ->table([TableColumn::make('Part'), TableColumn::make('Qty')])
-                ->schema([TextInput::make('part'), TextInput::make('quantity')->hiddenLabel(), TextInput::make('note')]),
+                ->schema([TextInput::make('part')->required(), TextInput::make('quantity')->hiddenLabel(), TextInput::make('note')]),
         ]);
     }
 

@@ -60,3 +60,16 @@
 :is(.fi-modal-description, .fi-section-header-description, .fi-no-notification-body, .fi-callout-description, .fi-sc-text, .fi-fo-field-label-hint) a {
     text-decoration-line: underline;
 }
+
+/*
+ * A text area grows only in height (Carbon text input: resizing "only effects the height"), and a read-only field shows
+ * the arrow cursor, not the text cursor (Carbon read-only states: "The arrow cursor reinforces that a component is in a
+ * read-only state").
+ */
+.fi-fo-textarea textarea {
+    resize: vertical;
+}
+
+.fi-input-wrp:has(:is(input, textarea)[readonly]) :is(input, textarea) {
+    cursor: default;
+}

@@ -145,11 +145,15 @@ class PaymentStories extends Stories
     public function customerWithholding(): Radio
     {
         return Radio::make('customer_withholding')
-            ->label('Withholds from our invoices')
+            ->label('Withholding')
             ->options([
-                'government' => 'Government: 1% income tax and 5% VAT',
-                'top_withholding_agent' => 'Top withholding agent: 1% income tax',
-                'none' => 'No withholding',
+                'government' => 'Government office',
+                'top_withholding_agent' => 'Top withholding agent',
+                'none' => 'None',
+            ])
+            ->descriptions([
+                'government' => '1% income tax and 5% VAT',
+                'top_withholding_agent' => '1% income tax',
             ])
             ->default('none')
             ->required();

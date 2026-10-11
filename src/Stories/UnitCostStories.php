@@ -30,6 +30,7 @@ class UnitCostStories extends Stories
             ->step(0.0001)
             ->minValue(0)
             ->rules(['decimal:0,4'])
+            ->helperText('Up to 4 decimal places')
             ->maxWidth('xs')
             ->validationMessages(['decimal' => 'Enter the unit cost with at most 4 decimal places, such as 89.2857']);
     }
