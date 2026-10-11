@@ -10,6 +10,7 @@ use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -27,7 +28,7 @@ class DocumentTotalsStories extends Stories
 
     public function description(): string
     {
-        return 'The lines and totals of a sales invoice, purchase order or bill: each line has a VAT class, and under the lines come the VATable sales, the VAT, the zero-rated and VAT-exempt sales, and the total amount due. Unit prices include VAT, so the VAT is 12/112 of the VATable total, worked out once per document and rounded once to centavos, half up; the VATable sales are that total less the VAT. All of it is decimal arithmetic in the `DocumentTotals` class (copy it from the examples); never PHP floats. A sales invoice\'s total amount due is before withholding; what a customer withholds is recorded with their payment (`actions-record-payment`). A supplier\'s invoice is recorded on its purchase order\'s View page, as printed (`supplierInvoice`): its total and its VAT as the supplier wrote them, since the printed VAT is what supports the input tax, with the order\'s own VAT beside it so a typing mistake stands out. The tax withheld from it is worked out once, there: the rate of the supplier\'s ATC (their default, changeable on the invoice) on the total less VAT, with `DocumentTotals::withholding()`. Payments then settle the net payable, and the order\'s BIR Form 2307 shows that figure; store the supplier\'s TIN and the ATC with it. The two here apply only to a company BIR has made a top withholding agent, which `config/company.php` says (`top_withholding_agent`); add the others the CPA confirms, such as rent or professional fees, which apply either way. The totals are read-only text, right-aligned. Work them out again with `DocumentTotals::of($lines)` when saving and store them in decimal columns; never save what the form showed. The lines follow `forms-line-items`: on a resource, add `->relationship()` to the repeater, so each line is a row of its own table. Business standards from the owner (2026-10-10 and 2026-10-11): VAT per document for each class, prices including VAT, half-up rounding; BIR RR 7-2024 (VAT shown as a separate item, VATable, zero-rated and exempt sales shown apart). Basis: Carbon text input (read-only, not disabled, for a value to read), Carbon forms (labels above), USWDS table (numbers right-aligned).';
+        return 'The lines and totals of a sales invoice, purchase order or bill: each line has a VAT class, and under the lines come the VATable sales, the VAT, the zero-rated and VAT-exempt sales, and the total amount due. Unit prices include VAT, so the VAT is 12/112 of the VATable total, worked out once per document and rounded once to centavos, half up; the VATable sales are that total less the VAT. All of it is decimal arithmetic in the `DocumentTotals` class (copy it from the examples); never PHP floats. A sales invoice\'s total amount due is before withholding; what a customer withholds is recorded with their payment (`actions-record-payment`). A supplier\'s invoice is recorded on its purchase order\'s View page, as printed (`supplierInvoice`): its total and its VAT as the supplier wrote them, since the printed VAT is what supports the input tax, with the order\'s own VAT beside it so a typing mistake stands out. The tax withheld from it is worked out once, there: the rate of the supplier\'s ATC (their default, changeable on the invoice) on the total less VAT, with `DocumentTotals::withholding()`. Payments then settle the net payable, and the order\'s BIR Form 2307 shows that figure; store the supplier\'s TIN and the ATC with it. The two here apply only to a company BIR has made a top withholding agent, which `config/company.php` says (`top_withholding_agent`); add the others the CPA confirms, such as rent or professional fees, which apply either way. The totals are read-only text, right-aligned. Work them out again with `DocumentTotals::of($lines)` when saving and store them in decimal columns; never save what the form showed. The lines follow `forms-line-items`: on a resource, add `->relationship()` to the repeater, so each line is a row of its own table. Business standards from the owner (2026-10-10 and 2026-10-11): VAT per document for each class, prices including VAT, half-up rounding; BIR RR 7-2024 (VAT shown as a separate item, VATable, zero-rated and exempt sales shown apart). Basis: Carbon text input (read-only, not disabled, for a value to read), Carbon structured list (the totals as terms and definitions, each label beside its amount, as on the printed document), USWDS table (numbers right-aligned).';
     }
 
     public function examples(): array
@@ -96,33 +97,40 @@ class DocumentTotalsStories extends Stories
                     ->reorderable(false)
                     ->minItems(1)
                     ->defaultItems(1),
-                Group::make([
-                    TextEntry::make('vatable_sales')
-                        ->label('VATable sales')
-                        ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['vatable_sales'])
-                        ->money('PHP')
-                        ->alignEnd(),
-                    TextEntry::make('vat')
-                        ->label('VAT (12%)')
-                        ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['vat'])
-                        ->money('PHP')
-                        ->alignEnd(),
-                    TextEntry::make('zero_rated_sales')
-                        ->label('Zero-rated sales')
-                        ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['zero_rated_sales'])
-                        ->money('PHP')
-                        ->alignEnd(),
-                    TextEntry::make('exempt_sales')
-                        ->label('VAT-exempt sales')
-                        ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['exempt_sales'])
-                        ->money('PHP')
-                        ->alignEnd(),
-                    TextEntry::make('total')
-                        ->label('Total amount due')
-                        ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['total'])
-                        ->money('PHP')
-                        ->alignEnd(),
-                ]),
+                // The totals as a list of labels and amounts, in the right half under the line totals; stacked when narrow.
+                Grid::make(['@lg' => 2])
+                    ->gridContainer()
+                    ->schema([
+                        Group::make([
+                            TextEntry::make('vatable_sales')
+                                ->label('VATable sales')
+                                ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['vatable_sales'])
+                                ->money('PHP')
+                                ->alignEnd(),
+                            TextEntry::make('vat')
+                                ->label('VAT (12%)')
+                                ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['vat'])
+                                ->money('PHP')
+                                ->alignEnd(),
+                            TextEntry::make('zero_rated_sales')
+                                ->label('Zero-rated sales')
+                                ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['zero_rated_sales'])
+                                ->money('PHP')
+                                ->alignEnd(),
+                            TextEntry::make('exempt_sales')
+                                ->label('VAT-exempt sales')
+                                ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['exempt_sales'])
+                                ->money('PHP')
+                                ->alignEnd(),
+                            TextEntry::make('total')
+                                ->label('Total amount due')
+                                ->state(fn (Get $get): string => DocumentTotals::of($get('lines') ?? [])['total'])
+                                ->money('PHP')
+                                ->alignEnd(),
+                        ])
+                            ->inlineLabel()
+                            ->columnStart(['@lg' => 2]),
+                    ]),
             ]);
     }
 

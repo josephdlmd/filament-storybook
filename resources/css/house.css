@@ -1,15 +1,18 @@
 /*
  * House rules that Filament has no setting for. Loaded on every panel page, because the patterns depend on them.
  *
- * A form with inline labels gives every label the same column, just wide enough for a two-word label. Filament
- * otherwise sizes it as a share of each field's width, so fields of different widths start at different places.
+ * Inline labels, on a form or on read-only entries such as a document's totals, all get the same column, wide enough
+ * for a short label. Filament otherwise sizes it as a share of each field's width, so fields of different widths
+ * start at different places, and in a narrow block a label like "Zero-rated sales" wraps.
  */
 @media (width >= 40rem) {
-    .fi-fo-field.fi-fo-field-has-inline-label {
+    .fi-fo-field.fi-fo-field-has-inline-label,
+    .fi-in-entry.fi-in-entry-has-inline-label {
         grid-template-columns: 9rem minmax(0, 1fr);
     }
 
-    .fi-fo-field.fi-fo-field-has-inline-label .fi-fo-field-content-col {
+    .fi-fo-field.fi-fo-field-has-inline-label .fi-fo-field-content-col,
+    .fi-in-entry.fi-in-entry-has-inline-label .fi-in-entry-content-col {
         grid-column: auto;
     }
 }

@@ -55,3 +55,20 @@
     line-height: 1rem;
     font-weight: 400;
 }
+
+/* Line items (a table repeater, not a Filament table, so compact tables don't reach it): each 32px field has 4px above
+   and below, and the header row matches the rows (Carbon data table). Only once it shows as a table. */
+@container (width >= 36rem) {
+    .fi-fo-table-repeater:not(.fi-compact) > table > tbody > tr > td {
+        padding-block: 0.25rem;
+    }
+
+    /* The cell's label is hidden there, so the label gap above goes, as in Filament's own CSS. */
+    .fi-fo-table-repeater > table > tbody > tr > td .fi-fo-field {
+        row-gap: 0;
+    }
+
+    .fi-fo-table-repeater > table > thead > tr > th {
+        padding-block: 0.625rem;
+    }
+}
