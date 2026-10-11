@@ -165,6 +165,15 @@ it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on 
         ->toContain('0 failing, 0 warnings, 0 accessibility issues');
 });
 
+it('starts confirmations on the left under compact(), like Carbon\'s modal', function (): void {
+    expect(Filament\Actions\DeleteAction::make()->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Center);
+
+    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->compact()->register(Filament\Panel::make()->id('compact'));
+    $delete = Filament\Actions\DeleteAction::make();
+
+    expect($delete->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Start);
+});
+
 it('keeps the compact selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
     preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css').file_get_contents(__DIR__.'/../../resources/css/compact.css'), $classes);
     $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css');

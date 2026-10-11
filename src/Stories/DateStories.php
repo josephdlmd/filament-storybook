@@ -27,6 +27,7 @@ class DateStories extends Stories
     {
         return DatePicker::make('due_on')
             ->label('Due date')
+            ->maxWidth('xs')
             ->minDate(today());
     }
 
@@ -35,6 +36,7 @@ class DateStories extends Stories
     {
         return DatePicker::make('invoiced_on')
             ->label('Invoice date')
+            ->maxWidth('xs')
             ->maxDate(today());
     }
 }

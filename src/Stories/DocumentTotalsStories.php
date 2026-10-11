@@ -54,8 +54,8 @@ class DocumentTotalsStories extends Stories
                 Repeater::make('lines')
                     ->table([
                         TableColumn::make('Description')->markAsRequired()->alignStart(),
-                        TableColumn::make('VAT class')->markAsRequired()->alignStart()->width('9rem'),
-                        TableColumn::make('Quantity')->markAsRequired()->alignEnd()->width('7rem'),
+                        TableColumn::make('VAT class')->markAsRequired()->alignStart()->width('8rem'),
+                        TableColumn::make('Quantity')->markAsRequired()->alignEnd()->width('6rem'),
                         TableColumn::make('Unit price')->markAsRequired()->alignEnd()->width('9rem'),
                         TableColumn::make('Line total')->alignEnd()->width('8rem'),
                     ])

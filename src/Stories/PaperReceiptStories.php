@@ -50,6 +50,7 @@ class PaperReceiptStories extends Stories
             ->components([
                 Section::make('Write on collection receipt')
                     ->description(fn (?Model $record): string => "Use the pre-printed receipt numbered {$record?->number}")
+                    ->inlineLabel()
                     ->schema([
                         TextEntry::make('paid_on')
                             ->label('Date')

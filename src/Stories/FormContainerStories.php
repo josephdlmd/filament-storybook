@@ -33,6 +33,7 @@ class FormContainerStories extends Stories
             ->schema([
                 DatePicker::make('due_on')
                     ->label('Due date')
+                    ->maxWidth('xs')
                     ->required(),
                 Textarea::make('note')
                     ->label('Note (optional)')
@@ -63,6 +64,7 @@ class FormContainerStories extends Stories
                     ->required()
                     ->maxWidth('md'),
                 DatePicker::make('delivery_date')
+                    ->maxWidth('xs')
                     ->required(),
                 Textarea::make('instructions')
                     ->label('Instructions (optional)')
@@ -99,6 +101,7 @@ class FormContainerStories extends Stories
                     Step::make('Set delivery')
                         ->schema([
                             DatePicker::make('delivery_date')
+                                ->maxWidth('xs')
                                 ->required(),
                         ]),
                 ]),

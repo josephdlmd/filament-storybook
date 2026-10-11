@@ -27,6 +27,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
+use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\View\PanelsRenderHook;
@@ -102,6 +103,12 @@ class StorybookPlugin implements Plugin
             ->filter()
             ->map(fn (bool $on, string $id): string => '<link rel="stylesheet" href="'.e(FilamentAsset::getStyleHref($id, 'josephdlmd/filament-storybook')).'">')
             ->implode(''));
+
+        if ($this->compact) {
+            // Carbon's modal starts on the left, like every form modal; Filament centres a confirmation round a 48px
+            // icon, which compact.css hides. An action that sets its own alignment keeps it.
+            Action::configureUsing(fn (Action $action): Action => $action->modalAlignment(Alignment::Start));
+        }
 
         if ($this->houseDefaults) {
             // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.

@@ -42,3 +42,19 @@
     width: 1.75rem;
     height: 1.75rem;
 }
+
+/* Every row is at least 32px, also when it holds only a badge. */
+.fi-ta-table > tbody > tr > td {
+    height: 2rem;
+}
+
+/* A table's header holding only actions, such as a related list's New button, matches the 32px rows. */
+.fi-ta-header:not(:has(.fi-ta-header-heading)) {
+    padding-block: 0;
+}
+
+/* The filter count sits inside the 32px filter strip instead of over the table's border. */
+.fi-ta-filters-above-content-ctn .fi-icon-btn > .fi-icon-btn-badge-ctn {
+    top: 0;
+    --tw-translate-y: 0;
+}
