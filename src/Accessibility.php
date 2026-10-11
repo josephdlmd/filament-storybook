@@ -25,8 +25,14 @@ class Accessibility
         // Every panel page loads the house CSS too; the line-item labels depend on it.
         $css[] = __DIR__.'/../resources/css/house.css';
 
-        if ((Storybook::panel()?->getPlugins()['filament-storybook'] ?? null)?->hasCompactTables()) {
+        $plugin = Storybook::panel()?->getPlugins()['filament-storybook'] ?? null;
+
+        if ($plugin?->hasCompactTables()) {
             $css[] = __DIR__.'/../resources/css/compact-tables.css';
+        }
+
+        if ($plugin?->hasCompact()) {
+            $css[] = __DIR__.'/../resources/css/compact.css';
         }
 
         $result = Process::path(base_path())->timeout(120)

@@ -42,6 +42,8 @@ class StorybookPlugin implements Plugin
 
     protected bool $compactTables = false;
 
+    protected bool $compact = false;
+
     public static function make(): static
     {
         return app(static::class);
@@ -73,16 +75,33 @@ class StorybookPlugin implements Plugin
 
     public function hasCompactTables(): bool
     {
-        return $this->compactTables;
+        return $this->compactTables || $this->compact;
+    }
+
+    /**
+     * Carbon's small sizes across the app, for a data-dense app: compact tables, plus 32px menu items and tighter
+     * stacks of fields, radios and checkboxes. Off by default, like compactTables().
+     */
+    public function compact(bool $condition = true): static
+    {
+        $this->compact = $condition;
+
+        return $this;
+    }
+
+    public function hasCompact(): bool
+    {
+        return $this->compact;
     }
 
     public function register(Panel $panel): void
     {
         $panel->pages([Storybook::class]);
 
-        $panel->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => $this->compactTables
-            ? '<link rel="stylesheet" href="'.e(FilamentAsset::getStyleHref('compact-tables', 'josephdlmd/filament-storybook')).'">'
-            : '');
+        $panel->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => collect(['compact-tables' => $this->hasCompactTables(), 'compact' => $this->hasCompact()])
+            ->filter()
+            ->map(fn (bool $on, string $id): string => '<link rel="stylesheet" href="'.e(FilamentAsset::getStyleHref($id, 'josephdlmd/filament-storybook')).'">')
+            ->implode(''));
 
         if ($this->houseDefaults) {
             // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.

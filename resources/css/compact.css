@@ -1,0 +1,57 @@
+/*
+ * Compact, for data-dense apps (StorybookPlugin::make()->compact()): Carbon's small sizes where Filament, or its
+ * Compact theme, is looser. Tables come from compact-tables.css, which compact() loads too. Each value is from the
+ * component's Carbon specification page (Sep 2026); docs/rules.md has the list. These selectors follow Filament's
+ * classes, and tests/Feature/StorybookTest.php fails if Filament renames one.
+ */
+
+/* Menu and page sub-navigation: 32px items with no gap between them (Carbon UI shell left panel). */
+.fi-sidebar-group-items {
+    row-gap: 0;
+}
+
+.fi-sidebar-item-btn {
+    padding-block: 0.25rem;
+}
+
+/* A field's label is 8px above its input, and the helper text 4px below it (Carbon text input). */
+.fi-fo-field {
+    row-gap: 0.5rem;
+}
+
+.fi-fo-field-content-col {
+    row-gap: 0.25rem;
+}
+
+/* Stacked radios 8px apart, stacked checkboxes 4px (Carbon radio button and checkbox). The negative margin and the
+   options' padding stand in for the gap, as in Filament's own CSS, so they change together. */
+.fi-fo-radio {
+    gap: 0.5rem;
+
+    &:not(.fi-inline).fi-grid-direction-col {
+        margin-top: -0.5rem;
+
+        & > .fi-fo-radio-label {
+            padding-top: 0.5rem;
+        }
+    }
+}
+
+.fi-fo-checkbox-list-options {
+    gap: 0.25rem;
+
+    &.fi-grid-direction-col {
+        margin-top: -0.25rem;
+
+        & .fi-fo-checkbox-list-option-ctn {
+            padding-top: 0.25rem;
+        }
+    }
+}
+
+/* Small breadcrumbs, "commonly used in page headers": 12px regular (Carbon breadcrumb). */
+.fi-breadcrumbs li {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 400;
+}

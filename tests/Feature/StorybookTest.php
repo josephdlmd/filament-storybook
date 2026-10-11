@@ -146,22 +146,27 @@ it('loads the house CSS the patterns depend on, on every panel page', function (
     expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->reject->isLoadedOnRequest()->map->getId()->values()->all())->toBe(['house']);
 });
 
-it('makes tables compact, Carbon\'s small rows with the same text, only on a panel that asks for it', function (): void {
+it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on a panel that asks for it', function (): void {
     $page = fn () => $this->get('/fixture/storybook?component=tables-list-table')->assertOk();
 
     $page()->assertDontSee('compact-tables.css', false);
 
     Filament\Facades\Filament::getPanel('fixture')->getPlugin('filament-storybook')->compactTables();
 
-    $page()->assertSee('compact-tables.css', false);
+    $page()->assertSee('compact-tables.css', false)->assertDontSee('compact.css', false);
 
-    // Rows of 32px still leave every checkbox and action its WCAG 2.2 target size.
-    expect(testStoriesWithTheme(['ids' => ['tables-list-table', 'records-related-records', 'tables-money-column', 'tables-status-badge']]))
+    Filament\Facades\Filament::getPanel('fixture')->getPlugin('filament-storybook')->compactTables(false)->compact();
+
+    // compact() brings the compact tables with it.
+    $page()->assertSee('compact-tables.css', false)->assertSee('compact.css', false);
+
+    // Rows of 32px and tighter stacks still leave every checkbox, radio and action its WCAG 2.2 target size.
+    expect(testStoriesWithTheme(['ids' => ['tables-list-table', 'records-related-records', 'tables-money-column', 'tables-status-badge', 'forms-choice', 'forms-record-form', 'forms-yes-or-no']]))
         ->toContain('0 failing, 0 warnings, 0 accessibility issues');
 });
 
-it('keeps the compact-table selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
-    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css'), $classes);
+it('keeps the compact selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
+    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css').file_get_contents(__DIR__.'/../../resources/css/compact.css'), $classes);
     $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css');
 
     foreach (array_unique($classes[1]) as $class) {
