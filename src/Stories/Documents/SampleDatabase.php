@@ -35,6 +35,12 @@ class SampleDatabase
             $table->string('status');
         });
 
+        $schema->create('payments', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('sales_invoice_id');
+            $table->string('status');
+        });
+
         DB::connection('storybook')->table('customers')->insert([
             ['code' => 'C-0001', 'name' => 'Abra Medical Supply'],
             ['code' => 'C-0002', 'name' => 'Bicol Health Centre'],
@@ -49,6 +55,13 @@ class SampleDatabase
         DB::connection('storybook')->table('sales_invoices')->insert([
             ['number' => '001231', 'status' => 'void'],
             ['number' => '001232', 'status' => 'posted'],
+            ['number' => '001234', 'status' => 'posted'],
+        ]);
+
+        // Invoice 001232 has a live payment; 001234 has only a void one.
+        DB::connection('storybook')->table('payments')->insert([
+            ['sales_invoice_id' => 2, 'status' => 'posted'],
+            ['sales_invoice_id' => 3, 'status' => 'void'],
         ]);
     }
 }

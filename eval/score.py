@@ -79,7 +79,7 @@ checks = {
     # Sales invoice prompt: totals, posting, voiding, payments and the customer picker.
     "invoice totals: decimal arithmetic, no float round()": "bcadd(" in app_code and not re.search(r"(?<![\w>:])(?<!function )round\(", app_code),
     "invoice totals: VAT per class": "zero_rated" in app_code and "exempt" in app_code,
-    "posting: confirms in a danger dialog": bool(re.search(r"make\('post'\)(?:(?!make\().)*?requiresConfirmation\((?:(?!make\().)*?'danger'", code, re.S)),
+    "posting: confirms in a danger dialog": bool(re.search(r"make\('post'\)(?:(?!Action::make\().)*?->modalSubmitAction\((?:(?!Action::make\().)*?'danger'", code, re.S)),
     "posting: numbered on posting, with a row lock": "lockForUpdate" in app_code,
     "cancel: Void, with a reason": "make('void')" in code and "reason" in code,
     "payments: checked against the balance": "balance" in code and ("maxValue(" in code or "$fail(" in code),

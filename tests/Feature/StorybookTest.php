@@ -588,7 +588,7 @@ it('posts a sales invoice under the serial of its BIR form, refusing one already
     'a serial already recorded' => ['001232', 'Enter the serial of the form you wrote; invoice 001232 is already recorded'],
 ]);
 
-it('voids an invoice only once its payments are void, saying so instead of asking for a reason', function (): void {
+it('voids an invoice only once its payments are void, asking the database each time, and says so instead of asking for a reason', function (): void {
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
     $void = Filament\Actions\Testing\TestAction::make('void')->schemaComponent('story', 'form');
 
@@ -605,7 +605,7 @@ it('voids an invoice only once its payments are void, saying so instead of askin
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\VoidStories::class, 'story' => 'default'])
         ->callAction($void, ['reason' => 'Issued to the wrong customer'])
-        ->assertNotified('Invoice 001232 voided');
+        ->assertNotified('Invoice 001234 voided');
 });
 
 it('downloads a posted document as a tagged A4 PDF in the shared layout, an invoice marked as a copy', function (): void {

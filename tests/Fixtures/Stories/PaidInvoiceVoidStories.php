@@ -14,6 +14,6 @@ class PaidInvoiceVoidStories extends VoidStories
 
     public function records(): array
     {
-        return [1 => ['number' => '001232', 'status' => 'posted', 'payments_count' => 2]];
+        return [1 => ['id' => 2, 'number' => '001232', 'status' => 'posted']];
     }
 }
