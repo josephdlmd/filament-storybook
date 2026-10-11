@@ -38,7 +38,7 @@ class GadgetResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->components([
+        return $schema->columns(2)->components([
             TextInput::make('name')->label('Name')->required(),
             TextInput::make('code')->label('Code:')->placeholder('GAD-0001'),
             Section::make('Stock Keeping')->collapsible()->schema([TextInput::make('sku')->label('SKU')->readOnly()]),

@@ -20,7 +20,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `DatePicker` | Pattern | `forms-date` (typeable, min and max, width, range) |
 | `DateTimePicker` | Rule | typeable; audit (`native(false)`); a time shows its zone |
 | `TimePicker` | Rule | AM and PM in capitals; a time shows its zone |
-| `FileUpload` | Pattern | `forms-file-upload` (limits, GOV.UK errors); audit (types and size); no multiple upload in a modal |
+| `FileUpload` | Pattern | `forms-file-upload` (limits, GOV.UK errors); audit (types and size); no multiple upload in a modal; house default (drop zone wording in sentence case) |
 | `Repeater` | Pattern | `forms-line-items`, `forms-document-totals`; audit (reorder by buttons, header matches label); compact CSS |
 | `Slider` | Rule | not for amounts, dates or wide ranges; typeable |
 | `Hidden` | Rule | engineering rule: set trusted values on the server |

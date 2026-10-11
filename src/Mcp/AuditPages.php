@@ -444,6 +444,10 @@ class AuditPages extends Tool
         // A list page reuses the resource form for its create modal, and a view page's form is the disabled one warned about above.
         $fields = $page instanceof ListRecords || $page instanceof ViewRecord ? [] : rescue(fn (): array => $page->form->getFlatFields(withHidden: false), [], report: false);
 
+        if ($fields !== [] && max(array_filter(rescue(fn (): array => $page->form->getColumns(), [], report: false), 'is_int') ?: [1]) > 1) {
+            $warn('its form lays fields out in several columns; keep one column and put only fields that belong together side by side, in a `Fieldset` or `Grid`, as `forms-date.range` does (Carbon forms: "Carbon generally recommends single-column forms").');
+        }
+
         foreach ($fields as $field) {
             $name = $field->getName();
 

@@ -20,6 +20,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Contracts\Plugin;
 use Filament\Forms\Components\BaseFileUpload;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Field;
@@ -30,6 +31,7 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\Width;
@@ -251,6 +253,11 @@ class StorybookPlugin implements Plugin
         // A required input still has the required attribute, and a required radio group aria-required, for screen readers.
         Field::configureUsing(fn (Field $field) => $field->markAsRequired(false));
 
+        // One column (Carbon forms: "Carbon generally recommends single-column forms"): Filament gives a resource's form and
+        // view two columns unless the schema sets its own. Only top-level schemas change; a section, grid or fieldset keeps
+        // its own columns, and a form that sets ->columns(2) gets them (and a storybook-audit warning).
+        Schema::configureUsing(fn (Schema $schema) => $schema->columns(1));
+
         // A table shows a skeleton while it reloads, not a spinner (Carbon data table: "use skeleton states instead of spinners").
         // Filament added the setting in a later 5.x; on an older one, tables keep the spinner.
         if (method_exists(Table::class, 'loadingSkeleton')) {
@@ -259,6 +266,12 @@ class StorybookPlugin implements Plugin
 
         // A toggle in a table shows a tick when on, so on and off don't differ by colour alone (Carbon toggle; WCAG 1.4.1).
         ToggleColumn::configureUsing(fn (ToggleColumn $column) => $column->onIcon(Heroicon::Check));
+
+        // An upload's drop zone in sentence case, saying both ways to add a file, instead of FilePond's "Drag & Drop your
+        // files or Browse" (Carbon file uploader, archived: "drag and drop a file into the drop zone or click on the button").
+        FileUpload::configureUsing(fn (FileUpload $upload) => $upload->placeholder(fn (FileUpload $upload): string => $upload->isMultiple()
+            ? 'Drag and drop files here or <span class="filepond--label-action">click to upload</span>'
+            : 'Drag and drop a file here or <span class="filepond--label-action">click to upload</span>'));
 
         // A yes-or-no filter's empty choice says "All", as a select filter's does, not Filament's "-" (plain words, no codes; Carbon empty states).
         TernaryFilter::configureUsing(fn (TernaryFilter $filter) => $filter->placeholder(__('filament-tables::table.filters.select.placeholder')));

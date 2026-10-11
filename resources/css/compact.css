@@ -98,6 +98,12 @@
     --topbar-height: 3rem;
 }
 
+/* A page form's buttons sit 24px below its last field, one step more than the 16px between fields, so they read as the
+   form's end rather than another field. Carbon forms recommend 48px; the Compact theme's density stays (owner, 2026-10-11). */
+.fi-sc-form > .fi-grid > .fi-grid-col:last-child:has(> .fi-sc-component > .fi-sc-actions) {
+    margin-top: 0.5rem;
+}
+
 /* Slide-overs: 16px padding round the header, content and footer, as in Carbon's modal (16px). */
 .fi-modal.fi-modal-slide-over > .fi-modal-window-ctn > .fi-modal-window > :is(.fi-modal-header, .fi-modal-content, .fi-modal-footer) {
     padding-inline: 1rem;

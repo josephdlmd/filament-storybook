@@ -237,6 +237,11 @@ it('leaves form errors to the app, keeps amounts as text and marks optional fiel
         ->and(Filament\Forms\Components\TextInput::make('name')->required()->isMarkedAsRequired())->toBeFalse()
         ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
         ->and(Filament\Tables\Filters\TernaryFilter::make('has_credit_limit')->getPlaceholder())->toBe('All')
+        ->and(Filament\Forms\Components\FileUpload::make('file')->getPlaceholder())->toStartWith('Drag and drop a file here or')
+        ->and(Filament\Forms\Components\FileUpload::make('files')->multiple()->getPlaceholder())->toStartWith('Drag and drop files here or')
+        ->and(Filament\Schemas\Schema::make()->getColumns('lg'))->toBe(1)
+        ->and(Filament\Schemas\Schema::make()->hasCustomColumns())->toBeTrue()
+        ->and(Filament\Schemas\Schema::make()->columns(2)->getColumns('lg'))->toBe(2)
         ->and(Filament\Facades\Filament::getPanel('fixture')->hasUnsavedChangesAlerts())->toBeTrue()
         ->and(__('filament-panels::auth/pages/login.messages.failed'))->toBe('Incorrect email or password. Try again.');
 });
@@ -481,7 +486,8 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 42 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 43 warnings')
+        ->toContain('- `CreateGadget`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
@@ -570,7 +576,8 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 74 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 76 warnings')
+        ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
         ->toContain('- `PartsRelationManager`: the empty list offers 2 actions')
