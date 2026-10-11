@@ -24,6 +24,11 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Use realistic content from a real task ("Order 1042", "Abra Medical Supply"), never lorem ipsum or "Option 1", "Section 1": placeholder wording can make a pattern look clear when it isn't. One component per story, so the snippet copies cleanly; put variants in their own stories.
 - Use the field names and labels a real screen would use, in sentence case, so the snippet pastes into a resource unchanged. A button's label is a verb ("Approve order"), never OK, Done or Submit.
 
+## Type, spacing and colour
+- Never set a size, weight, colour, padding or margin yourself, by class or style in `extra*Attributes()`: the theme and `compact()` give each kind of text and each gap its size (the type table in the rules).
+- Emphasise a value with `->weight(FontWeight::SemiBold)`, such as a total; tone down secondary text with `->color('gray')`. Weight comes before size.
+- A heading comes from its component (`Section::make('Details')`), never from styled text.
+
 ## House rules
 The full rules, each with its source, follow these instructions. `storybook-test` and `storybook-audit` warn when one is broken. A rule is kept only when current, maintained guidance supports it.
 

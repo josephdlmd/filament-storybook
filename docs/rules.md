@@ -142,6 +142,17 @@ Pattern `dashboards-key-figures-and-charts`. Checked against the live sources on
 
 - **Spacing comes from the theme's scale; nothing sets its own padding or margins.** Things that belong together sit closer than things that don't, and space, not a divider, can separate sections; Filament's sections, groups and columns already space this way. Carbon spacing (Sep 2026: a scale in multiples of 2, 4 and 8, used inside and between components; "Deviating from the spacing scales should be avoided whenever possible"; "Elements in a design that are near each other are seen as being meaningfully related"). More space around something gives it more weight, and a page may have dense parts but is never crowded as a whole. Carbon spacing (Sep 2026: "Elements that have more spacing around them tend to be perceived as higher in importance"; "Sections of a UI are allowed to be dense, but the whole page should not be crowded"). *Test (story snippets).*
 - **Text sizes, weights and colours come from the theme,** through Filament's `size()`, `weight()` and `color()` options, never a component's own classes or styles. Emphasis is a heavier weight before a bigger size; semibold is for headings, not long text; running text stays neutral. Carbon typography (Sep 2026: "Font weight is an important typographic variable that can add emphasis"; "A bold weight will always have more emphasis than a lighter weight font of the same size"; semibold "should not be used for long text"; "Keep type color neutral in running text"; "Mixing type styles within a component could jumble the hierarchy"); Carbon color usage (Sep 2026: "Hard coded values will not change when the mode is switched"). *Test (story snippets).*
+- **A compact app's text follows Carbon's productive type set** (Sep 2026: "The productive type set uses a base type size of 14px"; for product pages with "a higher density of information"). By role:
+
+  | Text | Carbon token | Size, line, weight |
+  |---|---|---|
+  | Field labels, read-only labels, error messages | label-01 | 12px, 16px, regular |
+  | Helper text under a field, a wizard step's description | helper-text-01, label-01 | 12px, 16px, regular |
+  | Values, table cells, buttons, links, body text, a single checkbox's or radio's label | body-compact-01 | 14px, regular |
+  | Section headings, table headers, menu group headings, notification titles | heading-compact-01 | 14px, semibold |
+  | Badges, breadcrumbs | label-01 | 12px, regular |
+
+  Page titles, dialog headings and key figures keep the theme's sizes: Carbon has no page-title token, its dialog heading (heading-03, 20px) is bigger than Filament's, and it sets no size for a key figure. Line heights stay Filament's 20px for 14px text, not Carbon's 18px, so components keep their alignment. A story emphasises a value with `->weight(FontWeight::SemiBold)` and tones down secondary text with `->color('gray')`, never with its own size; `storybook-test` warns on a font size, weight or colour set by class or style. *`compact()`; test (story snippets).*
 - **Lists and record pages use the full width.** Carbon 2x grid (Sep 2026): the high-density model for complex product interfaces "uses the full width of the browser". Filament stops content at 1280px. *House defaults (unless the panel sets its own `maxContentWidth()`).*
 - **Record pages divide the 16-column grid by two and by four, never in thirds, and stack on a narrow page.** A record's facts are a list of labels and values. Carbon 2x grid (Sep 2026: "divide by two"; it advises against layouts in thirds); Carbon structured list (Sep 2026: "terms and definitions"); WCAG 1.4.10. Anything sticky must never hide focus (WCAG 2.4.11). *Patterns `records-view-page`, `records-details`.*
 - **A related list's actions follow what the related records are.** Records that belong only to this one (a supplier's contacts) are made with New and destroyed with Delete. Records that exist on their own (the users in a team) are put in with Add and taken out with Remove, and the Remove dialog says the record stays. The list's button is gray when the page has a primary action. Carbon common actions (Aug 2026: Remove "is distinct from delete, as a removed item is not destroyed"; "Inform the user if the result is permanent"); Carbon button (Sep 2026: a ghost button for table actions "if there is another button on the page that requires primary styling"). *Pattern `records-related-records`, house defaults (Add and Remove labels), audit (labels and confirmations).*
@@ -290,7 +301,7 @@ These rules had no current basis, or a current source contradicts them:
   - at most 5 tabs
   - 1/2/3 infolist columns
   - 3 type sizes
-  - a pixel type scale
+  - a pixel type scale of our own (a compact app uses Carbon's productive type set; see Layout and pages)
   - "RelationGroup from four"
   - "CheckboxList up to 15"
 - **Input masks.** USWDS's own mask failed WCAG 2.1 AA.

@@ -151,7 +151,7 @@
 /* Text weights from Carbon's specifications. Regular (400): field and radio, checkbox and read-only labels
    ($label-01, $body-compact-01), buttons and links, tags, unselected tabs, wizard steps and the menu's items under a
    group. Semibold (600): the menu's group headings and its items outside a group ($heading-compact-01), a selected
-   tab and a notification's title. Filament sets 500 on all of them. */
+   tab and a notification's title, toast or inline. Filament sets 500 on all of them. */
 :is(.fi-fo-field-label-content, .fi-fo-radio-label-text, .fi-fo-checkbox-list-option-label, .fi-in-entry-label, .fi-btn, .fi-link:not(.fi-font-semibold, .fi-font-bold), .fi-badge, .fi-tabs-item, .fi-sc-wizard-header-step-label),
 .fi-sidebar-group:has(> .fi-sidebar-group-btn) .fi-sidebar-item-label {
     font-weight: 400;
@@ -160,6 +160,25 @@
 .fi-sidebar-group-label,
 .fi-sidebar-group:not(:has(> .fi-sidebar-group-btn)) .fi-sidebar-item-label,
 .fi-tabs-item.fi-active,
-.fi-no-notification-title {
+.fi-no-notification-title,
+.fi-callout-heading {
     font-weight: 600;
+}
+
+/* Type sizes from Carbon's productive type set. label-01 and helper-text-01, 12px on a 16px line: field labels
+   (except a single checkbox's, which is 14px like any checkbox label), read-only labels, helper text, error messages
+   and a wizard step's description. heading-compact-01, 14px semibold on 18px: a section's heading. Everything else
+   already matches the set: 14px body text, values, table cells and buttons, 12px badges and breadcrumbs. */
+.fi-fo-field-label:not(:has(> .fi-checkbox-input)) .fi-fo-field-label-content,
+.fi-in-entry-label,
+.fi-fo-field-content-col > .fi-sc .fi-sc-text,
+.fi-fo-field-wrp-error-message,
+.fi-sc-wizard-header-step-description {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.fi-section-header-heading {
+    font-size: 0.875rem;
+    line-height: 1.125rem;
 }
