@@ -2,7 +2,7 @@
 
 Every component Filament 5 ships, checked against `docs/rules.md`, the patterns in `src/Stories`, the house defaults, `compact()` and the checks in `storybook-test` and `storybook-audit`, on 2026-10-11. `docs/carbon-coverage.md` asks whether we follow each Carbon page; this asks the other way: whether an agent using any Filament component finds guidance for it.
 
-Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by what it does), **General** (no rule of its own, but general rules apply, named in the row), **Gap** (no guidance), **Not applicable** (the policy rules it out, or it isn't for business screens). A gap's number refers to the list at the end.
+Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by what it does), **General** (no rule of its own, but general rules apply, named in the row), **Gap** (no guidance), **Not applicable** (the policy rules it out, or it isn't for business screens).
 
 ## Form fields
 
@@ -26,10 +26,10 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Hidden` | Rule | engineering rule: set trusted values on the server |
 | `Placeholder` | Rule | deprecated: use `TextEntry` |
 | `ModalTableSelect`, `TableSelect` | Rule | engineering rule (restrict records in `relationship()`); never inside a modal form |
-| `TagsInput` | Gap | 1 |
-| `KeyValue` | Gap | 2 |
-| `RichEditor`, `MarkdownEditor` | Gap | 3 |
-| `ColorPicker` | Gap | 4 |
+| `TagsInput` | Rule | only for labels the user makes up; known choices are a multiple select |
+| `KeyValue` | General | no source says when free-form keys beat fixed fields; Filament names each input |
+| `RichEditor`, `MarkdownEditor` | Rule | not for now: their toolbars can't be reached by keyboard (WCAG 2.1.1); a `Textarea` instead; audit |
+| `ColorPicker` | Rule | the value shows as text beside the swatch |
 | `Builder` | Not applicable | content blocks for pages, not business records |
 | `CodeEditor` | Not applicable | a developer tool |
 | `OneTimeCodeInput` | Rule | Filament's own multi-factor screens, under the sign-in rules (NIST) |
@@ -41,10 +41,10 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 |---|---|---|
 | `TextEntry` | Pattern | `records-details`, `records-view-page`, `records-paper-receipt`, `forms-document-totals`; read-only rules; house script (copyable) |
 | `RepeatableEntry` | Pattern | `records-view-page` (read-only tables); compact CSS |
-| `IconEntry` | Gap | 5 |
-| `ImageEntry` | Gap | 6 |
-| `ColorEntry` | Gap | 4 |
-| `KeyValueEntry` | Gap | 2 |
+| `IconEntry` | Rule | an icon alone only for yes or no; otherwise a badge with its word |
+| `ImageEntry` | Rule | empty alt text beside text that names it; `->alt()` when it carries information |
+| `ColorEntry` | Rule | the value shows as text beside the swatch |
+| `KeyValueEntry` | Rule | column titles of one or two words |
 | `CodeEntry` | Not applicable | a developer tool |
 | `ViewEntry` | Not applicable | patterns use native components only |
 
@@ -54,11 +54,11 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 |---|---|---|
 | `TextColumn` | Pattern | `tables-list-table`, `tables-money-column`, `tables-status-badge`; audit (money aligned, Title Case, tooltips) |
 | `ToggleColumn` | Rule | the only toggle; house default (tick when on) |
-| `IconColumn` | Gap | 5 |
-| `ImageColumn` | Gap | 6 |
-| `ColorColumn` | Gap | 4 |
-| `TextInputColumn`, `SelectColumn`, `CheckboxColumn` | Gap | 7 |
-| `ColumnGroup` | Gap | 8 |
+| `IconColumn` | Rule | an icon alone only for yes or no; otherwise a badge with its word |
+| `ImageColumn` | Rule | empty alt text beside text that names it; `->alt()` when it carries information |
+| `ColorColumn` | Rule | the value shows as text beside the swatch |
+| `TextInputColumn`, `SelectColumn`, `CheckboxColumn` | Rule | row editing in a slide-over; editable cells named after their row (house script) |
+| `ColumnGroup` | Rule | one level deep |
 | `ViewColumn` | Not applicable | patterns use native components only |
 
 ## Table filters
@@ -67,7 +67,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 |---|---|---|
 | `SelectFilter`, `TernaryFilter` | Pattern | `tables-list-table` (above the table, kept for the session); filter defaults rule |
 | `TrashedFilter` | Pattern | `actions-delete.restorable` ("filtered by Deleted records") |
-| `QueryBuilder` | Gap | 9 |
+| `QueryBuilder` | Rule | applies on an explicit action; the closed filter shows the count and a clear option |
 
 ## Layout and schema components
 
@@ -85,7 +85,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Livewire` | Pattern | `records-view-page` (embedded related lists) |
 | `EmbeddedTable` | General | the table rules |
 | `Actions` | General | the button rules |
-| `Image` | Gap | 6 |
+| `Image` | Rule | alt text as for image columns and entries |
 | `Icon` | General | decorative beside text; an icon-only control needs a name |
 | `UnorderedList` | General | writing rules |
 | `Html`, `View` | Not applicable | patterns use native components only |
@@ -111,7 +111,8 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `StatsOverviewWidget` | Pattern | `dashboards-key-figures-and-charts` (`OrderStats`); audit (polling) |
 | `ChartWidget`, bar and line | Pattern | `OrdersPerMonthChart`, `CashFlowChart`; audit (polling, legends, colours) |
 | Pie and doughnut charts | Rule | slices labelled with their share |
-| Bubble, scatter, polar area and radar charts | Gap | 10 |
+| Scatter and bubble charts | Rule | a correlation; a bubble's size is a third measure |
+| Radar and polar area charts | General | no source covers them, so there is no rule |
 | `TableWidget` | General | the table and widget rules |
 
 ## Notifications
@@ -123,13 +124,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 
 ## Gaps
 
-1. **`TagsInput`:** free-text tags. Nothing says when to use them instead of a select of fixed options, or how long a tag may be.
-2. **`KeyValue`, `KeyValueEntry`:** pairs of keys and values. No rule; Carbon's structured list would apply.
-3. **`RichEditor`, `MarkdownEditor`:** formatted text. No pattern; Carbon's text toolbar page applies if one is used.
-4. **`ColorPicker`, `ColorColumn`, `ColorEntry`:** a colour shown as a swatch. Filament names it for screen readers, but on screen the colour alone carries it; its value or name should show too (WCAG 1.4.1).
-5. **`IconColumn`, `IconEntry`:** a state shown as an icon (a tick or a cross). Filament already gives screen readers text ("Yes", "No", or the value's label), and the icon's shape, not only its colour, differs. No rule says when an icon beats a word or a status badge.
-6. **`ImageColumn`, `ImageEntry`, `Image`:** no rule on alternative text (WCAG 1.1.1): an image that carries meaning describes it, a decorative one is empty.
-7. **`TextInputColumn`, `SelectColumn`, `CheckboxColumn`:** editing in a table cell. No rule on when to edit in the table rather than a form, and their names are the column's label on every row, as row actions were before the house script.
-8. **`ColumnGroup`:** headings over groups of columns. No rule.
-9. **`QueryBuilder`:** the advanced filter. No rule on when to offer it beside the ordinary filters.
-10. **Bubble, scatter, polar area and radar charts:** the chart-purpose rule covers lines, bars, stacked bars and pies only.
+None. The ten gaps found on 2026-10-11 were closed the same day with rules from Carbon's tag, dropdown, structured list, text toolbar, status indicators, forms, filtering and simple charts pages, W3C WAI and WCAG. Two findings came out of it:
+
+- **Filament's rich-text and Markdown editors fail WCAG 2.1.1:** none of their toolbar buttons can be reached by keyboard (0 of 20 and 0 of 13, checked in a browser). The rules keep them out until Filament fixes them, and `storybook-audit` warns.
+- **No source says** when free-form key-value pairs beat fixed fields, when to edit in a table cell, when to offer an advanced filter, or how to use radar and polar-area charts; those have no rule.

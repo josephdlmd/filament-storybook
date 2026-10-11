@@ -44,6 +44,7 @@ class GadgetResource extends Resource
             Section::make('Stock Keeping')->collapsible()->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
             TextInput::make('serial')->label('Serial')->hintIcon('heroicon-o-information-circle', tooltip: 'On the back of the gadget')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
+            \Filament\Forms\Components\RichEditor::make('description')->label('Description (optional)'),
             \Filament\Forms\Components\Radio::make('colour')->label('Colour (optional)')->options(['red' => 'Red', 'blue' => 'Blue'])->inline(),
             Select::make('owner_id')->label('Owner')->relationship('owner', 'name'),
             DatePicker::make('released_on')->label('Released On')->native(false),

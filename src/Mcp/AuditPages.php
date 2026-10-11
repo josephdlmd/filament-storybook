@@ -18,8 +18,10 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -480,6 +482,10 @@ class AuditPages extends Tool
 
             if ($field->isLabelHidden()) {
                 $warn("the field `{$name}` hides its label; keep it visible, above the field (Carbon forms).");
+            }
+
+            if ($field instanceof RichEditor || $field instanceof MarkdownEditor) {
+                $warn("the field `{$name}` is a rich-text or Markdown editor, whose toolbar the keyboard can't reach in Filament 5 (its buttons are `tabindex=\"-1\"`); use a `Textarea` until Filament fixes it (WCAG 2.1.1).");
             }
 
             if ($field instanceof Toggle) {

@@ -151,7 +151,8 @@ it('loads the house CSS and script the patterns depend on, on every panel page',
         ->toContain("setAttribute('role', 'button')")
         ->toContain("['Enter', ' ']")
         ->toContain('Copied to clipboard')
-        ->toContain('.fi-ta-actions :is(a, button):not([aria-label])');
+        ->toContain('.fi-ta-actions :is(a, button):not([aria-label])')
+        ->toContain(':is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle)');
 });
 
 it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on a panel that asks for it', function (): void {
@@ -456,7 +457,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 41 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 42 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
@@ -469,6 +470,7 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the optional field "Owner" doesn\'t say so')
         ->toContain('- `CreateGadget`: the radio group `colour` is optional but can\'t be cleared once picked')
         ->toContain('- `CreateGadget`: the options of `colour` sit side by side')
+        ->toContain('- `CreateGadget`: the field `description` is a rich-text or Markdown editor')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
@@ -544,7 +546,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 72 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 74 warnings')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
         ->toContain('- `PartsRelationManager`: the empty list offers 2 actions')
