@@ -67,4 +67,11 @@ class BrokenStories extends Stories
             ->columns([TextColumn::make('code')])
             ->recordActions([Action::make('open')->url(fn (Model $record): string => '#'.$record->code)]);
     }
+
+    /** Renders, but works out money with floats. */
+    public function floatMoney(): TextColumn
+    {
+        return TextColumn::make('total')
+            ->state(fn (Model $record): float => round($record->quantity * $record->unit_price, 2));
+    }
 }

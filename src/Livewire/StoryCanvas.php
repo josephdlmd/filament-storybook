@@ -53,7 +53,7 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 
         return match ($this->kind()) {
             'component' => $schema->components([$this->build()]),
-            'action' => $schema->components([Actions::make([$this->build()])]),
+            'action' => $schema->components([Actions::make([$this->build()])->key('story')]),
             'schema' => $this->build($schema),
             default => $schema,
         };
@@ -88,7 +88,9 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
     /** @param  array<string, mixed>  $attributes */
     protected function model(array $attributes): Model
     {
-        return (new class extends Model {})->forceFill($attributes);
+        $class = $this->instance()->model();
+
+        return ($class === null ? new class extends Model {} : new $class)->forceFill($attributes);
     }
 
     public function kind(): ?string

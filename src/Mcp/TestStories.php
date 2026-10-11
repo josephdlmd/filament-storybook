@@ -138,6 +138,10 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: native(false) makes a date that cannot be typed; use the native picker (Carbon and USWDS date pickers).";
             }
 
+            if (preg_match('/(?<![\\w>:])round\\(/', $story['snippet'])) {
+                $warnings[] = "{$key}: round() works on floats, which drift by centavos; use decimal arithmetic rounded half up once, as `DocumentTotals` in `forms-document-totals` does (business standards: never floating-point money).";
+            }
+
             if (str_contains($story['snippet'], 'Toggle::make(')) {
                 $warnings[] = "{$key}: a toggle is only for something that applies at once; a yes/no saved with a form is a Checkbox (Carbon toggle and checkbox).";
             }

@@ -68,6 +68,7 @@ abstract class TestCase extends Orchestra
             $table->string('code');
             $table->string('name');
             $table->decimal('price', 12, 2)->default(0);
+            $table->foreignId('owner_id')->nullable();
             $table->timestamps();
         });
 

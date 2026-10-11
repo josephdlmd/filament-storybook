@@ -1,0 +1,101 @@
+<?php
+
+namespace Josephdlmd\FilamentStorybook\Stories;
+
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber;
+
+class DocumentLifecycleStories extends Stories
+{
+    public function title(): string
+    {
+        return 'Records/Document lifecycle';
+    }
+
+    public function description(): string
+    {
+        return 'A sales invoice, purchase order, receiving report or payment goes from Draft to Posted, and a posted one may be voided (`actions-void`). A draft can be edited and deleted. Posting gives it its number and locks it for good. A sales invoice takes the serial of the BIR pre-printed form it was written on, typed by the user and checked against the serials already used (`default`); a purchase order, receiving report or payment takes the next number in the app\'s own series (`withSeries`, with `DocumentNumber` from the examples: a prefix per type, PO, RR, CR for collections or PV for supplier payments, and 6 digits that never reset, with no gaps). Once posted, the policy\'s `update()` and `delete()` return false, so Filament hides Edit and Delete and the document opens on its View page (`records-locked`, `records-view-page`). A posted document is never edited or deleted; to correct one, void it and issue a new one. Post is the View page\'s one primary button, shown only on a draft, and because it can\'t be undone it confirms in a danger dialog that says so. Work the totals out again (`forms-document-totals`) and take the number in the same database transaction as the status change. The statuses are Draft (gray), Posted (green) and Void (red), each with its word. Business standards from the owner (2026-10-11): one company; never edit a posted document; the form\'s serial for sales invoices and the numbering format for the rest; Void in red. Basis: Carbon modal (Sep 2026: "If the action is destructive or irreversible, then use a transactional danger modal"; the title and button reflect the action), Carbon action labels (archived: Post "adds status to a log or record"), Carbon status indicators (Aug 2026: gray for drafts, green for normal or success), Carbon disabled states (hide what the user may not do).';
+    }
+
+    // Not imported, so the snippet's imports stay what a resource needs.
+    public function model(): ?string
+    {
+        return Documents\SalesInvoice::class;
+    }
+
+    public function examples(): array
+    {
+        return [DocumentNumber::class];
+    }
+
+    public function records(): array
+    {
+        return [
+            1 => ['number' => null, 'status' => 'draft', 'customer' => 'Abra Medical Supply'],
+            2 => ['number' => '001232', 'status' => 'posted', 'customer' => 'Cebu Diagnostics Laboratory'],
+            3 => ['number' => '001231', 'status' => 'void', 'customer' => 'Davao Family Clinic'],
+        ];
+    }
+
+    /** Post a sales invoice: it takes the serial of the BIR pre-printed form it was written on, checked against the ones already used. */
+    public function default(): Action
+    {
+        return Action::make('post')
+            ->label('Post invoice')
+            ->visible(fn (?Model $record): bool => $record?->status === 'draft')
+            ->modalHeading('Post invoice?')
+            ->modalDescription('It is recorded under the number of the form you wrote and can no longer be changed or deleted. To correct it later, void it and issue a new one.')
+            ->schema([
+                TextInput::make('number')
+                    ->label('Invoice number')
+                    ->helperText('The serial printed on the BIR form you wrote')
+                    ->required()
+                    ->maxLength(20)
+                    ->unique(ignoreRecord: true)
+                    ->maxWidth('xs')
+                    ->validationMessages(['unique' => 'Enter the serial of the form you wrote; invoice :input is already recorded']),
+            ])
+            ->modalSubmitAction(fn (Action $action): Action => $action->color('danger'))
+            ->modalSubmitActionLabel('Post invoice')
+            ->successNotificationTitle('Invoice posted')
+            ->action(function (Model $record, array $data, Action $action): void {
+                // On a resource: DB::transaction(fn () => $record->update(['number' => $data['number'], 'status' => InvoiceStatus::Posted, 'posted_at' => now()]));
+                $action->success();
+            });
+    }
+
+    /** Post a purchase order, receiving report or payment: it takes the next number in the app's own series. */
+    public function withSeries(): Action
+    {
+        return Action::make('post')
+            ->label('Post order')
+            ->visible(fn (?Model $record): bool => $record?->status === 'draft')
+            ->requiresConfirmation()
+            ->modalHeading('Post order?')
+            ->modalDescription('It gets the next purchase order number and can no longer be changed or deleted. To correct it later, void it and issue a new one.')
+            ->modalSubmitAction(fn (Action $action): Action => $action->color('danger'))
+            ->modalSubmitActionLabel('Post order')
+            ->successNotificationTitle('Order posted')
+            ->action(function (Model $record, Action $action): void {
+                // On a resource: DB::transaction(fn () => $record->update(['number' => DocumentNumber::next('PO'), 'status' => OrderStatus::Posted, 'posted_at' => now()]));
+                $action->success();
+            });
+    }
+
+    /** The status in a list: the word and its colour. Put both on the status enum in an app (`HasLabel`, `HasColor`). */
+    public function status(): TextColumn
+    {
+        return TextColumn::make('status')
+            ->badge()
+            ->formatStateUsing(fn (string $state): string => ucfirst($state))
+            ->color(fn (string $state): string => match ($state) {
+                'posted' => 'success',
+                'void' => 'danger',
+                default => 'gray',
+            });
+    }
+}

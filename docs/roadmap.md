@@ -1,28 +1,23 @@
 # Roadmap
 
-What the package covers at v0.24.1 (2026-10-11), and what comes next.
+What the package covers at v0.25.0 (2026-10-11), and what comes next.
 
 ## Covered
 
 Generic screens: list tables (search, filters, money, status, import and export), record forms (every field pattern, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications and dashboards.
 
-## Next: transactional documents
+Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. The owner's answers are under "Business standards" in `rules.md`, with what is still to decide.
 
-An invoicing or purchasing app runs on documents, and none of their flow has a pattern yet. These are where agents would improvise money or audit-sensitive logic, so they come first, in this order:
+## Next
 
-1. **Document totals:** subtotal, VAT per class (12%, zero-rated, exempt), withholding and total due, on the existing rounding and VAT standards (round once, half up, decimal arithmetic, never floats).
-2. **Document lifecycle:** draft, posted or issued, cancelled or void. A posted document is never deleted.
-3. **Payments and balance due:** partial payments, the amount checked against the balance.
-4. **Picking a customer, supplier or item in a form:** a searchable relationship select showing code and name.
+In this order (a proposal; the owner confirms):
 
-Then, in this order:
-
-5. Printing and sending documents (PDF; needs a package choice by the owner)
-6. Reports (date range, a totals row, grouping such as ageing)
-7. Bulk actions
-8. Contact fields (email, Philippine phone number, address)
-9. Percentages (discounts, tax rates)
-10. A settings page
+1. Printing and sending documents (PDF; needs a package choice by the owner)
+2. Reports (date range, a totals row, grouping such as ageing)
+3. Bulk actions
+4. Contact fields (email, Philippine phone number, address)
+5. Percentages (discounts, tax rates)
+6. A settings page
 
 ## Later: everyday business screens
 
@@ -45,12 +40,9 @@ Then, as an app needs them:
 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
-- Whether the app serves more than one company or branch. Decide this first: it shapes every table, so it can't be added after the documents are built.
-- Which documents the app handles (sales invoice, purchase order, receiving, payment, others)
-- Whether a posted document can ever be edited
-- How cancellation works (a reason, keeping the number, who may cancel)
-- Whether withholding tax applies, and how
-- The document numbering format
+- Printing and sending: which PDF package (the owner picks), which documents are printed or emailed, and what a printed invoice must show (BIR's required fields, and whether the forms are pre-printed)
+- Reports: which reports, the ageing buckets, and whether amounts are VAT-inclusive
+- The still-to-decide items in `rules.md`: withholding on partial supplier payments (with the CPA), payment prefixes, short receipts, and voiding a document that has payments
 
 ## How
 

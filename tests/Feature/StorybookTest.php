@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-locked', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -215,7 +215,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-locked, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-record-picker, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -257,7 +257,7 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 39 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 48 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -279,7 +279,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 4 passing, 3 failing, 10 warnings, 1 accessibility issues')
+        ->toStartWith('# 5 passing, 3 failing, 11 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -288,6 +288,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.unnamedIconButton`: [critical] button-name: Buttons must have discernible text')
         ->toContain('- `broken-story`: add description()')
         ->toContain('- `broken-story.works`: no placeholder()')
+        ->toContain('- `broken-story.floatMoney`: round() works on floats')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:44')
@@ -328,7 +329,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 24 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 25 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
@@ -344,6 +345,7 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the line-item field `note` has no column in `parts`')
         ->toContain('- `CreateGadget`: `parts` reorders only by dragging')
         ->toContain('- `CreateGadget`: the read-only field `sku` is still saved')
+        ->toContain('- `CreateGadget`: the select `owner_id` lists other records but can\'t be searched')
         ->toContain('- `ListGadgets`: `ship` has a button labelled "Submit"')
         ->toContain('- `ListGadgets`: the action "Return Gadget" is in Title Case')
         ->toContain('- `ListGadgets`: the column "Created At" is in Title Case')
@@ -379,7 +381,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 42 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 44 warnings')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
         ->toContain('- `PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')
@@ -520,4 +522,88 @@ it('keeps a locked record\'s values out of the save, even when changed in the br
         ->set('data.notes', 'Checked by the warehouse');
 
     expect($canvas->instance()->form->getState())->toBe(['notes' => 'Checked by the warehouse']);
+});
+
+it('works out a document\'s VAT once per class, as 12/112 of the VAT-inclusive total, half up', function (array $lines, array $totals): void {
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::of($lines))->toBe($totals);
+})->with([
+    'VAT from a VAT-inclusive total' => [[['quantity' => '1', 'unit_price' => '112', 'vat_class' => 'vatable']], ['vatable_sales' => '100.00', 'vat' => '12.00', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '112.00']],
+    'once per class, not per line' => [[['quantity' => '1', 'unit_price' => '0.05', 'vat_class' => 'vatable'], ['quantity' => '1', 'unit_price' => '0.05', 'vat_class' => 'vatable']], ['vatable_sales' => '0.09', 'vat' => '0.01', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '0.10']],
+    'every class apart' => [[['quantity' => '12', 'unit_price' => '285.5', 'vat_class' => 'vatable'], ['quantity' => '2', 'unit_price' => '1450', 'vat_class' => 'exempt'], ['quantity' => '1', 'unit_price' => '500', 'vat_class' => 'zero_rated']], ['vatable_sales' => '3058.93', 'vat' => '367.07', 'zero_rated_sales' => '500.00', 'exempt_sales' => '2900.00', 'total' => '6826.00']],
+    'a credit mirrors its sale' => [[['quantity' => '-1', 'unit_price' => '112', 'vat_class' => 'vatable']], ['vatable_sales' => '-100.00', 'vat' => '-12.00', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '-112.00']],
+    'an unfinished line counts as nothing' => [[['quantity' => '', 'unit_price' => '50', 'vat_class' => 'vatable'], ['quantity' => '1', 'unit_price' => '50']], ['vatable_sales' => '0.00', 'vat' => '0.00', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '0.00']],
+]);
+
+it('withholds from a supplier the rate on the VAT-exclusive share of what is settled, the last payment taking what is left', function (string $settled, string $balance, string $soFar, string $withheld): void {
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::withholding($settled, '1120.00', '120.00', '0.01', $balance, $soFar))->toBe($withheld);
+})->with([
+    'the whole bill: the rate on its total less VAT' => ['1120.00', '1120.00', '0.00', '10.00'],
+    'part of it, in proportion' => ['560.00', '1120.00', '0.00', '5.00'],
+    'rounded once, half up' => ['100.00', '1120.00', '0.00', '0.89'],
+    'the last payment takes what is left' => ['1020.00', '1020.00', '0.89', '9.11'],
+]);
+
+it('numbers posted documents in one series per prefix, with no gaps', function (): void {
+    Illuminate\Support\Facades\Schema::create('document_numbers', function (Illuminate\Database\Schema\Blueprint $table): void {
+        $table->string('prefix')->unique();
+        $table->unsignedInteger('last');
+    });
+    Illuminate\Support\Facades\DB::table('document_numbers')->insert([['prefix' => 'SI', 'last' => 0], ['prefix' => 'PO', 'last' => 41]]);
+    $next = fn (string $prefix): string => Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next($prefix);
+
+    expect([$next('SI'), $next('SI'), $next('PO')])->toBe(['SI-000001', 'SI-000002', 'PO-000042'])
+        ->and(fn () => $next('RR'))->toThrow(RuntimeException::class, 'no number series for RR');
+});
+
+it('checks a payment against the balance due, with the tax withheld', function (array $data, ?string $error): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
+        ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), ...$data]);
+
+    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors(['amount' => $error]);
+})->with([
+    'part of the balance' => [['amount' => '1000', 'tax_withheld' => '20'], null],
+    'the whole balance with the tax withheld' => [['amount' => '2340.00', 'tax_withheld' => '23.71'], null],
+    'only the 2307, received later' => [['amount' => '0', 'tax_withheld' => '23.71'], null],
+    'more than the balance' => [['amount' => '2340.00', 'tax_withheld' => '23.72'], 'Amount received and tax withheld together must be ₱2,363.71 or less, the balance due'],
+    'nothing' => [['amount' => '0', 'tax_withheld' => ''], 'Enter the amount received, the tax withheld, or both'],
+]);
+
+it('picks a customer by code or name, showing both', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordPickerStories::class, 'story' => 'default'])
+        ->assertSee('C-0003 Cebu Diagnostics Laboratory');
+
+    $select = $canvas->instance()->form->getComponent('customer_id');
+
+    expect($select->getSearchResults('C-0004'))->toBe([4 => 'C-0004 Davao Family Clinic'])
+        ->and($select->getSearchResults('iloilo'))->toBe([5 => 'C-0005 Iloilo Dental Group']);
+});
+
+it('posts a sales invoice under the serial of its BIR form, refusing one already recorded', function (string $number, ?string $error): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'story' => 'default'])
+        ->callAction(Filament\Actions\Testing\TestAction::make('post')->schemaComponent('story', 'form'), ['number' => $number]);
+
+    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors(['number' => $error]);
+})->with([
+    'an unused serial' => ['001233', null],
+    'a serial already recorded' => ['001232', 'Enter the serial of the form you wrote; invoice 001232 is already recorded'],
+]);
+
+it('voids an invoice only once its payments are void, saying so instead of asking for a reason', function (): void {
+    app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
+    $void = Filament\Actions\Testing\TestAction::make('void')->schemaComponent('story', 'form');
+
+    $paid = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories\PaidInvoiceVoidStories::class, 'story' => 'default'])
+        ->mountAction($void);
+    $action = $paid->instance()->getMountedAction();
+
+    expect($action->getModalHeading())->toBe('Invoice 001232 has payments')
+        ->and($action->getModalDescription())->toStartWith('Void its payments first')
+        ->and($action->getModalSubmitAction())->toBeNull()
+        ->and($action->getModalCancelAction())->toBeNull();
+
+    $paid->callMountedAction()->assertNotNotified('Invoice 001232 voided');
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\VoidStories::class, 'story' => 'default'])
+        ->callAction($void, ['reason' => 'Issued to the wrong customer'])
+        ->assertNotified('Invoice 001232 voided');
 });

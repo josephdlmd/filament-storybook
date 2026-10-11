@@ -8,6 +8,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -38,6 +39,7 @@ class GadgetResource extends Resource
             Section::make('Stock Keeping')->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
             TextInput::make('serial')->label('Serial')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
+            Select::make('owner_id')->label('Owner')->relationship('owner', 'name'),
             DatePicker::make('released_on')->label('Released On')->native(false),
             FileUpload::make('manual')->label('Manual'),
             // `part` is built right; `quantity` hides its label under a header that reads differently; `note` has no column.

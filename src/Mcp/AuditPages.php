@@ -17,6 +17,7 @@ use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
@@ -383,6 +384,10 @@ class AuditPages extends Tool
 
             if ($field instanceof DateTimePicker && ! $field->isNative()) {
                 $warn("the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (Carbon and USWDS date pickers).");
+            }
+
+            if ($field instanceof Select && $field->hasRelationship() && ! $field->isSearchable()) {
+                $warn("the select `{$name}` lists other records but can't be searched, so it loads all of them; make it `searchable()` by code and name, as `forms-record-picker` does (Carbon dropdown: a combo box when the list may be very long or not predefined).");
             }
 
             if ($field instanceof Repeater && $field->isReorderableWithDragAndDrop() && ! $field->isReorderableWithButtons()) {

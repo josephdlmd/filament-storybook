@@ -44,6 +44,8 @@ untracked = subprocess.run(["git", "-C", app, "ls-files", "--others", "--exclude
 print("\nchanged:\n" + diff + untracked)
 
 code = "".join(open(f"{app}/{path}").read() for path in untracked.split() if re.match(r"app/(Filament|Stories)/", path))
+# Money is worked out in models and services too, so the money checks read all new app code.
+app_code = "".join(open(f"{app}/{path}").read() for path in untracked.split() if re.match(r"app/.*\.php$", path))
 checks = {
     "money input: prefix('₱')": "prefix('₱')" in code,
     "money input: step(0.01)": "step(0.01)" in code,
@@ -52,7 +54,8 @@ checks = {
     "status: badge()": "badge()" in code,
     "terms: radios": "Radio::make" in code,
     "TIN: shared pattern reused (no mask, example in hint)": "For example, 123-456-789-000" in code and "mask(" not in code,
-    "no placeholder() format examples": "->placeholder(" not in code,
+    # A column's or entry's placeholder() is the text for an empty value; only an input's is banned.
+    "no placeholder() format examples": not re.search(r"TextInput::make\([^;]*?->placeholder\(", code, re.S),
     "record form screen: one column, labels above": "->columns(1)" in code and "inlineLabel()" not in code,
     # Filament's own "Created"/"Saved" toast meets the rule, so only forcing persistent() (an app-wide default already) fails.
     "notification: no forced persistent()": "->persistent()" not in code,
@@ -73,17 +76,26 @@ checks = {
     "dashboard: widgets don't refresh by themselves": "Widget" in code and len(re.findall(r"pollingInterval = null", code)) >= len(re.findall(r"extends (?:StatsOverviewWidget|ChartWidget)", code)) > 0,
     "dashboard: chart values as text": "extends ChartWidget" in code and "getChartAssistiveContent" in code,
     "dashboard: bar or line axis from zero": "extends ChartWidget" in code and "beginAtZero" in code,
+    # Sales invoice prompt: totals, posting, voiding, payments and the customer picker.
+    "invoice totals: decimal arithmetic, no float round()": "bcadd(" in app_code and not re.search(r"(?<![\w>:])(?<!function )round\(", app_code),
+    "invoice totals: VAT per class": "zero_rated" in app_code and "exempt" in app_code,
+    "posting: confirms in a danger dialog": bool(re.search(r"make\('post'\)(?:(?!make\().)*?requiresConfirmation\((?:(?!make\().)*?'danger'", code, re.S)),
+    "posting: numbered on posting, with a row lock": "lockForUpdate" in app_code,
+    "cancel: Void, with a reason": "make('void')" in code and "reason" in code,
+    "payments: checked against the balance": "balance" in code and ("maxValue(" in code or "$fail(" in code),
+    "customer picker: searchable relationship": bool(re.search(r"relationship\('customer'(?:(?!make\().)*?->searchable\(", code, re.S)),
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")
 # Checks for a feature the prompt doesn't ask for show as "-", so a ✗ is always a miss.
 prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __import__("os").path.exists(transcript.rsplit("/", 1)[0] + "/prompt.txt") else ""
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
-        "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell"}
+        "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
+        "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment", "customer picker": "customer"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
-    applies = not prompt or topic is None or asks[topic] in prompt
+    applies = not prompt or topic is None or re.search(r"\b" + asks[topic], prompt)
     print(f"  {('✓' if v else '✗') if applies else '-'} {k}")
 if result:
     print(f"\nresult: {result.get('subtype')}, turns {result.get('num_turns')}, cost ${result.get('total_cost_usd', 0):.2f}, {result.get('duration_ms', 0) // 1000}s")

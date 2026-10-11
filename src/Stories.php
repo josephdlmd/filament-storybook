@@ -8,6 +8,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
@@ -47,6 +48,16 @@ abstract class Stories
     public function records(): array
     {
         return [];
+    }
+
+    /**
+     * The model of the canvas's sample record, for a story whose fields use its relationships.
+     *
+     * @return class-string<Model>|null
+     */
+    public function model(): ?string
+    {
+        return null;
     }
 
     public function id(): string
