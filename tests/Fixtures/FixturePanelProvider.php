@@ -23,6 +23,8 @@ class FixturePanelProvider extends PanelProvider
             ->default()
             ->id('fixture')
             ->path('fixture')
+            ->login()
+            ->profile()
             ->plugin(StorybookPlugin::make())
             ->resources([GadgetResource::class])
             ->widgets([GadgetStats::class, GadgetSalesChart::class, GadgetStockChart::class, \Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class])

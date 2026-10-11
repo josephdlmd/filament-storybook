@@ -10,12 +10,14 @@ use Josephdlmd\FilamentStorybook\Pages\Storybook;
 class Accessibility
 {
     /**
-     * Runs axe-core on rendered HTML with the panel's theme CSS, so contrast is judged on real colours.
+     * Runs axe-core on rendered HTML with the panel's theme CSS, so contrast is judged on real colours, and checks that
+     * nothing is cut off or scrolls the page sideways at 320 CSS pixels (WCAG 1.4.10). An open modal in the HTML is shown.
      *
-     * @param  array<string, string>  $rendered  key => rendered HTML
+     * @param  array<string, string>  $rendered  key => rendered HTML of a page's content or a story
+     * @param  array<string, string>  $pages  key => a whole page, checked whole: its title, language, landmarks and skip link
      * @return array{0: list<string>, 1: string|null} the issues, and why the check was skipped
      */
-    public static function check(array $rendered): array
+    public static function check(array $rendered, array $pages = []): array
     {
         preg_match_all('/href="([^"]+\.css[^"]*)"/', (string) Storybook::panel()?->getTheme()->getHtml()->toHtml(), $hrefs);
         $css = array_values(array_unique(array_filter(
@@ -37,11 +39,10 @@ class Accessibility
 
         $result = Process::path(base_path())->timeout(120)
             ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
-            ->input((string) json_encode(['css' => $css, 'stories' => array_map(
-                fn (string $key, string $html): array => ['key' => $key, 'html' => $html],
-                array_keys($rendered),
-                $rendered,
-            )]))
+            ->input((string) json_encode(['css' => $css, 'stories' => [
+                ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html], array_keys($rendered), $rendered),
+                ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html, 'page' => true], array_keys($pages), $pages),
+            ]]))
             ->run(['node', __DIR__.'/../resources/a11y/axe.mjs']);
 
         if ($result->failed()) {

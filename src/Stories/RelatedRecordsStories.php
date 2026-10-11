@@ -27,8 +27,8 @@ class RelatedRecordsStories extends Stories
     public function records(): array
     {
         return [
-            1 => ['name' => 'Jane Cruz', 'email' => 'jane.cruz@example.com'],
-            2 => ['name' => 'Paolo Reyes', 'email' => 'paolo.reyes@example.com'],
+            1 => ['name' => 'Jane Cruz', 'email' => 'jane.cruz@example.com', 'phone' => '0917 555 0101', 'role' => 'Accountant'],
+            2 => ['name' => 'Paolo Reyes', 'email' => 'paolo.reyes@example.com', 'phone' => '0918 555 0144', 'role' => 'Purchaser'],
         ];
     }
 
@@ -42,6 +42,7 @@ class RelatedRecordsStories extends Stories
                 TextColumn::make('name'),
                 TextColumn::make('email')
                     ->label('Email address'),
+                TextColumn::make('phone'),
             ])
             ->headerActions([
                 CreateAction::make()
@@ -50,7 +51,7 @@ class RelatedRecordsStories extends Stories
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make()
-                    ->modalDescription('They are removed from this supplier\'s contacts for good. This cannot be undone.'),
+                    ->modalDescription('The contact and their details are deleted. This cannot be undone.'),
             ]);
     }
 
@@ -64,6 +65,7 @@ class RelatedRecordsStories extends Stories
                 TextColumn::make('name'),
                 TextColumn::make('email')
                     ->label('Email address'),
+                TextColumn::make('role'),
             ])
             ->headerActions([
                 AttachAction::make()

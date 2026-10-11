@@ -118,7 +118,8 @@ class PaymentStories extends Stories
                     ->default(fn (?Model $record): string => DocumentTotals::expectedWithholding((string) $record?->balance_due, (string) $record?->total, (string) $record?->vat, DocumentTotals::customerRates($record?->customer_withholding, (string) $record?->total)['vat']))
                     ->validationMessages(['decimal' => 'Enter the VAT withheld with at most 2 decimal places, such as 5000.00']),
                 TextInput::make('reference')
-                    ->label('Check or reference number (optional)')
+                    ->label('Reference (optional)')
+                    ->helperText('A check number or bank reference')
                     ->maxLength(50)
                     ->maxWidth('xs'),
             ])
@@ -190,11 +191,12 @@ class PaymentStories extends Stories
                         'decimal' => 'Enter the amount with at most 2 decimal places, such as 1250.50',
                     ]),
                 TextEntry::make('tax_withheld')
-                    ->label('Tax withheld on this order')
+                    ->label('Tax withheld')
                     ->state(fn (?Model $record): ?string => $record?->tax_withheld)
                     ->money('PHP'),
                 TextInput::make('reference')
-                    ->label('Check or reference number (optional)')
+                    ->label('Reference (optional)')
+                    ->helperText('A check number or bank reference')
                     ->maxLength(50)
                     ->maxWidth('xs'),
             ])

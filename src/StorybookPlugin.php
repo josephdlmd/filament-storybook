@@ -18,6 +18,11 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ImportAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Auth\Pages\EditProfile;
+use Filament\Auth\Pages\Login;
+use Filament\Auth\Pages\PasswordReset\RequestPasswordReset;
+use Filament\Auth\Pages\PasswordReset\ResetPassword;
+use Filament\Auth\Pages\Register;
 use Filament\Contracts\Plugin;
 use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\FileUpload;
@@ -137,6 +142,12 @@ class StorybookPlugin implements Plugin
             // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.
             $panel->maxContentWidth($panel->getMaxContentWidth() ?? Width::Full);
 
+            // An idle session warns 2 minutes before it ends, with a button to stay logged in (WCAG 2.2.1: warned, "at least 20
+            // seconds to extend"; NIST SP 800-63B-4: prompt "two minutes before"). Lifetimes over 20 hours are exempt.
+            $panel->renderHook(PanelsRenderHook::BODY_END, fn (): string => filament()->auth()->check() && config('session.lifetime') * 60 <= 20 * 3600
+                ? view('filament-storybook::session-warning', ['lifetime' => config('session.lifetime') * 60, 'warning' => 120])->render()
+                : '');
+
             static::applyHouseDefaults();
         }
     }
@@ -238,6 +249,10 @@ class StorybookPlugin implements Plugin
                 'import.notifications.completed.actions.download_failed_rows_csv.label' => 'Download errors',
                 'import.failure_csv.system_error' => 'A system error stopped this row. Contact support.',
             ], 'en', 'filament-actions');
+
+            // GOV.UK's error templates (text input, date input). Loaded first, so the app's own lang file can't replace them later.
+            app('translator')->load('*', 'validation', 'en');
+            app('translator')->addLines(static::ERROR_MESSAGES, 'en');
         });
 
         // The browser's own validation is off, so a form's errors are ours, worded as GOV.UK asks, instead of "Please fill out
@@ -248,6 +263,23 @@ class StorybookPlugin implements Plugin
         // An amount or quantity is a text input with a numeric keypad, not type="number", which rounds, steps and silently refuses
         // what is typed (Carbon number input: avoid it "for continuous variables such as prices"; GOV.UK text input).
         TextInput::configureUsing(fn (TextInput $input) => $input->type(fn (TextInput $input): ?string => $input->isNumeric() ? 'text' : null));
+
+        // Fields about the user say what they hold, so the browser can fill them in (WCAG 1.3.5): Filament's log in gives the
+        // email "on", and its sign-up and profile pages give the name and email nothing. Only on those pages: a customer's
+        // email elsewhere is not the user's. Extra attributes win over Filament's own value.
+        TextInput::configureUsing(fn (TextInput $input) => $input->extraInputAttributes(function (TextInput $component): array {
+            $page = $component->hasContainer() ? $component->getLivewire() : null;
+
+            if (! Arr::first([Login::class, RequestPasswordReset::class, ResetPassword::class, Register::class, EditProfile::class], fn (string $class): bool => $page instanceof $class)) {
+                return [];
+            }
+
+            return match ($component->getName()) {
+                'email' => ['autocomplete' => $page instanceof Login || $page instanceof RequestPasswordReset ? 'username' : 'email'],
+                'name' => ['autocomplete' => 'name'],
+                default => [],
+            };
+        }, merge: true));
 
         // One convention throughout: optional fields say "(optional)", required ones carry no asterisk (Carbon form; owner, 2026-10-11).
         // A required input still has the required attribute, and a required radio group aria-required, for screen readers.
@@ -277,9 +309,45 @@ class StorybookPlugin implements Plugin
         TernaryFilter::configureUsing(fn (TernaryFilter $filter) => $filter->placeholder(__('filament-tables::table.filters.select.placeholder')));
 
         // Errors say what to do with the field's own label: "Enter name", not "The name field is required" (GOV.UK error message).
-        Field::configureUsing(fn (Field $field) => $field->validationMessages([
-            'required' => fn (Field $component): string => static::requiredMessage($component),
-        ]));
+        // A field names itself in every error as its label is written, so "TIN" stays "TIN" where Filament would write "tIN".
+        Field::configureUsing(fn (Field $field) => $field
+            ->validationAttribute(fn (Field $component): string => static::errorName($component))
+            ->validationMessages([
+                'required' => fn (Field $component): string => static::requiredMessage($component),
+            ]));
+    }
+
+    /**
+     * GOV.UK's error templates for the rules Laravel words its own way ("The amount field must be a number."). Laravel's
+     * lines, not each field's messages, so a field that sets a message of its own keeps these for its other rules.
+     *
+     * @var array<string, string>
+     */
+    public const ERROR_MESSAGES = [
+        'validation.required' => 'Enter :attribute',
+        'validation.numeric' => ':Attribute must be a number',
+        'validation.integer' => ':Attribute must be a whole number',
+        'validation.min.numeric' => ':Attribute must be :min or more',
+        'validation.max.numeric' => ':Attribute must be :max or less',
+        'validation.between.numeric' => ':Attribute must be between :min and :max',
+        'validation.min.string' => ':Attribute must be :min characters or more',
+        'validation.max.string' => ':Attribute must be :max characters or less',
+        'validation.between.string' => ':Attribute must be between :min and :max characters',
+        'validation.date' => ':Attribute must be a real date',
+        'validation.after' => ':Attribute must be after :date',
+        'validation.after_or_equal' => ':Attribute must be the same as or after :date',
+        'validation.before' => ':Attribute must be before :date',
+        'validation.before_or_equal' => ':Attribute must be the same as or before :date',
+        'validation.regex' => 'Enter :attribute in the correct format',
+        'validation.email' => 'Enter :attribute in the correct format, like name@example.com',
+    ];
+
+    public static function errorName(Field $field): string
+    {
+        $label = preg_replace('/\s*\(optional\)$/', '', (string) $field->getLabel());
+
+        // Keep acronyms such as "TIN" as written; lower-case an ordinary first word. "(optional)" is for the label only.
+        return preg_match('/^\p{Lu}{2}/u', $label) ? $label : lcfirst($label);
     }
 
     public static function requiredMessage(Field $field): string
@@ -290,9 +358,6 @@ class StorybookPlugin implements Plugin
             default => 'Enter',
         };
 
-        $label = (string) $field->getLabel();
-
-        // Keep acronyms such as "TIN" as written; lower-case an ordinary first word.
-        return $verb.' '.(preg_match('/^\p{Lu}{2}/u', $label) ? $label : lcfirst($label));
+        return $verb.' '.static::errorName($field);
     }
 }

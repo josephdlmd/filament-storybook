@@ -66,6 +66,7 @@ class BrokenStories extends Stories
             ->label('Submit')
             ->modalHeading('Save Order')
             ->modalDescription('Lorem ipsum dolor sit amet.')
+            ->keyBindings(['s'])
             ->action(fn () => Notification::make()->title('Saved.')->send());
     }
 

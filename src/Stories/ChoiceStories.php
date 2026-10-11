@@ -33,7 +33,7 @@ class ChoiceStories extends Stories
     public function manyOptions(): Select
     {
         return Select::make('province')
-            ->options(['abra' => 'Abra', 'benguet' => 'Benguet', 'cebu' => 'Cebu', 'davao_del_sur' => 'Davao del Sur'])
+            ->options(['abra' => 'Abra', 'benguet' => 'Benguet', 'cebu' => 'Cebu', 'davao_del_sur' => 'Davao del Sur', 'ilocos_norte' => 'Ilocos Norte', 'laguna' => 'Laguna', 'pampanga' => 'Pampanga'])
             ->searchable()
             ->required()
             ->maxWidth('xs');

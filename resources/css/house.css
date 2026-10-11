@@ -61,6 +61,11 @@
     text-decoration-line: underline;
 }
 
+/* Code in running text wraps where it must, so a long class name isn't cut off on a phone (WCAG 1.4.10). */
+:is(.fi-modal-description, .fi-section-header-description, .fi-no-notification-body, .fi-callout-description, .fi-sc-text) code {
+    overflow-wrap: anywhere;
+}
+
 /*
  * A text area grows only in height (Carbon text input: resizing "only effects the height"), and a read-only field shows
  * the arrow cursor, not the text cursor (Carbon read-only states: "The arrow cursor reinforces that a component is in a
@@ -92,6 +97,15 @@
     display: inline;
 }
 
+/* In a narrow table Filament's pagination is one row of Previous, the page size and Next; the range gets a row of its own
+   under them, or from page 2 on it would push the page size and Next onto a second line. */
+@container (width < 56rem) {
+    .fi-pagination .fi-pagination-overview {
+        grid-row: 2;
+        grid-column: 1 / -1;
+    }
+}
+
 .fi-ta-empty-state .fi-ta-empty-state-content {
     margin-inline: 0;
     justify-items: start;
@@ -120,9 +134,65 @@
 }
 
 /*
+ * A closed menu is out of the keyboard's reach, not only off the screen. Filament slides it away (on a phone or tablet,
+ * and on a desktop with top navigation) but leaves its links in the tab order, so focus disappears for a dozen stops
+ * (WCAG 2.4.7, 2.4.11). Hidden stays visible while the menu slides, since one end of the transition is visible. A
+ * desktop menu collapsible to icons stays, since its icons show.
+ */
+.fi-sidebar:not(.fi-sidebar-open) {
+    visibility: hidden;
+}
+
+@media (width >= 64rem) {
+    .fi-body-has-sidebar-collapsible-on-desktop:not(.fi-body-has-top-navigation) .fi-sidebar {
+        visibility: visible;
+    }
+
+    .fi-body-has-top-navigation .fi-sidebar {
+        visibility: hidden;
+    }
+}
+
+/*
  * A table's bulk-action slot is empty until rows are selected (its menu is hidden), but Filament still gives it a line:
  * on a phone, where the toolbar wraps, it pushed the search box 48px down. Hidden until it has something to show.
  */
 .fi-ta-header-toolbar > .fi-ta-actions:not(:has(> :not([style*="display: none"]))) {
     display: none;
+}
+
+/*
+ * The Storybook page (a developer tool): its list of patterns is the menu button below 96rem, as Filament shows it on a
+ * phone, so each story gets the width it would get in an app and a record page's columns appear as they would there.
+ */
+@media (width < 96rem) {
+    .fs-storybook .fi-page-sub-navigation-dropdown {
+        display: block;
+    }
+
+    .fs-storybook .fi-page-sub-navigation-sidebar-ctn {
+        display: none;
+    }
+
+    .fs-storybook.fi-page-has-sub-navigation .fi-page-main {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/*
+ * Small buttons inside fields reach WCAG 2.5.8's 24 by 24 pixels: a badge's remove button (a multiple select's chosen
+ * options) and a select's clear button, 20 and 16 pixels in Filament. The glyphs keep their size and place.
+ */
+.fi-badge .fi-badge-delete-btn {
+    padding: 0.375rem;
+    margin-block: -0.375rem;
+    margin-inline: -0.375rem -0.625rem;
+}
+
+.fi-select-input .fi-select-input-value-remove-btn {
+    width: 1.5rem;
+    height: 1.5rem;
+    inset-inline-end: 1.75rem;
+    mask-size: 1rem;
 }

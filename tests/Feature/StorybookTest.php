@@ -152,7 +152,26 @@ it('loads the house CSS and script the patterns depend on, on every panel page',
         ->toContain("['Enter', ' ']")
         ->toContain('Copied to clipboard')
         ->toContain('.fi-ta-actions :is(a, button):not([aria-label])')
-        ->toContain(':is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle)');
+        ->toContain(':is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle)')
+        // Focus returns to the button a modal came from, or the same action on the row in its place (WCAG 2.4.3).
+        ->toContain("action.textContent.trim() === last.label")
+        // Chart axes take the theme's text colour in light and dark mode (WCAG 1.4.3).
+        ->toContain('window.filamentChartJsGlobalPlugins');
+});
+
+it('warns 2 minutes before an idle session ends, with a button to stay logged in, unless it lasts over 20 hours', function (): void {
+    config(['session.lifetime' => 120]);
+
+    $this->get('/fixture/storybook?component=forms-money-input')
+        ->assertSee('data-fs-session-lifetime="7200" data-fs-session-warning="120"', false)
+        ->assertSee('You&#039;ll be logged out in 2 minutes', false)
+        ->assertSee('Stay logged in');
+
+    expect(file_get_contents(__DIR__.'/../../resources/js/house.js'))->toContain("new CustomEvent('open-modal', { detail: { id } })");
+
+    config(['session.lifetime' => 21 * 60]);
+
+    $this->get('/fixture/storybook?component=forms-money-input')->assertDontSee('Stay logged in');
 });
 
 it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on a panel that asks for it', function (): void {
@@ -255,6 +274,20 @@ it('focuses the primary in a confirmation that destroys nothing, and Cancel in a
 
 it('shows a skeleton while a table reloads', function (): void {
     expect(Filament\Tables\Table::make(new Josephdlmd\FilamentStorybook\Livewire\StoryCanvas)->hasLoadingSkeleton())->toBeTrue();
+});
+
+it('tells the browser which account fields hold the user\'s own email and name, only on the account pages', function (): void {
+    $this->get('/fixture/profile')
+        ->assertSee('autocomplete="name"', false)
+        ->assertSee('autocomplete="email"', false);
+
+    expect(Filament\Forms\Components\TextInput::make('email')->email()->getExtraInputAttributes())->toBe([]);
+
+    auth()->logout();
+
+    $this->get('/fixture/login')
+        ->assertSee('autocomplete="username"', false)
+        ->assertSee('autocomplete="current-password"', false);
 });
 
 it('says Log in and Log out, as Carbon does', function (): void {
@@ -404,7 +437,8 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 14 passing, 3 failing, 26 warnings, 5 accessibility issues')
+        ->toStartWith('# 14 passing, 3 failing, 27 warnings, 5 accessibility issues')
+        ->toContain('- `broken-story.vagueAndTitleCase`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
         ->toContain('- `broken-story.collapsedFilters`: AboveContentCollapsible puts the filter button alone')
         ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
@@ -486,7 +520,8 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 43 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 44 warnings')
+        ->toContain('- `ListGadgets`: the action `report` runs on the key `r` alone')
         ->toContain('- `CreateGadget`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
@@ -576,7 +611,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 76 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 77 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
@@ -593,6 +628,36 @@ it('audits edit pages against an existing record', function (): void {
         // The view page's disabled form isn't audited field by field; the warning above covers it.
         ->not->toContain('- `ViewGadget`: the field')
         ->toContain('- `EditGadget`: the field `code` uses placeholder()');
+});
+
+it('checks a page\'s open modals, its form showing errors and the whole page, not only its content, saving nothing', function (): void {
+    $gadget = Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
+    $states = fn (string $key, $page): array => (new ReflectionMethod(AuditPages::class, 'states'))->invoke(null, $key, $page);
+
+    expect($states('EditGadget', Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\Pages\EditGadget::class, ['record' => $gadget->getKey()])))
+        ->toHaveKey('EditGadget, delete open')
+        ->and($states('EditGadget', Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\Pages\EditGadget::class, ['record' => $gadget->getKey()]))['EditGadget, delete open'])->toContain('fi-modal')
+        ->and($creating = $states('CreateGadget', Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\Pages\CreateGadget::class)))->toHaveKey('CreateGadget, with errors')
+        ->and($creating['CreateGadget, with errors'])->toContain('data-validation-error')
+        ->and(Gadget::count())->toBe(1)
+        ->and((new ReflectionMethod(AuditPages::class, 'layout'))->invoke(null, Filament\Facades\Filament::getPanel('fixture')))->toContain('<html')->toContain('<title>');
+});
+
+it('reports content cut off at 320 pixels wide, and checks a whole page\'s title and language', function (): void {
+    [$issues, $unchecked] = Josephdlmd\FilamentStorybook\Accessibility::check(
+        ['wide' => '<p style="width: 600px">A line too wide for a phone</p>', 'scrolls' => '<div style="overflow-x: auto" tabindex="0" role="region" aria-label="Lines"><table style="width: 600px"><tr><th>Item</th></tr></table></div>'],
+        ['page' => '<!doctype html><html><head></head><body><main><h1>Gadgets</h1></main></body></html>'],
+    );
+
+    if ($unchecked !== null) {
+        $this->markTestSkipped($unchecked);
+    }
+
+    expect(implode("\n", $issues))
+        ->toContain('`wide`: [serious] reflow')
+        ->not->toContain('`scrolls`')
+        ->toContain('`page`: [serious] html-has-lang')
+        ->toContain('`page`: [serious] document-title');
 });
 
 it('installs into an app that meets the standard, and changing nothing on a second run', function (): void {
@@ -674,6 +739,17 @@ it('holds amounts to centavos, unit costs to 4 decimals and quantities to 3, on 
     'unit cost, a fifth decimal' => [Josephdlmd\FilamentStorybook\Stories\UnitCostStories::class, 'unit_cost', '89.28571', false],
     'quantity, 3 decimals' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.125', true],
     'quantity, a fourth decimal' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.1255', false],
+]);
+
+it('words every error as GOV.UK does, even on a field that sets a message of its own', function (string $field, string $typed, string $error): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => RecordFormStories::class, 'story' => 'default'])->set("data.{$field}", $typed);
+
+    expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, $error);
+})->with([
+    'an amount that is not a number' => ['credit_limit', 'abc', 'Credit limit must be a number'],
+    'an amount below zero' => ['credit_limit', '-5', 'Credit limit must be 0 or more'],
+    'an empty field that sets a message of its own for another rule' => ['tin', '', 'Enter TIN'],
+    'a TIN in the wrong format' => ['tin', '12345', 'Enter a TIN in the correct format: 12 digits, including the branch code'],
 ]);
 
 it('works out a line total as quantity × unit price, rounded once to centavos, half up', function (string $quantity, string $price, ?string $total): void {

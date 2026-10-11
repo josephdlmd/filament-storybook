@@ -53,6 +53,12 @@ class Storybook extends Page
         $this->component ??= array_key_first(app(StoryRegistry::class)->all());
     }
 
+    /** @return array<string> */
+    public function getPageClasses(): array
+    {
+        return ['fs-storybook'];
+    }
+
     public function getTitle(): string | Htmlable
     {
         // The group already shows in the sub-navigation.
@@ -91,7 +97,7 @@ class Storybook extends Page
                 ->description($story['description'] ? static::prose($story['description']) : null)
                 ->schema([
                     $story['kind'] === null
-                        ? Callout::make('Not a story')->description('Declare a Filament component, column or action as the return type.')->danger()
+                        ? Callout::make('Not a story')->description('Declare a Filament component, column or action as the return type.')->warning()
                         : Livewire::make(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story['name']])
                             ->key("{$manifest['id']}.{$story['name']}"),
                     // shortcut: plain <pre> because CodeEntry needs phiki/phiki; switch if apps install it.

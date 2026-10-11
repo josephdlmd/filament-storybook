@@ -40,7 +40,8 @@ class RecordFormStories extends Stories
                     ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
                     ->helperText('For example, 123-456-789-000')
                     ->maxWidth('xs')
-                    ->required(),
+                    ->required()
+                    ->validationMessages(['regex' => 'Enter a TIN in the correct format: 12 digits, including the branch code']),
                 TextInput::make('credit_limit')
                     ->label('Credit limit (optional)')
                     ->numeric()

@@ -28,6 +28,7 @@
     .fs-document dl { display: grid; grid-template-columns: auto auto; gap: 0 4mm; align-content: start; }
     .fs-document dt { color: #444; }
     .fs-document table { width: 100%; border-collapse: collapse; }
+    .fs-document__lines { overflow-x: auto; }
     .fs-document th, .fs-document td { padding: 1.5mm 2mm; text-align: start; vertical-align: top; }
     .fs-document thead th { border-bottom: 1px solid #111; font-weight: 600; }
     .fs-document tbody td { border-bottom: 1px solid #ccc; }
@@ -76,6 +77,8 @@
         </dl>
     </div>
 
+    {{-- On a phone the lines scroll inside their own box, as a data table may (WCAG 1.4.10); the keyboard reaches it. --}}
+    <div class="fs-document__lines" role="region" aria-label="Lines" tabindex="0">
     <table>
         <thead>
             <tr>
@@ -94,6 +97,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 
     @if (filled($document['totals'] ?? null))
         <table class="fs-document__totals">

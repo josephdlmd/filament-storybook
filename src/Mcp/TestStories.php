@@ -226,6 +226,10 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: a tooltip on a column, entry or hint icon shows on mouse hover only; put the text in helperText() or the column's description() (WCAG 2.1.1; Carbon tooltip).";
             }
 
+            if (preg_match_all("/->keyBindings\\(([^)]*)\\)/", $story['snippet'], $bindings) && preg_match("/'(?!(?:mod|ctrl|command|meta|alt|option)\\+)[^']+'/", implode(',', $bindings[1]))) {
+                $warnings[] = "{$key}: a keyboard shortcut needs Ctrl, ⌘ or Alt, such as `mod+s`; a key alone fires while the user types or dictates (WCAG 2.1.4).";
+            }
+
             if (preg_match("/->title\\('[^']*\\.'\\)/", $story['snippet'])) {
                 $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
             }

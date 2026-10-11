@@ -76,7 +76,7 @@ class GadgetResource extends Resource
                 \Filament\Actions\ActionGroup::make([Action::make('inspect')]),
             ])
             ->headerActions([
-                Action::make('report')->color('gray'),
+                Action::make('report')->color('gray')->keyBindings(['r']),
                 Action::make('labels')->color('gray'),
             ])
             ->toolbarActions([

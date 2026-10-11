@@ -78,7 +78,7 @@ class RecordViewPageStories extends Stories
                             RepeatableEntry::make('payments')
                                 ->table([
                                     TableColumn::make('Payment date'),
-                                    TableColumn::make('Check or reference number'),
+                                    TableColumn::make('Reference'),
                                     TableColumn::make('Amount paid')->alignEnd(),
                                 ])
                                 ->schema([

@@ -44,7 +44,9 @@ use Filament\Widgets\ChartWidget;
 use Filament\Widgets\WidgetConfiguration;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
@@ -54,6 +56,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Livewire\Component;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -126,6 +129,7 @@ class AuditPages extends Tool
 
                     $rendered[$key] = $page->html();
                     $warnings = [...$warnings, ...static::warnings($key, $page->instance())];
+                    $rendered = [...$rendered, ...static::states($key, $page)];
                     $passing[] = "- `{$key}`";
                 } catch (HttpException $e) {
                     $skipped[] = "- `{$key}`: ".static::userLabel($user)." may not open it ({$e->getStatusCode()}); pass \"as\" with a user who can.";
@@ -210,7 +214,10 @@ class AuditPages extends Tool
             }
         }
 
-        [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered);
+        // The page around them once, as the browser gets it: the title, language, skip link, landmarks and the menu.
+        $layout = $request->get('resources') ? [] : rescue(fn (): array => ['layout' => static::layout($panel)], [], report: false);
+
+        [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered, $layout);
 
         $text = '# '.count($passing).' pages rendered, '.count($failing).' failing, '.count($warnings).' warnings, '.count($issues)." accessibility issues\n\n"
             .'Signed in as '.static::userLabel($user).".\n".($unchecked ? "\n{$unchecked}\n" : '');
@@ -243,6 +250,73 @@ class AuditPages extends Tool
     }
 
     /** The innermost error, which names the actual mistake, with the line to fix. */
+    /**
+     * The page's other states, each checked like the page itself: each header action's modal open, and a create form
+     * submitted empty. Opening a modal runs nothing; the form is submitted only when it is known to fail, and anything
+     * written is rolled back all the same.
+     *
+     * @return array<string, string>
+     */
+    protected static function states(string $key, Testable $page): array
+    {
+        $states = [];
+
+        foreach (static::flatten($page->instance()->getCachedHeaderActions()) as $action) {
+            if ($action->isHidden() || $action->isDisabled() || $action->getUrl() !== null || ! $action->shouldOpenModal()) {
+                continue;
+            }
+
+            // Filament sends an opened modal as a partial of its own; forcing a whole render puts it in the page, as the browser shows it.
+            $states["{$key}, {$action->getName()} open"] = rescue(fn (): string => $page->call('mountAction', $action->getName())->call('forceRender')->html(), '', report: false);
+            rescue(fn () => $page->call('unmountAction'), report: false);
+        }
+
+        if ($page->instance() instanceof CreateRecord) {
+            try {
+                $page->instance()->form->validate();
+            } catch (ValidationException) {
+                DB::beginTransaction();
+
+                try {
+                    $states["{$key}, with errors"] = $page->call('create')->html();
+                } finally {
+                    DB::rollBack();
+                }
+            }
+        }
+
+        return array_filter($states);
+    }
+
+    /** A page of the panel, rendered whole in this process, with a session kept in memory so no login is stored. */
+    protected static function layout(Panel $panel): string
+    {
+        $driver = config('session.driver');
+        config(['session.driver' => 'array']);
+
+        try {
+            $kernel = app(Kernel::class);
+            // Any page has the layout; a resource's list is there in every app, where the home may only redirect.
+            $url = ($resource = collect($panel->getResources())->first()) ? $resource::getUrl('index', panel: $panel->getId()) : $panel->getUrl();
+
+            // A panel without a dashboard sends its home to the first page.
+            for ($hops = 0; $hops < 3; $hops++) {
+                $response = $kernel->handle($request = \Illuminate\Http\Request::create($url));
+                $kernel->terminate($request, $response);
+
+                if (! $response->isRedirect()) {
+                    break;
+                }
+
+                $url = $response->headers->get('Location');
+            }
+
+            return $response->isOk() ? (string) $response->getContent() : throw new \RuntimeException("{$url} answered {$response->getStatusCode()}");
+        } finally {
+            config(['session.driver' => $driver]);
+        }
+    }
+
     protected static function failure(Throwable $e): string
     {
         while ($e->getPrevious() !== null) {
@@ -389,6 +463,13 @@ class AuditPages extends Tool
 
         foreach (collect([...$headerActions, ...$tableActions])->filter(fn (Action $action): bool => $action->isIconButton() && blank($action->getTooltip()))->unique(fn (Action $action): string => $action->getName()) as $action) {
             $warn("the icon-only action `{$action->getName()}` has no tooltip; add `->tooltip('{$action->getLabel()}')`, shown on hover and focus (Carbon tooltip: \"Every icon-only button needs a tooltip\").");
+        }
+
+        // A shortcut of one character key fires while the user types or dictates (WCAG 2.1.4); Filament's turn on Ctrl, ⌘ or Alt.
+        foreach (collect([...$headerActions, ...$tableActions])->unique(fn (Action $action): string => $action->getName()) as $action) {
+            foreach (array_filter($action->getKeyBindings() ?? [], fn (string $binding): bool => ! preg_match('/\b(mod|ctrl|command|meta|alt|option)\+/', $binding)) as $binding) {
+                $warn("the action `{$action->getName()}` runs on the key `{$binding}` alone, which fires while the user types or dictates; add a modifier, such as `mod+{$binding}` (WCAG 2.1.4).");
+            }
         }
 
         foreach ([...$headerActions, ...$tableActions] as $action) {
