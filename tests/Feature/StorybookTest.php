@@ -143,7 +143,30 @@ it('renders a screen story as the resource would, with its sample rows', functio
 });
 
 it('loads the house CSS the patterns depend on, on every panel page', function (): void {
-    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->map->getId()->all())->toBe(['house']);
+    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->reject->isLoadedOnRequest()->map->getId()->values()->all())->toBe(['house']);
+});
+
+it('makes tables compact, Carbon\'s small rows with the same text, only on a panel that asks for it', function (): void {
+    $page = fn () => $this->get('/fixture/storybook?component=tables-list-table')->assertOk();
+
+    $page()->assertDontSee('compact-tables.css', false);
+
+    Filament\Facades\Filament::getPanel('fixture')->getPlugin('filament-storybook')->compactTables();
+
+    $page()->assertSee('compact-tables.css', false);
+
+    // Rows of 32px still leave every checkbox and action its WCAG 2.2 target size.
+    expect(testStoriesWithTheme(['ids' => ['tables-list-table', 'records-related-records', 'tables-money-column', 'tables-status-badge']]))
+        ->toContain('0 failing, 0 warnings, 0 accessibility issues');
+});
+
+it('keeps the compact-table selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
+    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css'), $classes);
+    $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css');
+
+    foreach (array_unique($classes[1]) as $class) {
+        expect(preg_match('/\.'.preg_quote($class, '/').'(?![\w-])/', $theme))->toBe(1, "Filament no longer styles .{$class}");
+    }
 });
 
 it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
@@ -287,7 +310,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 5 passing, 3 failing, 11 warnings, 1 accessibility issues')
+        ->toStartWith('# 6 passing, 3 failing, 12 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -297,6 +320,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story`: add description()')
         ->toContain('- `broken-story.works`: no placeholder()')
         ->toContain('- `broken-story.floatMoney`: round() works on floats')
+        ->toContain('- `broken-story.ownSpacing`: sets its own padding or margin')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:44')

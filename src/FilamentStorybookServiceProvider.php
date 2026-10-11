@@ -38,7 +38,11 @@ class FilamentStorybookServiceProvider extends ServiceProvider
         Livewire::component('filament-storybook.story-canvas', StoryCanvas::class);
 
         // Published by `php artisan filament:upgrade`, which Filament apps run after every composer install.
-        FilamentAsset::register([Css::make('house', __DIR__.'/../resources/css/house.css')], 'josephdlmd/filament-storybook');
+        // Compact tables load only on a panel that asks for them (StorybookPlugin::compactTables()).
+        FilamentAsset::register([
+            Css::make('house', __DIR__.'/../resources/css/house.css'),
+            Css::make('compact-tables', __DIR__.'/../resources/css/compact-tables.css')->loadedOnRequest(),
+        ], 'josephdlmd/filament-storybook');
 
         // Boost is a dev dependency, so the tools join its MCP server only where it is installed.
         if (class_exists(Tool::class)) {

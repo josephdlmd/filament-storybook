@@ -68,6 +68,12 @@ class BrokenStories extends Stories
             ->recordActions([Action::make('open')->url(fn (Model $record): string => '#'.$record->code)]);
     }
 
+    /** Renders, but sets its own spacing instead of the theme's. */
+    public function ownSpacing(): TextInput
+    {
+        return TextInput::make('code')->extraAttributes(['class' => 'mt-3 px-[13px]'])->extraInputAttributes(['style' => 'padding: 3px']);
+    }
+
     /** Renders, but works out money with floats. */
     public function floatMoney(): TextColumn
     {

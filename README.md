@@ -132,6 +132,8 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
+For a data-dense app, `StorybookPlugin::make()->compactTables()` gives every table Carbon's small size: rows, header, filters, toolbar and pagination at 32px instead of Filament's 41 to 49px, with the same 14px text. It's off by default, since Filament's rows are Carbon's default size. A package test fails if a Filament upgrade renames the classes it adjusts.
+
 One thing a plugin can't reach: Filament title-cases the model in each resource's page titles, navigation and breadcrumbs ("Create Supplier"). Add `use \Josephdlmd\FilamentStorybook\Concerns\HasSentenceCaseLabels;` and a `$recordTitleAttribute` to each resource; `storybook-audit` warns where it's missing.
 
 ## Render every story in the app's tests

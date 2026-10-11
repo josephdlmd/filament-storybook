@@ -1,0 +1,44 @@
+/*
+ * Compact tables, for data-dense apps (StorybookPlugin::make()->compactTables()): Carbon data table's small size,
+ * 32px plus Filament's 1px divider, with the same 14px text. Every strip of the table matches the rows, as Carbon
+ * asks of the header row, the toolbar and the pagination; the controls in them are 28px, above WCAG 2.5.8's 24px.
+ * Filament has no setting for any of it; it pads each part instead, so these selectors follow its classes, and
+ * tests/Feature/StorybookTest.php fails if Filament renames one.
+ */
+
+/* Header and rows: Filament pads each cell's content, by column type. */
+.fi-ta-table > thead > tr > th,
+.fi-ta-table > tbody > tr > td:is(.fi-ta-selection-cell, :has(.fi-ta-actions), :has(.fi-ta-record-checkbox)) {
+    padding-block: 0.375rem;
+}
+
+.fi-ta-table > tbody > tr > td :is(.fi-ta-text, .fi-ta-icon, .fi-ta-image, .fi-ta-select, .fi-ta-color, .fi-ta-toggle, .fi-ta-text-input, .fi-ta-checkbox):not(.fi-inline) {
+    padding-block: 0.25rem;
+}
+
+/* Filters above the table, the toolbar (search, bulk actions, column picker) and the pagination below it. */
+.fi-ta-filters-above-content-ctn {
+    padding-block: 0.375rem;
+}
+
+.fi-ta-header-toolbar,
+.fi-pagination {
+    padding-block: 0.125rem;
+}
+
+.fi-ta-header-toolbar > * {
+    min-height: 1.75rem;
+}
+
+:is(.fi-ta-header-toolbar, .fi-pagination) :is(.fi-input, .fi-select-input) {
+    padding-block: 0.125rem;
+}
+
+.fi-ta-header-toolbar .fi-btn {
+    padding-block: 0.25rem;
+}
+
+.fi-ta-header-toolbar .fi-icon-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+}

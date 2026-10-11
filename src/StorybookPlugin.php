@@ -27,6 +27,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Panel;
+use Filament\Support\Facades\FilamentAsset;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
@@ -36,6 +38,8 @@ use Josephdlmd\FilamentStorybook\Pages\Storybook;
 class StorybookPlugin implements Plugin
 {
     protected bool $houseDefaults = true;
+
+    protected bool $compactTables = false;
 
     public static function make(): static
     {
@@ -55,9 +59,29 @@ class StorybookPlugin implements Plugin
         return $this;
     }
 
+    /**
+     * Carbon data table's small rows (32px, the same 14px text), for an app whose screens are data-dense.
+     * Off by default: Filament's rows are Carbon's default size, which breaks no rule.
+     */
+    public function compactTables(bool $condition = true): static
+    {
+        $this->compactTables = $condition;
+
+        return $this;
+    }
+
+    public function hasCompactTables(): bool
+    {
+        return $this->compactTables;
+    }
+
     public function register(Panel $panel): void
     {
         $panel->pages([Storybook::class]);
+
+        $panel->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => $this->compactTables
+            ? '<link rel="stylesheet" href="'.e(FilamentAsset::getStyleHref('compact-tables', 'josephdlmd/filament-storybook')).'">'
+            : '');
 
         if ($this->houseDefaults) {
             static::applyHouseDefaults();

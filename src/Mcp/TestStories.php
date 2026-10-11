@@ -172,6 +172,11 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: \"{$filler[0]}\" is placeholder content; use realistic content from a real task, so the story shows whether the pattern reads clearly (Carbon story guidelines).";
             }
 
+            // Inline padding or margin, or a Tailwind spacing class, on any extra*Attributes(): spacing the theme doesn't set.
+            if (preg_match('/->extra\\w*Attributes\\((?:(?!->).)*?(?:padding|margin|[\'"\\s](?:-?[pm][xytblrse]?|gap|space-[xy])-[\\w\\[\\].]+)/s', $story['snippet'])) {
+                $warnings[] = "{$key}: sets its own padding or margin; leave spacing to the theme's scale, through Filament's sections, groups and columns (Carbon spacing).";
+            }
+
             if (preg_match("/->title\\('[^']*\\.'\\)/", $story['snippet'])) {
                 $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
             }
