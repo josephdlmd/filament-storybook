@@ -182,6 +182,11 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: sets its own font size, weight or colour; use Filament's size(), weight() and color() options, which take the theme's type styles and colour tokens and follow dark mode (Carbon typography and colour).";
             }
 
+            // A tooltip on a column, an entry or a hint icon shows on mouse hover only; on an action it is on a button.
+            if (preg_match('/->hintIcon\\([^;]*?tooltip:|->hintIconTooltip\\(|(?:Column|Entry)::make\\((?:(?!::make\\().)*?->tooltip\\(/s', $story['snippet'])) {
+                $warnings[] = "{$key}: a tooltip on a column, entry or hint icon shows on mouse hover only; put the text in helperText() or the column's description() (WCAG 2.1.1; Carbon tooltip).";
+            }
+
             if (preg_match("/->title\\('[^']*\\.'\\)/", $story['snippet'])) {
                 $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
             }

@@ -35,6 +35,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Widgets\ChartWidget;
 use Filament\Widgets\WidgetConfiguration;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -49,6 +50,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Livewire\Component;
 use Livewire\Livewire;
+use ReflectionMethod;
 use ReflectionProperty;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
@@ -172,6 +174,10 @@ class AuditPages extends Tool
                 $warnings[] = "- `{$key}`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
             }
 
+            if (is_subclass_of($widget, ChartWidget::class) && static::hasClickableLegend($widget)) {
+                $warnings[] = "- `{$key}`: its legend hides a series on a mouse click, which the keyboard can't do; set `'plugins' => ['legend' => ['onClick' => null]]` in `getOptions()`, and filter with the dashboard's filters instead (WCAG 2.1.1; Carbon legends).";
+            }
+
             try {
                 $rendered[$key] = Livewire::test($widget)->html();
                 $passing[] = "- `{$key}`";
@@ -201,6 +207,16 @@ class AuditPages extends Tool
         }
 
         return Response::text($text.($failing === [] && $issues === [] && $warnings === [] ? '' : "\nFix each one, then run storybook-audit again until none remain.\n"));
+    }
+
+    /** A chart whose legend shows and still toggles a series on click, Chart.js's default. */
+    protected static function hasClickableLegend(string $widget): bool
+    {
+        // No options is Chart.js's defaults; options written as JavaScript can't be read, so they are left alone.
+        $options = rescue(fn (): mixed => (new ReflectionMethod($widget, 'getOptions'))->invoke(new $widget), false, report: false) ?? [];
+        $legend = is_array($options) ? ($options['plugins']['legend'] ?? []) : [];
+
+        return is_array($options) && ($legend['display'] ?? true) !== false && ! array_key_exists('onClick', $legend);
     }
 
     /** The innermost error, which names the actual mistake, with the line to fix. */
@@ -285,6 +301,10 @@ class AuditPages extends Tool
             foreach ($visible as $column) {
                 if (static::isTitleCase((string) $column->getLabel(), $column->getName())) {
                     $warn("the column \"{$column->getLabel()}\" is in Title Case; write it in sentence case, capitalising only the first word, names and acronyms (Carbon data table).");
+                }
+
+                if ($column->hasTooltip()) {
+                    $warn("the column `{$column->getName()}` has a tooltip, which shows on mouse hover only; put the text in the column's `description()` or on the record's page (WCAG 2.1.1; Carbon tooltip: on a trigger reached by Tab).");
                 }
 
                 if ($column instanceof TextColumn && $column->isMoney() && ! in_array($column->getAlignment(), [Alignment::End, Alignment::Right], true)) {
@@ -381,6 +401,10 @@ class AuditPages extends Tool
 
             if (str_ends_with($label, ':')) {
                 $warn("the field label \"{$label}\" ends with a colon; drop it (Carbon forms).");
+            }
+
+            if (filled($field->getHintIconTooltip())) {
+                $warn("the field `{$name}` explains itself in a hint icon's tooltip, which shows on mouse hover only; put the text in `helperText()` (WCAG 2.1.1; Carbon form: the info icon \"is a button, which is in the tab order\").");
             }
 
             if ($field->isLabelHidden()) {

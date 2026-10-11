@@ -142,8 +142,15 @@ it('renders a screen story as the resource would, with its sample rows', functio
         ->assertSee('For example, 123-456-789-000');
 });
 
-it('loads the house CSS the patterns depend on, on every panel page', function (): void {
-    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->reject->isLoadedOnRequest()->map->getId()->values()->all())->toBe(['house']);
+it('loads the house CSS and script the patterns depend on, on every panel page', function (): void {
+    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->reject->isLoadedOnRequest()->map->getId()->values()->all())->toBe(['house'])
+        ->and(collect(Filament\Support\Facades\FilamentAsset::getScripts(['josephdlmd/filament-storybook']))->map->getId()->values()->all())->toBe(['house']);
+
+    // Copyable values become buttons the keyboard can use, and copying is announced (WCAG 2.1.1, 4.1.3).
+    expect(file_get_contents(__DIR__.'/../../resources/js/house.js'))
+        ->toContain("setAttribute('role', 'button')")
+        ->toContain("['Enter', ' ']")
+        ->toContain('Copied to clipboard');
 });
 
 it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on a panel that asks for it', function (): void {
@@ -334,7 +341,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 7 passing, 3 failing, 13 warnings, 1 accessibility issues')
+        ->toStartWith('# 8 passing, 3 failing, 14 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
         ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
@@ -346,6 +353,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.floatMoney`: round() works on floats')
         ->toContain('- `broken-story.ownSpacing`: sets its own padding or margin')
         ->toContain('- `broken-story.ownTypeAndColour`: sets its own font size, weight or colour')
+        ->toContain('- `broken-story.hoverOnlyTooltip`: a tooltip on a column, entry or hint icon shows on mouse hover only')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:44')
@@ -386,9 +394,11 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 25 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 27 warnings')
         ->toContain('Signed in as tester@example.com.')
         ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
+        ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
+        ->toContain('- `CreateGadget`: the field `serial` explains itself in a hint icon\'s tooltip')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
@@ -430,6 +440,7 @@ it('audits the real resource screens against the house rules', function (): void
 it('audits the dashboard\'s widgets on a full audit', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
         ->toContain('- `GadgetStats`: it reloads itself every 5s, and the user can\'t stop it')
+        ->toContain('- `GadgetSalesChart`: its legend hides a series on a mouse click')
         ->toContain('- `OrdersPerMonthChart`')
         ->not->toContain('- `OrdersPerMonthChart`:');
 });
@@ -457,7 +468,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 44 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 47 warnings')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
         ->toContain('- `PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')

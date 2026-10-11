@@ -80,6 +80,12 @@ class BrokenStories extends Stories
         return TextColumn::make('code')->extraAttributes(['class' => 'text-lg font-bold text-red-600']);
     }
 
+    /** Renders, but explains itself in a tooltip that shows on hover only. */
+    public function hoverOnlyTooltip(): TextColumn
+    {
+        return TextColumn::make('code')->tooltip('The supplier\'s own code');
+    }
+
     /** Renders, but works out money with floats. */
     public function floatMoney(): TextColumn
     {

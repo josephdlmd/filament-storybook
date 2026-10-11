@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook;
 
 use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 use Josephdlmd\FilamentStorybook\Commands\InstallCommand;
@@ -41,6 +42,7 @@ class FilamentStorybookServiceProvider extends ServiceProvider
         // Compact tables and the rest of compact load only on a panel that asks for them (compactTables(), compact()).
         FilamentAsset::register([
             Css::make('house', __DIR__.'/../resources/css/house.css'),
+            Js::make('house', __DIR__.'/../resources/js/house.js'),
             Css::make('compact-tables', __DIR__.'/../resources/css/compact-tables.css')->loadedOnRequest(),
             Css::make('compact', __DIR__.'/../resources/css/compact.css')->loadedOnRequest(),
         ], 'josephdlmd/filament-storybook');

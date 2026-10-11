@@ -18,6 +18,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `src/StorybookPlugin.php` | Registers the page and the **house defaults**: Filament defaults corrected app-wide where they break a rule. |
 | `resources/boost/guidelines/core.blade.php` | The guideline Boost puts in each app's `AGENTS.md`. Keep it short: Storybook found that long agent instructions get truncated. |
 | `resources/instructions/stories.md` | How to write a story. `storybook-instructions` returns it followed by `docs/rules.md`. |
+| `resources/js/house.js` | Script for rules Filament can't meet with CSS: copyable values the keyboard can use. Loaded on every panel page. |
 | `resources/css/house.css` | CSS for rules Filament has no setting for, published by `filament:upgrade`. |
 | `docs/rules.md` | **The rulebook:** every rule with its source and date, where we differ from Carbon, and what was dropped and why. |
 | `docs/carbon-coverage.md` | Every Carbon page checked against the rules and `compact()`: one row per page with its updated date, and each gap as a numbered finding with its status. Re-check a page when its date changes. |

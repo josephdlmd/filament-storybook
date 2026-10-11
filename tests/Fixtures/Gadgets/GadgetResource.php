@@ -42,7 +42,7 @@ class GadgetResource extends Resource
             TextInput::make('name')->label('Name')->required(),
             TextInput::make('code')->label('Code:')->placeholder('GAD-0001'),
             Section::make('Stock Keeping')->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
-            TextInput::make('serial')->label('Serial')->required()->validationMessages(['required' => 'Please enter the serial']),
+            TextInput::make('serial')->label('Serial')->hintIcon('heroicon-o-information-circle', tooltip: 'On the back of the gadget')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
             Select::make('owner_id')->label('Owner')->relationship('owner', 'name'),
             DatePicker::make('released_on')->label('Released On')->native(false),
@@ -60,7 +60,7 @@ class GadgetResource extends Resource
             ->columns([
                 TextColumn::make('code'),
                 TextColumn::make('name'),
-                TextColumn::make('price')->money('PHP'),
+                TextColumn::make('price')->money('PHP')->tooltip('Before VAT'),
                 TextColumn::make('created_at')->label('Created At'),
             ])
             ->filters([

@@ -25,7 +25,7 @@ class FixturePanelProvider extends PanelProvider
             ->path('fixture')
             ->plugin(StorybookPlugin::make())
             ->resources([GadgetResource::class])
-            ->widgets([GadgetStats::class, \Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class])
+            ->widgets([GadgetStats::class, GadgetSalesChart::class, \Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class])
             // Breaks the menu rules storybook-audit checks: an icons-only sidebar and a third level under Gadgets.
             // An ungrouped item with a child is only two levels, so it raises nothing.
             ->sidebarCollapsibleOnDesktop()
