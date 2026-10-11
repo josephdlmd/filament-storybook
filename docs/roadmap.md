@@ -6,13 +6,13 @@ What the package covers at v0.25.0 (2026-10-11), and what comes next.
 
 Generic screens: list tables (search, filters, money, status, import and export), record forms (every field pattern, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications and dashboards.
 
-Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing every document as a PDF in one shared layout (spatie/laravel-pdf, chosen by the owner). The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
+Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing documents as PDFs in one shared layout (spatie/laravel-pdf, chosen by the owner), and a copy-from view for the hand-written collection receipts. The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
 
 ## Next
 
 In this order (a proposal; the owner confirms):
 
-1. Sending documents by email (the PDF as an attachment)
+1. Sending documents by email (the PDF as an attachment), and the statement of account customers get instead of invoice copies
 2. Reports (date range, a totals row, grouping such as ageing)
 3. Bulk actions
 4. Contact fields (email, Philippine phone number, address)

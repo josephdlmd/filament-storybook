@@ -24,30 +24,32 @@ class PaymentStories extends Stories
 
     public function description(): string
     {
-        return 'Recording a payment, in full or in part, against a posted document\'s balance due: a collection from a customer against a sales invoice (`default`), or a payment to a supplier against what the business owes them (`supplierPayment`). Put it in the View page\'s `getHeaderActions()`, shown while a balance is due; each payment is a record of its own, listed on the document\'s View page (`records-related-records`). The form is a modal (fewer than five inputs) with the balance due in the amount\'s helper text. What it settles (the amount, plus any tax withheld) is checked against the balance on the server, and the error says the most it can be. Withholding tax is taken here, never on the document. From a customer, the user types the tax withheld from the customer\'s BIR Form 2307. To a supplier, the app works it out from the rate (1% for goods, 2% for services) on the VAT-exclusive share of the amount settled, with `DocumentTotals::withholding()` (the payment that settles the bill takes what is left, so the bill\'s payments together withhold exactly the rate on its total less VAT), and shows it and the cash to pay. When saving, lock the document\'s row, check the amounts against its balance again (two users may record payments at once), then lower its balance due, all in one transaction. The balance\'s status is Unpaid (gray), Partly paid (blue), Paid (green) or Overdue (red), each with its word (`paymentStatus`). Business standards from the owner (2026-10-11): payments both ways, withholding on payment, the rates, the 2307. Basis: Carbon forms (Aug 2026: a dialog for fewer than five inputs), GOV.UK error message (Jan 2024: say the limit, as in "must be 35 characters or less"), Carbon status indicators (Aug 2026: gray for not started, blue for workflow progress, green for success, red for danger), USWDS table (numbers right-aligned).';
+        return 'Recording a payment, in full or in part, against a posted document\'s balance due: a collection from a customer against a sales invoice (`default`), or a payment to a supplier against a purchase order (`supplierPayment`). Put it in the View page\'s `getHeaderActions()`, shown while a balance is due; each payment is a record of its own, listed on the document\'s View page (`records-related-records`). The collection form has six inputs, so it opens as a slide-over; the supplier payment is a modal. Each has the balance due in the amount\'s helper text, and what the payment settles is checked against the balance on the server; the error says the most it can be. A collection is written by hand on a BIR pre-printed collection receipt, so it is recorded under that receipt\'s serial, checked against the serials already used (in a resource, `->unique(Payment::class, \'number\', ignoreRecord: false)` with the app\'s own model, since Filament otherwise skips the row whose id matches the invoice\'s; the story checks the sample one), and staff copy the receipt from its View page (`records-paper-receipt`). What the customer withholds depends on who they are, set on the customer (`customerWithholding`): a government office withholds 1% income tax (EWT) and 5% VAT on the VAT-exclusive amount, a top withholding agent 1% income tax, others nothing. The collection proposes both from the balance due, and the cash expected, and the user records what the customer\'s 2307 shows. Both are creditable: the income tax against income tax, the VAT withheld (ATC WV010) against output VAT, on the VAT return only, so they are kept apart, each with its ATC. They are recorded with the payment even before the 2307 arrives; keep a `received_2307_on` date on the payment, which can still be set after posting (`records-locked`), and a list of payments still waiting for one. A supplier\'s withholding is worked out once on their invoice (`forms-document-totals.supplierInvoice`), so a supplier payment only settles the net payable, under the next PV number (`records-document-lifecycle.withSeries`). When saving, lock the document\'s row, check the amounts against its balance again (two users may record payments at once), then lower its balance due, all in one transaction. The balance\'s status is Unpaid (gray), Partly paid (blue), Paid (green) or Overdue (red), each with its word (`paymentStatus`). Business standards from the owner (2026-10-11). Basis: Carbon forms (Aug 2026: a dialog form for fewer than five inputs, a side panel for more than five), GOV.UK error message (Jan 2024: say the limit, as in "must be 35 characters or less"), Carbon status indicators (Aug 2026: gray for not started, blue for workflow progress, green for success, red for danger), USWDS table (numbers right-aligned).';
     }
 
-    public function examples(): array
+    // Not imported, so the snippet's imports stay what a resource needs.
+    public function model(): ?string
     {
-        return [DocumentTotals::class];
+        return Documents\SalesInvoice::class;
     }
 
     public function records(): array
     {
         return [
-            1 => ['status' => 'posted', 'number' => 'SI-000123', 'total' => '3363.71', 'vat' => '360.40', 'balance_due' => '2363.71', 'tax_withheld' => '8.93', 'payment_status' => 'partly_paid', 'supplier' => 'Benguet Trading'],
-            2 => ['status' => 'posted', 'number' => 'SI-000124', 'total' => '1120.00', 'vat' => '120.00', 'balance_due' => '1120.00', 'payment_status' => 'unpaid'],
-            3 => ['status' => 'posted', 'number' => 'SI-000119', 'total' => '5600.00', 'vat' => '600.00', 'balance_due' => '0.00', 'payment_status' => 'paid'],
-            4 => ['status' => 'posted', 'number' => 'SI-000102', 'total' => '890.50', 'vat' => '95.41', 'balance_due' => '890.50', 'payment_status' => 'overdue'],
+            1 => ['id' => 1, 'status' => 'posted', 'number' => '001232', 'total' => '112000.00', 'vat' => '12000.00', 'balance_due' => '112000.00', 'customer_withholding' => 'government', 'payment_status' => 'unpaid', 'supplier' => 'Benguet Trading', 'tax_withheld' => '47.30'],
+            2 => ['status' => 'posted', 'number' => '001233', 'total' => '3363.71', 'vat' => '360.40', 'balance_due' => '2363.71', 'customer_withholding' => 'top_withholding_agent', 'payment_status' => 'partly_paid'],
+            3 => ['status' => 'posted', 'number' => '001229', 'total' => '5600.00', 'balance_due' => '0.00', 'payment_status' => 'paid'],
+            4 => ['status' => 'posted', 'number' => '001214', 'total' => '890.50', 'balance_due' => '890.50', 'payment_status' => 'overdue'],
         ];
     }
 
-    /** A collection from a customer, with the tax withheld typed from their BIR Form 2307. */
+    /** A collection from a customer, under the serial of the receipt it was written on, with what the customer withheld proposed from their withholding type. */
     public function default(): Action
     {
         return Action::make('recordPayment')
             ->label('Record payment')
             ->visible(fn (?Model $record): bool => $record?->status === 'posted' && bccomp((string) $record?->balance_due, '0', 2) > 0)
+            ->slideOver()
             ->modalHeading(fn (?Model $record): string => "Record payment for invoice {$record?->number}")
             ->schema([
                 DatePicker::make('paid_on')
@@ -56,6 +58,14 @@ class PaymentStories extends Stories
                     ->maxDate(today())
                     ->required()
                     ->maxWidth('xs'),
+                TextInput::make('number')
+                    ->label('Receipt number')
+                    ->helperText('The serial printed on the collection receipt you wrote')
+                    ->required()
+                    ->maxLength(20)
+                    ->unique(Documents\Payment::class, 'number', ignoreRecord: false)
+                    ->maxWidth('xs')
+                    ->validationMessages(['unique' => 'Enter the serial of the receipt you wrote; receipt :input is already recorded']),
                 TextInput::make('amount')
                     ->label('Amount received')
                     ->numeric()
@@ -64,46 +74,74 @@ class PaymentStories extends Stories
                     ->minValue(0)
                     ->required()
                     ->maxWidth('xs')
+                    ->default(fn (?Model $record): string => bcsub(bcsub((string) $record?->balance_due,
+                        DocumentTotals::expectedWithholding((string) $record?->balance_due, (string) $record?->total, (string) $record?->vat, in_array($record?->customer_withholding, ['government', 'top_withholding_agent'], true) ? '0.01' : '0'), 2),
+                        DocumentTotals::expectedWithholding((string) $record?->balance_due, (string) $record?->total, (string) $record?->vat, $record?->customer_withholding === 'government' ? '0.05' : '0'), 2))
                     ->helperText(fn (?Model $record): string => 'Balance due '.Number::currency((float) $record?->balance_due, 'PHP'))
                     ->rules([
                         'decimal:0,2',
                         fn (Get $get, ?Model $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
-                            $settled = bcadd(number_format((float) $value, 2, '.', ''), number_format((float) $get('tax_withheld'), 2, '.', ''), 2);
+                            $settled = bcadd(bcadd(number_format((float) $value, 2, '.', ''), number_format((float) $get('tax_withheld'), 2, '.', ''), 2), number_format((float) $get('vat_withheld'), 2, '.', ''), 2);
 
                             if (bccomp($settled, '0', 2) <= 0) {
                                 $fail('Enter the amount received, the tax withheld, or both');
                             } elseif (bccomp($settled, (string) $record?->balance_due, 2) > 0) {
-                                $fail('Amount received and tax withheld together must be '.Number::currency((float) $record?->balance_due, 'PHP').' or less, the balance due');
+                                $fail('Amount received and taxes withheld together must be '.Number::currency((float) $record?->balance_due, 'PHP').' or less, the balance due');
                             }
                         },
                     ])
                     ->validationMessages(['decimal' => 'Enter the amount with at most 2 decimal places, such as 1250.50']),
                 TextInput::make('tax_withheld')
-                    ->label('Tax withheld (optional)')
-                    ->helperText('From the customer\'s BIR Form 2307')
+                    ->label('Income tax withheld (optional)')
+                    ->helperText('As on the customer\'s 2307, even before it arrives')
                     ->numeric()
                     ->prefix('₱')
                     ->step(0.01)
                     ->minValue(0)
                     ->rules(['decimal:0,2'])
                     ->maxWidth('xs')
-                    ->validationMessages(['decimal' => 'Enter the tax withheld with at most 2 decimal places, such as 30.03']),
+                    ->default(fn (?Model $record): string => DocumentTotals::expectedWithholding((string) $record?->balance_due, (string) $record?->total, (string) $record?->vat, in_array($record?->customer_withholding, ['government', 'top_withholding_agent'], true) ? '0.01' : '0'))
+                    ->validationMessages(['decimal' => 'Enter the income tax withheld with at most 2 decimal places, such as 1000.00']),
+                TextInput::make('vat_withheld')
+                    ->label('VAT withheld (optional)')
+                    ->helperText('Withheld by a government buyer; claimed on the VAT return')
+                    ->numeric()
+                    ->prefix('₱')
+                    ->step(0.01)
+                    ->minValue(0)
+                    ->rules(['decimal:0,2'])
+                    ->maxWidth('xs')
+                    ->default(fn (?Model $record): string => DocumentTotals::expectedWithholding((string) $record?->balance_due, (string) $record?->total, (string) $record?->vat, $record?->customer_withholding === 'government' ? '0.05' : '0'))
+                    ->validationMessages(['decimal' => 'Enter the VAT withheld with at most 2 decimal places, such as 5000.00']),
                 TextInput::make('reference')
-                    ->label('Reference number (optional)')
-                    ->helperText('For example, the check or deposit slip number')
+                    ->label('Check or reference number (optional)')
                     ->maxLength(50)
                     ->maxWidth('xs'),
             ])
             ->modalSubmitActionLabel('Record payment')
             ->successNotificationTitle('Payment recorded')
             ->action(function (Model $record, array $data, Action $action): void {
-                // On a resource, in DB::transaction(): lock the invoice with lockForUpdate(), check the amounts against its balance again,
-                // create the payment, and lower balance_due by the amount plus the tax withheld, with bcmath.
+                // On a resource, in DB::transaction(): lock the invoice with lockForUpdate(), check the amounts against its balance again, create the
+                // payment, and lower balance_due by the amount plus both taxes withheld, with bcmath. Keep each tax with its ATC for its 2307.
                 $action->success();
             });
     }
 
-    /** A payment to a supplier: the app works out the tax withheld from the rate, and shows the cash to pay. */
+    /** On the customer's form: who withholds from our invoices, which sets the withholding a collection proposes. */
+    public function customerWithholding(): Radio
+    {
+        return Radio::make('customer_withholding')
+            ->label('Withholds from our invoices')
+            ->options([
+                'government' => 'Government: 1% income tax and 5% VAT',
+                'top_withholding_agent' => 'Top withholding agent: 1% income tax',
+                'none' => 'No withholding',
+            ])
+            ->default('none')
+            ->required();
+    }
+
+    /** A payment to a supplier: the tax withheld was worked out on their invoice, so the payment settles the net payable. */
     public function supplierPayment(): Action
     {
         return Action::make('recordPayment')
@@ -117,15 +155,8 @@ class PaymentStories extends Stories
                     ->maxDate(today())
                     ->required()
                     ->maxWidth('xs'),
-                Radio::make('withholding_rate')
-                    ->options([
-                        '0.01' => '1%, for goods',
-                        '0.02' => '2%, for services',
-                    ])
-                    ->required()
-                    ->live(),
                 TextInput::make('amount')
-                    ->label('Amount settled')
+                    ->label('Amount paid')
                     ->numeric()
                     ->prefix('₱')
                     ->step(0.01)
@@ -133,36 +164,27 @@ class PaymentStories extends Stories
                     ->maxValue(fn (?Model $record): string => (string) $record?->balance_due)
                     ->rules(['decimal:0,2'])
                     ->required()
-                    ->live(onBlur: true)
                     ->maxWidth('xs')
-                    ->helperText(fn (?Model $record): string => 'Balance due '.Number::currency((float) $record?->balance_due, 'PHP').', including the tax withheld')
+                    ->helperText(fn (?Model $record): string => 'Net payable '.Number::currency((float) $record?->balance_due, 'PHP'))
                     ->validationMessages([
-                        'min' => 'Amount settled must be ₱0.01 or more',
-                        'max' => fn (?Model $record): string => 'Amount settled must be '.Number::currency((float) $record?->balance_due, 'PHP').' or less, the balance due',
+                        'min' => 'Amount paid must be ₱0.01 or more',
+                        'max' => fn (?Model $record): string => 'Amount paid must be '.Number::currency((float) $record?->balance_due, 'PHP').' or less, the net payable',
                         'decimal' => 'Enter the amount with at most 2 decimal places, such as 1250.50',
                     ]),
                 TextEntry::make('tax_withheld')
-                    ->state(fn (Get $get, ?Model $record): ?string => is_numeric($get('amount')) && filled($get('withholding_rate'))
-                        ? DocumentTotals::withholding(number_format((float) $get('amount'), 2, '.', ''), (string) $record?->total, (string) $record?->vat, $get('withholding_rate'), (string) $record?->balance_due, (string) $record?->tax_withheld)
-                        : null)
-                    ->money('PHP'),
-                TextEntry::make('cash_paid')
-                    ->label('Cash to pay')
-                    ->state(fn (Get $get, ?Model $record): ?string => is_numeric($get('amount')) && filled($get('withholding_rate'))
-                        ? bcsub(number_format((float) $get('amount'), 2, '.', ''), DocumentTotals::withholding(number_format((float) $get('amount'), 2, '.', ''), (string) $record?->total, (string) $record?->vat, $get('withholding_rate'), (string) $record?->balance_due, (string) $record?->tax_withheld), 2)
-                        : null)
+                    ->label('Tax withheld on this order')
+                    ->state(fn (?Model $record): ?string => $record?->tax_withheld)
                     ->money('PHP'),
                 TextInput::make('reference')
-                    ->label('Reference number (optional)')
-                    ->helperText('For example, the check number')
+                    ->label('Check or reference number (optional)')
                     ->maxLength(50)
                     ->maxWidth('xs'),
             ])
             ->modalSubmitActionLabel('Record payment')
             ->successNotificationTitle('Payment recorded')
             ->action(function (Model $record, array $data, Action $action): void {
-                // On a resource, in DB::transaction(): lock the bill with lockForUpdate(), check the amount against its balance again,
-                // work out the tax withheld again with DocumentTotals::withholding(), create the payment, and lower balance_due by the amount.
+                // On a resource, in DB::transaction(): lock the order with lockForUpdate(), check the amount against its balance again,
+                // create the payment under DocumentNumber::next('PV'), and lower balance_due by the amount.
                 $action->success();
             });
     }

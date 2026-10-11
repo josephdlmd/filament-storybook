@@ -38,6 +38,7 @@ class SampleDatabase
         $schema->create('payments', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('sales_invoice_id');
+            $table->string('number')->unique();
             $table->string('status');
         });
 
@@ -60,8 +61,8 @@ class SampleDatabase
 
         // Invoice 001232 has a live payment; 001234 has only a void one.
         DB::connection('storybook')->table('payments')->insert([
-            ['sales_invoice_id' => 2, 'status' => 'posted'],
-            ['sales_invoice_id' => 3, 'status' => 'void'],
+            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted'],
+            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void'],
         ]);
     }
 }

@@ -18,7 +18,7 @@ class DownloadPdfStories extends Stories
 
     public function description(): string
     {
-        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a collection receipt; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). A sales invoice\'s official copy is the BIR pre-printed form it was written on, so its printout is titled "Sales invoice (copy)", carries the form\'s serial and says it is not valid for claim of input tax, as does a collection receipt, which RR 7-2024 makes a supplementary document. Business standards from the owner (2026-10-11). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
+        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). Sales invoices and collection receipts are written by hand on BIR pre-printed forms, which are the official copies. A sales invoice\'s printout is for the business\'s own file: titled "Sales invoice (copy)", with the form\'s serial, and not valid for claim of input tax. Customers get a statement of account instead. A collection receipt isn\'t printed; staff copy it from `records-paper-receipt`. Business standards from the owner (2026-10-11). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
     }
 
     public function examples(): array
@@ -112,28 +112,27 @@ class DownloadPdfStories extends Stories
             ]]);
     }
 
-    /** A collection receipt: the invoices a payment settles, the tax withheld, and BIR's statement for a supplementary document. */
-    public function collectionReceipt(): View
+    /** A payment voucher: what is paid to a supplier against which orders, the tax withheld, and the signatures that approve it. */
+    public function paymentVoucher(): View
     {
         return View::make('filament-storybook::documents.document')
             ->viewData(['document' => [
-                'title' => 'Collection receipt',
+                'title' => 'Payment voucher',
                 'number_label' => 'No.',
-                'number' => 'CR-000318',
+                'number' => 'PV-000087',
                 'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Received from', 'name' => 'Cebu Diagnostics Laboratory', 'tin' => '987-654-321-000'],
-                'details' => ['Date' => 'October 25, 2026', 'Paid by' => 'Check 0048213'],
+                'party' => ['label' => 'Paid to', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600', 'tin' => '234-567-890-000'],
+                'details' => ['Date' => 'October 25, 2026', 'Paid by' => 'Check 0051177'],
                 'columns' => [
-                    'invoice' => ['label' => 'Invoice'],
-                    'date' => ['label' => 'Invoice date'],
-                    'amount' => ['label' => 'Amount settled', 'format' => 'money'],
+                    'order' => ['label' => 'Purchase order'],
+                    'invoice' => ['label' => 'Supplier\'s invoice'],
+                    'amount' => ['label' => 'Amount paid', 'format' => 'money'],
                 ],
                 'lines' => [
-                    ['invoice' => '001232', 'date' => 'October 11, 2026', 'amount' => '6326.00'],
+                    ['order' => 'PO-000042', 'invoice' => 'BT-20931', 'amount' => '5250.70'],
                 ],
-                'totals' => ['Amount received' => '6266.41', 'Tax withheld (BIR Form 2307)' => '59.59', 'Total settled' => '6326.00'],
-                'signatures' => ['Received by'],
-                'statement' => 'THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX',
+                'totals' => ['Invoice total' => '5298.00', 'Tax withheld (WC158, 1%)' => '47.30', 'Amount paid' => '5250.70'],
+                'signatures' => ['Prepared by', 'Approved by', 'Received by'],
             ]]);
     }
 }

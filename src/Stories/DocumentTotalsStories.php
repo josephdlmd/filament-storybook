@@ -2,6 +2,9 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
@@ -10,6 +13,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Number;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
 
@@ -22,7 +27,7 @@ class DocumentTotalsStories extends Stories
 
     public function description(): string
     {
-        return 'The lines and totals of a sales invoice, purchase order or bill: each line has a VAT class, and under the lines come the VATable sales, the VAT, the zero-rated and VAT-exempt sales, and the total amount due. Unit prices include VAT, so the VAT is 12/112 of the VATable total, worked out once per document and rounded once to centavos, half up; the VATable sales are that total less the VAT. All of it is decimal arithmetic in the `DocumentTotals` class (copy it from the examples); never PHP floats. Withholding tax is not on the document: it is taken when the document is paid (`actions-record-payment`), so the total amount due is before withholding. The totals are read-only text, right-aligned. Work them out again with `DocumentTotals::of($lines)` when saving and store them in decimal columns; never save what the form showed. The lines follow `forms-line-items`. Business standards from the owner (2026-10-10 and 2026-10-11): VAT per document for each class, prices including VAT, half-up rounding; BIR RR 7-2024 (VAT shown as a separate item, VATable, zero-rated and exempt sales shown apart). Basis: Carbon text input (read-only, not disabled, for a value to read), Carbon forms (labels above), USWDS table (numbers right-aligned).';
+        return 'The lines and totals of a sales invoice, purchase order or bill: each line has a VAT class, and under the lines come the VATable sales, the VAT, the zero-rated and VAT-exempt sales, and the total amount due. Unit prices include VAT, so the VAT is 12/112 of the VATable total, worked out once per document and rounded once to centavos, half up; the VATable sales are that total less the VAT. All of it is decimal arithmetic in the `DocumentTotals` class (copy it from the examples); never PHP floats. A sales invoice\'s total amount due is before withholding; what a customer withholds is recorded with their payment (`actions-record-payment`). A supplier\'s invoice is recorded on its purchase order\'s View page, as printed (`supplierInvoice`): its total and its VAT as the supplier wrote them, since the printed VAT is what supports the input tax, with the order\'s own VAT beside it so a typing mistake stands out. The tax withheld from it is worked out once, there: the rate of the supplier\'s ATC (their default, changeable on the invoice) on the total less VAT, with `DocumentTotals::withholding()`. Payments then settle the net payable, and the order\'s BIR Form 2307 shows that figure; store the supplier\'s TIN and the ATC with it. The two here apply only to a company BIR has made a top withholding agent, which `config/company.php` says (`top_withholding_agent`); add the others the CPA confirms, such as rent or professional fees, which apply either way. The totals are read-only text, right-aligned. Work them out again with `DocumentTotals::of($lines)` when saving and store them in decimal columns; never save what the form showed. The lines follow `forms-line-items`. Business standards from the owner (2026-10-10 and 2026-10-11): VAT per document for each class, prices including VAT, half-up rounding; BIR RR 7-2024 (VAT shown as a separate item, VATable, zero-rated and exempt sales shown apart). Basis: Carbon text input (read-only, not disabled, for a value to read), Carbon forms (labels above), USWDS table (numbers right-aligned).';
     }
 
     public function examples(): array
@@ -36,7 +41,7 @@ class DocumentTotalsStories extends Stories
             ['description' => 'Nitrile examination gloves, medium, box of 100', 'vat_class' => 'vatable', 'quantity' => '12', 'unit_price' => '285.5'],
             ['description' => 'Insulin pens, 3 mL, pack of 5', 'vat_class' => 'exempt', 'quantity' => '2', 'unit_price' => '1450'],
             ['description' => 'Isopropyl alcohol 70%, 500 mL', 'vat_class' => 'vatable', 'quantity' => '2.5', 'unit_price' => '89.2857'],
-        ]]];
+        ], 'number' => 'PO-000042', 'vat' => '567.64', 'supplier_atc' => 'WC158']];
     }
 
     /** An invoice's lines with the totals under them, worked out as the user types. */
@@ -119,5 +124,76 @@ class DocumentTotalsStories extends Stories
                         ->alignEnd(),
                 ]),
             ]);
+    }
+
+    /** Recording a supplier's invoice on its purchase order: its figures as printed, and the tax withheld from its total, worked out once. */
+    public function supplierInvoice(): Action
+    {
+        return Action::make('recordSupplierInvoice')
+            ->label('Record supplier\'s invoice')
+            ->color('gray')
+            ->modalHeading(fn (?Model $record): string => "Record supplier's invoice for order {$record?->number}")
+            ->schema([
+                TextInput::make('supplier_invoice_number')
+                    ->label('Supplier\'s invoice number')
+                    ->required()
+                    ->maxLength(30)
+                    ->maxWidth('xs'),
+                DatePicker::make('supplier_invoice_date')
+                    ->label('Invoice date')
+                    ->maxDate(today())
+                    ->required()
+                    ->maxWidth('xs'),
+                TextInput::make('total')
+                    ->label('Total as printed')
+                    ->numeric()
+                    ->prefix('₱')
+                    ->step(0.01)
+                    ->minValue(0)
+                    ->rules(['decimal:0,2'])
+                    ->required()
+                    ->live(onBlur: true)
+                    ->maxWidth('xs')
+                    ->validationMessages(['decimal' => 'Enter the total with at most 2 decimal places, such as 5298.00']),
+                TextInput::make('vat')
+                    ->label('VAT as printed')
+                    ->numeric()
+                    ->prefix('₱')
+                    ->step(0.01)
+                    ->minValue(0)
+                    ->rules(['decimal:0,2'])
+                    ->required()
+                    ->live(onBlur: true)
+                    ->maxWidth('xs')
+                    ->helperText(fn (?Model $record): string => 'The purchase order works out '.Number::currency((float) $record?->vat, 'PHP'))
+                    ->validationMessages(['decimal' => 'Enter the VAT with at most 2 decimal places, such as 567.64']),
+                Radio::make('withholding_code')
+                    ->label('Withholding')
+                    ->options(fn (): array => [
+                        // A top withholding agent withholds from every regular supplier; BIR says which companies are.
+                        ...(config('company.top_withholding_agent') ? ['WC158' => 'WC158, 1% on goods', 'WC160' => 'WC160, 2% on services'] : []),
+                        'none' => 'None',
+                    ])
+                    ->default(fn (?Model $record): ?string => $record?->supplier_atc)
+                    ->required()
+                    ->live(),
+                TextEntry::make('tax_withheld')
+                    ->state(fn (Get $get): ?string => is_numeric($get('total')) && is_numeric($get('vat')) && filled($get('withholding_code'))
+                        ? DocumentTotals::withholding(number_format((float) $get('total'), 2, '.', ''), number_format((float) $get('vat'), 2, '.', ''), ['WC158' => '0.01', 'WC160' => '0.02', 'none' => '0'][$get('withholding_code')])
+                        : null)
+                    ->money('PHP'),
+                TextEntry::make('net_payable')
+                    ->state(fn (Get $get): ?string => is_numeric($get('total')) && is_numeric($get('vat')) && filled($get('withholding_code'))
+                        ? bcsub(number_format((float) $get('total'), 2, '.', ''), DocumentTotals::withholding(number_format((float) $get('total'), 2, '.', ''), number_format((float) $get('vat'), 2, '.', ''), ['WC158' => '0.01', 'WC160' => '0.02', 'none' => '0'][$get('withholding_code')]), 2)
+                        : null)
+                    ->money('PHP'),
+            ])
+            ->modalSubmitActionLabel('Record invoice')
+            ->successNotificationTitle('Supplier\'s invoice recorded')
+            ->action(function (Model $record, array $data, Action $action): void {
+                // On a resource: work the tax withheld out again with DocumentTotals::withholding(), store it with the supplier's TIN and the code,
+                // and set the order's balance_due to the net payable.
+                $action->success();
+            });
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
+use Illuminate\Support\Number;
+
 /**
  * A document's money, worked out the one way the books use: decimal strings, never floats, and each figure rounded
  * once, half up. The form shows these and the server works them out again when saving, so the two always agree.
@@ -53,21 +55,33 @@ class DocumentTotals
     }
 
     /**
-     * The tax withheld from a supplier payment: the rate on the VAT-exclusive share of the amount settled. The payment
-     * that settles the rest of the bill takes what is left, so a bill's payments together withhold exactly the rate on
-     * its total less VAT, as its BIR Form 2307 shows.
+     * The tax withheld from a supplier's bill: the rate of its ATC on the bill's total less VAT, worked out once when
+     * the bill is posted. Payments then settle the net payable, and the purchase order's BIR Form 2307 shows this figure.
      */
-    public static function withholding(string $settled, string $total, string $vat, string $rate, string $balance, string $withheldSoFar = '0.00'): string
+    public static function withholding(string $total, string $vat, string $rate): string
     {
-        if (bccomp($settled, $balance, 2) === 0) {
-            return bcsub(static::round(bcmul(bcsub($total, $vat, 2), $rate, 6)), $withheldSoFar, 2);
-        }
+        return static::round(bcmul(bcsub($total, $vat, 2), $rate, 6));
+    }
 
+    /**
+     * What a customer is expected to withhold from a payment of `$amount` against an invoice: the rate on the
+     * VAT-exclusive share of it. A proposal only; the user records what the customer's BIR Form 2307 shows.
+     */
+    public static function expectedWithholding(string $amount, string $total, string $vat, string $rate): string
+    {
         if (bccomp($total, '0', 2) === 0) {
             return '0.00';
         }
 
-        return static::round(bcdiv(bcmul(bcmul($settled, bcsub($total, $vat, 2), 4), $rate, 6), $total, 10));
+        return static::round(bcdiv(bcmul(bcmul($amount, bcsub($total, $vat, 2), 4), $rate, 6), $total, 10));
+    }
+
+    /** An amount as it is written on a check or a receipt: "Six thousand two hundred sixty-six pesos and 41/100". */
+    public static function inWords(string $amount): string
+    {
+        [$pesos, $centavos] = explode('.', static::round($amount));
+
+        return ucfirst(Number::spell((int) $pesos)).' '.($pesos === '1' ? 'peso' : 'pesos')." and {$centavos}/100";
     }
 
     /** Half up to centavos, away from zero for a negative, so a credit mirrors its sale. */

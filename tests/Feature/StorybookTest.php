@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -215,7 +215,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-record-picker, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-record-picker, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -257,7 +257,7 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
 
 it('reports every story passing', function (): void {
     expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 52 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 55 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -534,14 +534,28 @@ it('works out a document\'s VAT once per class, as 12/112 of the VAT-inclusive t
     'an unfinished line counts as nothing' => [[['quantity' => '', 'unit_price' => '50', 'vat_class' => 'vatable'], ['quantity' => '1', 'unit_price' => '50']], ['vatable_sales' => '0.00', 'vat' => '0.00', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '0.00']],
 ]);
 
-it('withholds from a supplier the rate on the VAT-exclusive share of what is settled, the last payment taking what is left', function (string $settled, string $balance, string $soFar, string $withheld): void {
-    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::withholding($settled, '1120.00', '120.00', '0.01', $balance, $soFar))->toBe($withheld);
-})->with([
-    'the whole bill: the rate on its total less VAT' => ['1120.00', '1120.00', '0.00', '10.00'],
-    'part of it, in proportion' => ['560.00', '1120.00', '0.00', '5.00'],
-    'rounded once, half up' => ['100.00', '1120.00', '0.00', '0.89'],
-    'the last payment takes what is left' => ['1020.00', '1020.00', '0.89', '9.11'],
-]);
+it('withholds from a supplier\'s invoice once, the rate on its total less VAT, and writes amounts as on a receipt', function (): void {
+    $totals = Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::class;
+
+    expect($totals::withholding('5298.00', '567.64', '0.01'))->toBe('47.30')
+        ->and($totals::withholding('1120.00', '120.00', '0.02'))->toBe('20.00')
+        ->and($totals::withholding('100.50', '0.00', '0.01'))->toBe('1.01')
+        ->and($totals::inWords('6266.41'))->toBe('Six thousand two hundred sixty-six pesos and 41/100')
+        ->and($totals::inWords('1'))->toBe('One peso and 00/100');
+});
+
+it('records a supplier\'s invoice as printed, withholding at the supplier\'s code once', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
+        ->assertSchemaStateSet(['withholding_code' => 'WC158', 'vat' => null], 'mountedActionSchema0')
+        ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => '567.64']);
+    $schema = $canvas->instance()->getSchema('mountedActionSchema0');
+
+    expect($schema->getComponent('tax_withheld')->getState())->toBe('47.30')
+        ->and($schema->getComponent('net_payable')->getState())->toBe('5250.70');
+
+    $canvas->callMountedAction()->assertHasNoActionErrors()->assertNotified('Supplier\'s invoice recorded');
+});
 
 it('numbers posted documents in one series per prefix, with no gaps', function (): void {
     Illuminate\Support\Facades\Schema::create('document_numbers', function (Illuminate\Database\Schema\Blueprint $table): void {
@@ -557,15 +571,16 @@ it('numbers posted documents in one series per prefix, with no gaps', function (
 
 it('checks a payment against the balance due, with the tax withheld', function (array $data, ?string $error): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
-        ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), ...$data]);
+        ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), 'number' => '004518', ...$data]);
 
-    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors(['amount' => $error]);
+    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors([array_key_first($data) === 'number' ? 'number' : 'amount' => $error]);
 })->with([
-    'part of the balance' => [['amount' => '1000', 'tax_withheld' => '20'], null],
-    'the whole balance with the tax withheld' => [['amount' => '2340.00', 'tax_withheld' => '23.71'], null],
-    'only the 2307, received later' => [['amount' => '0', 'tax_withheld' => '23.71'], null],
-    'more than the balance' => [['amount' => '2340.00', 'tax_withheld' => '23.72'], 'Amount received and tax withheld together must be ₱2,363.71 or less, the balance due'],
-    'nothing' => [['amount' => '0', 'tax_withheld' => ''], 'Enter the amount received, the tax withheld, or both'],
+    'a receipt serial already recorded' => [['number' => '004516', 'amount' => '1000'], 'Enter the serial of the receipt you wrote; receipt 004516 is already recorded'],
+    'part of the balance' => [['amount' => '50000', 'tax_withheld' => '500', 'vat_withheld' => '2500'], null],
+    'the whole balance, net of both taxes' => [['amount' => '106000.00', 'tax_withheld' => '1000.00', 'vat_withheld' => '5000.00'], null],
+    'only the taxes, the cash paid earlier' => [['amount' => '0', 'tax_withheld' => '1000', 'vat_withheld' => '5000'], null],
+    'more than the balance' => [['amount' => '106000.00', 'tax_withheld' => '1000.00', 'vat_withheld' => '5000.01'], 'Amount received and taxes withheld together must be ₱112,000.00 or less, the balance due'],
+    'nothing' => [['amount' => '0', 'tax_withheld' => '', 'vat_withheld' => ''], 'Enter the amount received, the tax withheld, or both'],
 ]);
 
 it('picks a customer by code or name, showing both', function (): void {
@@ -577,6 +592,26 @@ it('picks a customer by code or name, showing both', function (): void {
     expect($select->getSearchResults('C-0004'))->toBe([4 => 'C-0004 Davao Family Clinic'])
         ->and($select->getSearchResults('iloilo'))->toBe([5 => 'C-0005 Iloilo Dental Group']);
 });
+
+it('proposes what a government office withholds: 1% income tax and 5% VAT on the amount less VAT, and the cash expected', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'))
+        ->assertSchemaStateSet(['amount' => '106000.00', 'tax_withheld' => '1000.00', 'vat_withheld' => '5000.00'], 'mountedActionSchema0');
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('2363.71', '3363.71', '360.40', '0.01'))->toBe('21.10');
+});
+
+it('offers a top withholding agent\'s codes for a supplier only when the company is one', function (bool $agent, array $codes): void {
+    config(['company.top_withholding_agent' => $agent]);
+
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'));
+
+    expect(array_keys($canvas->instance()->getSchema('mountedActionSchema0')->getComponent('withholding_code')->getOptions()))->toBe($codes);
+})->with([
+    'a top withholding agent' => [true, ['WC158', 'WC160', 'none']],
+    'any other company' => [false, ['none']],
+]);
 
 it('posts a sales invoice under the serial of its BIR form, refusing one already recorded', function (string $number, ?string $error): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'story' => 'default'])
