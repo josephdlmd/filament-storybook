@@ -182,3 +182,102 @@
     font-size: 0.875rem;
     line-height: 1.125rem;
 }
+
+/* The rest of Filament's medium (500) text, by role (Carbon typography: "Light, Regular, and SemiBold"). Regular (400):
+   labels and running text. Semibold (600): headings, the current page in the menu and in the pagination, a text brand
+   name and the page title, which Filament sets bold (700; owner's decision, 2026-10-11). A weight an app sets with
+   weight() keeps it. */
+:is(.fi-fieldset, .fi-sc-actions-label, .fi-fo-repeater-label-between-items, .fi-fo-builder-label-between-items, .fi-pagination-overview, .fi-pagination-item-label, .fi-global-search-result-detail-label, .fi-ta-col-manager-label, .fi-ta-filter-indicators-label, .fi-ta-reorder-indicator, .fi-ta-selection-indicator-actions-ctn, .fi-topbar-item-label, .fi-user-menu-trigger, .fi-tenant-menu-trigger, .fi-fo-date-time-picker-month-select, .fi-fo-date-time-picker-calendar-header-day, .fi-wi-stats-overview-stat-label, .fi-in-image-limited-remaining-text, .fi-ta-image-limited-remaining-text, .filepond--label-action) {
+    font-weight: 400;
+}
+
+:is(.fi-dropdown-header, .fi-global-search-result-heading, .fi-fo-repeater-item-header-label, .fi-fo-builder-item-header-label, .fi-sc-section-label, .fi-ta-group-heading, .fi-ta-summary-header-cell, .fi-ta-summary-row-heading-cell, .fi-sidebar-database-notifications-btn-label, .fi-header-heading),
+.fi-pagination-item.fi-active .fi-pagination-item-label,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn > .fi-sidebar-item-label {
+    font-weight: 600;
+}
+
+/* A text brand name is 14px semibold (Carbon UI shell header: the product name is heading-compact-01; owner's decision,
+   2026-10-11). An image logo keeps brandLogoHeight(). */
+.fi-logo:not(:has(img)) {
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+    font-weight: 600;
+}
+
+/* Icons: 16px inside buttons, links, icon buttons, menu items, tabs and a section's collapse button; 20px in the top bar,
+   toasts and callouts; a modal's close icon 16px (Carbon button, link, menu, tabs, accordion and notification: "16px and
+   20px icons are optimized … paired with 14px"; icons: "consistent throughout your product"). */
+:is(.fi-btn, .fi-link, .fi-icon-btn, .fi-dropdown-list-item, .fi-tabs-item, .fi-section-collapse-btn, .fi-modal-close-btn) .fi-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.fi-topbar .fi-icon-btn .fi-icon,
+.fi-no-notification-icon,
+.fi-callout-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Menus fit their content between 160px and 288px, and their items wrap instead of being cut off, like the menu's own
+   labels (Carbon menu buttons: 160px to 288px; Carbon overflow content: no truncation of labels). */
+.fi-dropdown-panel:not(.fi-fo-select .fi-dropdown-panel) {
+    width: max-content !important;
+    min-width: 10rem;
+    max-width: 18rem !important;
+}
+
+.fi-dropdown-list-item-label,
+.fi-sidebar-item-label {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+/* Tooltips are at most 288px wide, with 2px above and below the text (Carbon tooltip). */
+.tippy-box {
+    max-width: 18rem !important;
+
+    & .tippy-content {
+        padding-block: 0.125rem;
+    }
+}
+
+/* The menu's items sit 16px from the panel's edge (8px of panel and 8px of item); toasts stack 8px apart, and breadcrumb
+   items 4px (Carbon UI shell left panel, notification and breadcrumb). The gap between menu groups stays: themes such as
+   Noir draw the group's divider in it. */
+.fi-sidebar-nav {
+    padding-inline: 0.5rem;
+}
+
+.fi-sidebar-nav-groups {
+    margin-inline: 0;
+}
+
+.fi-no {
+    gap: 0.5rem;
+}
+
+.fi-breadcrumbs :is(ol, li) {
+    column-gap: 0.25rem;
+}
+
+/* The Compact theme's 6px gaps, off Carbon's spacing scale, become 8px: a key figure's label, icon and value, and a
+   read-only label above its value, except inside a table, where the label is hidden (Carbon spacing). */
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-content {
+    row-gap: 0.5rem;
+}
+
+.fi-wi-stats-overview-stat .fi-wi-stats-overview-stat-label-ctn {
+    column-gap: 0.5rem;
+}
+
+.fi-in-entry:not(.fi-in-table-repeatable .fi-in-entry) {
+    row-gap: 0.5rem;
+}
+
+/* A disabled control shows that it can't be used (Carbon disabled states: cursor not-allowed). */
+:is(.fi-btn, .fi-icon-btn, .fi-link):is([disabled], .fi-disabled) {
+    cursor: not-allowed;
+}

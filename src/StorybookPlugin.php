@@ -120,6 +120,9 @@ class StorybookPlugin implements Plugin
             // Carbon's modal starts on the left, like every form modal; Filament centres a confirmation round a 48px
             // icon, which compact.css hides. An action that sets its own alignment keeps it.
             Action::configureUsing(fn (Action $action): Action => $action->modalAlignment(Alignment::Start));
+
+            // A menu opens 4px from its button (Carbon popover).
+            ActionGroup::configureUsing(fn (ActionGroup $group): ActionGroup => $group->dropdownOffset(4));
         }
 
         if ($this->houseDefaults) {

@@ -54,7 +54,7 @@ class NotificationStories extends Stories
                 Notification::make()
                     ->danger()
                     ->title('Order 1042 not saved')
-                    ->body('The stock count changed while you were editing. Check the quantities and save again.')
+                    ->body('Someone changed the stock. Check it and save again.')
                     ->send();
 
                 $action->halt();

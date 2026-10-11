@@ -1,6 +1,6 @@
 # Carbon coverage
 
-Every Carbon page was checked against `docs/rules.md` and `StorybookPlugin::compact()` on 2026-10-11. Each page gets one row below, and each gap gets one finding.
+Every Carbon page was checked against `docs/rules.md` and `StorybookPlugin::compact()` on 2026-10-11, and the findings were worked through the same day in six releases (v0.33.0 to v0.38.0). Each page gets one row below, and each gap gets one finding.
 To keep this up to date, re-check a page when its "updated" date changes. A finding's status changes when it is done, adopted or rejected.
 Status of a page: **Covered** (no open findings), **Gaps** (open findings), **Not applicable** (no Filament equivalent, or not relevant).
 Marks: **[WCAG]** an accessibility failure; **[Owner]** needs an owner decision.
@@ -13,85 +13,85 @@ Dates are the pages' "Last updated" lines. Every form-input page shows 2026-09-3
 |---|---|---|---|---|
 | **Components** | | | | |
 | Button | 2026-09-30 | `Action` (button, `outlined()`, `link()`, `iconButton()`) | Gaps | BTN-1, BTN-2, BTN-9, BTN-14, BTN-15, BTN-17, CMP-1 |
-| Menu buttons | 2026-09-28 | `ActionGroup` (`->button()`; "…" overflow) | Gaps | BTN-9, BTN-10, BTN-11, CMP-3 |
-| Menu | 2026-09-30 | `x-filament::dropdown` (`.fi-dropdown-list`) | Gaps | BTN-12, BTN-13, CMP-1, CMP-3, CMP-4 |
+| Menu buttons | 2026-09-28 | `ActionGroup` (`->button()`; "…" overflow) | Covered | BTN-9, BTN-10, BTN-11, CMP-3 |
+| Menu | 2026-09-30 | `x-filament::dropdown` (`.fi-dropdown-list`) | Covered | BTN-12, BTN-13, CMP-1, CMP-3, CMP-4 |
 | Link | 2026-09-28 | `.fi-link` (`Action::link()`, columns and entries with `url()`) | Gaps | A11Y-3, TBL-19, CMP-1 |
-| Popover | 2026-09-30 | `.fi-dropdown-panel` (filters, column manager) | Gaps | BTN-21, BTN-22, CMP-5 |
-| Toggletip | 2026-09-30 | None (nearest: `hintIcon(tooltip:)`) | Gaps | A11Y-1 |
-| Tooltip | 2026-09-30 | `tooltip()` (tippy.js) | Gaps | BTN-15, BTN-16, A11Y-1, CMP-6 |
-| Content switcher | 2026-09-11 | List page `getTabs()` | Gaps | NAV-9, NAV-10 |
-| Tabs | 2026-09-30 | Schema `Tabs`, `x-filament::tabs`, relation-manager tabs | Gaps | NAV-9, NAV-11, BTN-15, CMP-1 |
-| Accordion | 2026-09-09 | `Section::collapsible()` | Gaps | NAV-12, CMP-1 |
-| Text input | 2026-09-30 | `TextInput`, `Textarea`, `password()->revealable()` | Gaps | FRM-3, FRM-4, FRM-5 |
-| Number input | 2026-09-30 | `TextInput::numeric()` | Gaps | FRM-1, FRM-2, FRM-3 |
-| Select | 2026-09-30 | `Select` (native) | Gaps | FRM-6 |
-| Dropdown | 2026-09-30 | `Select::searchable()` / `multiple()`, `SelectFilter` | Gaps | FRM-7, TBL-18 |
-| Checkbox | 2026-09-30 | `Checkbox`, `CheckboxList` | Gaps | FRM-7, FRM-9 |
-| Radio button | 2026-09-30 | `Radio` | Gaps | FRM-7, FRM-8, FRM-11 |
-| Toggle | 2026-09-30 | `Toggle`, `ToggleColumn` | Gaps | FRM-12, FRM-13 |
-| Slider | 2026-09-30 | `Slider` (unused) | Gaps | FRM-14 |
-| Date picker | 2026-09-30 | `DatePicker` (native), `DateTimePicker` | Gaps | FRM-15, FRM-16 |
+| Popover | 2026-09-30 | `.fi-dropdown-panel` (filters, column manager) | Covered | BTN-21, BTN-22, CMP-5 |
+| Toggletip | 2026-09-30 | None (nearest: `hintIcon(tooltip:)`) | Covered | A11Y-1 |
+| Tooltip | 2026-09-30 | `tooltip()` (tippy.js) | Covered | BTN-15, BTN-16, A11Y-1, CMP-6 |
+| Content switcher | 2026-09-11 | List page `getTabs()` | Covered | NAV-9, NAV-10 |
+| Tabs | 2026-09-30 | Schema `Tabs`, `x-filament::tabs`, relation-manager tabs | Covered | NAV-9, NAV-11, BTN-15, CMP-1 |
+| Accordion | 2026-09-09 | `Section::collapsible()` | Covered | NAV-12, CMP-1 |
+| Text input | 2026-09-30 | `TextInput`, `Textarea`, `password()->revealable()` | Covered | FRM-3, FRM-4, FRM-5 |
+| Number input | 2026-09-30 | `TextInput::numeric()` | Covered | FRM-1, FRM-2, FRM-3 |
+| Select | 2026-09-30 | `Select` (native) | Covered | FRM-6 |
+| Dropdown | 2026-09-30 | `Select::searchable()` / `multiple()`, `SelectFilter` | Covered | FRM-7, TBL-18 |
+| Checkbox | 2026-09-30 | `Checkbox`, `CheckboxList` | Covered | FRM-7, FRM-9 |
+| Radio button | 2026-09-30 | `Radio` | Covered | FRM-7, FRM-8, FRM-11 |
+| Toggle | 2026-09-30 | `Toggle`, `ToggleColumn` | Covered | FRM-12, FRM-13 |
+| Slider | 2026-09-30 | `Slider` (unused) | Covered | FRM-14 |
+| Date picker | 2026-09-30 | `DatePicker` (native), `DateTimePicker` | Covered | FRM-15, FRM-16 |
 | File uploader | 2026-09-30 | `FileUpload` (FilePond) | Gaps | FRM-17, FRM-18 |
-| Search | 2026-09-30 | Table search, global search | Gaps | A11Y-4, TBL-7 |
-| Form | 2026-09-30 | Schema `Form`; resource and action forms | Gaps | FRM-10, FRM-11, A11Y-1 |
-| Data table | 2026-09-30 | `Table` | Gaps | TBL-1, TBL-2, TBL-3, TBL-4, TBL-5, CMP-8 |
-| Pagination | 2026-09-30 | `fi-pagination` | Gaps | TBL-6, CMP-7 |
+| Search | 2026-09-30 | Table search, global search | Covered | A11Y-4, TBL-7 |
+| Form | 2026-09-30 | Schema `Form`; resource and action forms | Covered | FRM-10, FRM-11, A11Y-1 |
+| Data table | 2026-09-30 | `Table` | Covered | TBL-1, TBL-2, TBL-3, TBL-4, TBL-5, CMP-8 |
+| Pagination | 2026-09-30 | `fi-pagination` | Covered | TBL-6, CMP-7 |
 | Structured list | 2026-09-30 | Infolist entries with inline labels | Covered | |
 | List | 2026-09-30 | `listWithLineBreaks()->bulleted()` | Covered | |
 | Contained list | 2026-09-30 | None | Not applicable | |
 | Tree view | 2026-09-30 | None | Not applicable | |
-| Tag | 2026-09-30 | `->badge()`, filter indicators | Gaps | TBL-14, TBL-15 |
-| Tile | 2026-09-30 | Stats overview stat | Gaps | DSH-15, CMP-9 |
-| Code snippet | 2026-09-09 | `copyable()`, `CodeEntry` | Gaps | A11Y-2 |
+| Tag | 2026-09-30 | `->badge()`, filter indicators | Covered | TBL-14, TBL-15 |
+| Tile | 2026-09-30 | Stats overview stat | Covered | DSH-15, CMP-9 |
+| Code snippet | 2026-09-09 | `copyable()`, `CodeEntry` | Covered | A11Y-2 |
 | Progress bar | 2026-09-30 | None | Not applicable | |
-| Progress indicator | 2026-09-30 | `Wizard` header | Gaps | FRM-26 |
-| Loading | 2026-09-28 | `fi-loading-indicator`, `fi-loading-section` | Gaps | TBL-2 |
+| Progress indicator | 2026-09-30 | `Wizard` header | Covered | FRM-26 |
+| Loading | 2026-09-28 | `fi-loading-indicator`, `fi-loading-section` | Covered | TBL-2 |
 | Inline loading | 2026-09-30 | Button spinner while the action runs | Covered | |
-| UI shell header | 2026-10-02 | Top bar (`.fi-topbar`) | Gaps | NAV-1, NAV-2, CMP-2, CMP-15 |
-| UI shell left panel | 2026-10-02 | Sidebar (`.fi-sidebar`) | Gaps | NAV-3, NAV-4, CMP-11, CMP-12, RUL-3 |
+| UI shell header | 2026-10-02 | Top bar (`.fi-topbar`) | Covered | NAV-1, NAV-2, CMP-2, CMP-15 |
+| UI shell left panel | 2026-10-02 | Sidebar (`.fi-sidebar`) | Covered | NAV-3, NAV-4, CMP-11, CMP-12, RUL-3 |
 | UI shell right panel | 2026-10-02 | Nearest: database notifications slide-over | Covered | |
 | Modal | 2026-09-30 | Action modals, confirmations, slide-overs | Gaps | BTN-1, BTN-2, BTN-3, BTN-4, BTN-6, CMP-2 |
-| Notification | 2026-09-30 | `Notification` toasts, `Callout` | Gaps | FDB-1, FDB-2, FDB-3, CMP-2, CMP-13 |
-| Breadcrumb | 2026-09-30 | `.fi-breadcrumbs` | Gaps | NAV-5, CMP-14 |
+| Notification | 2026-09-30 | `Notification` toasts, `Callout` | Covered | FDB-1, FDB-2, FDB-3, CMP-2, CMP-13 |
+| Breadcrumb | 2026-09-30 | `.fi-breadcrumbs` | Covered | NAV-5, CMP-14 |
 | **Patterns** | | | | |
 | Common actions | 2026-08-11 | Create, Edit, Delete, Cancel, Close and the other actions | Gaps | BTN-19, BTN-20, FRM-23, FRM-24, DSH-16 |
-| Dialogs | 2026-08-11 | Action modals, confirmations, slide-overs | Gaps | BTN-1, BTN-4, BTN-5, BTN-7, BTN-8 |
-| Disabled states | 2026-08-11 | `disabled()`, `hidden()`, `readOnly()` | Gaps | CMP-17 |
-| Disclosures | 2026-08-11 | `ActionGroup`, user menu, filter dropdowns | Gaps | BTN-21, BTN-23 |
-| Empty states | 2026-08-11 | Table empty state, `fi-empty-state` | Gaps | BTN-17, BTN-18, TBL-20, NAV-15 |
-| Filtering | 2026-08-11 | Table filters and indicators | Gaps | TBL-8 |
+| Dialogs | 2026-08-11 | Action modals, confirmations, slide-overs | Covered | BTN-1, BTN-4, BTN-5, BTN-7, BTN-8 |
+| Disabled states | 2026-08-11 | `disabled()`, `hidden()`, `readOnly()` | Covered | CMP-17 |
+| Disclosures | 2026-08-11 | `ActionGroup`, user menu, filter dropdowns | Covered | BTN-21, BTN-23 |
+| Empty states | 2026-08-11 | Table empty state, `fi-empty-state` | Covered | BTN-17, BTN-18, TBL-20, NAV-15 |
+| Filtering | 2026-08-11 | Table filters and indicators | Covered | TBL-8 |
 | Fluid styles | 2026-08-11 | None | Not applicable | |
-| Forms | 2026-08-11 | Resource, modal and slide-over forms; wizard | Gaps | BTN-1, FRM-8, FRM-9, FRM-10, FRM-19, FRM-20, FRM-21, FRM-22 |
-| Global header | 2026-08-11 | Top bar, user menu, global search, sidebar | Gaps | FRM-24, TBL-9, NAV-6, NAV-7 |
-| Loading | 2026-08-11 | `wire:loading` spinners, table overlay, queued jobs | Gaps | FDB-5 |
-| Login | 2026-08-12 | `Filament\Auth\Pages\Login` | Gaps | FRM-27, FRM-28, RUL-2 |
-| Notifications | 2026-08-12 | Toasts, `Callout`, database notifications | Gaps | FDB-1, FDB-2, FDB-3, FDB-4 |
-| Overflow content | 2026-08-12 | `limit()`, `wrap()`, `limitList()` | Gaps | TBL-12, TBL-13, CMP-4 |
-| Read-only states | 2026-08-12 | `readOnly()`, infolists | Gaps | FRM-25 |
-| Search | 2026-08-12 | Table search, global search | Gaps | TBL-10, TBL-11 |
-| Status indicators | 2026-08-12 | `badge()`, navigation badges, stat descriptions | Gaps | DSH-4, TBL-16, TBL-17, NAV-8 |
+| Forms | 2026-08-11 | Resource, modal and slide-over forms; wizard | Covered | BTN-1, FRM-8, FRM-9, FRM-10, FRM-19, FRM-20, FRM-21, FRM-22 |
+| Global header | 2026-08-11 | Top bar, user menu, global search, sidebar | Covered | FRM-24, TBL-9, NAV-6, NAV-7 |
+| Loading | 2026-08-11 | `wire:loading` spinners, table overlay, queued jobs | Covered | FDB-5 |
+| Login | 2026-08-12 | `Filament\Auth\Pages\Login` | Covered | FRM-27, FRM-28, RUL-2 |
+| Notifications | 2026-08-12 | Toasts, `Callout`, database notifications | Covered | FDB-1, FDB-2, FDB-3, FDB-4 |
+| Overflow content | 2026-08-12 | `limit()`, `wrap()`, `limitList()` | Covered | TBL-12, TBL-13, CMP-4 |
+| Read-only states | 2026-08-12 | `readOnly()`, infolists | Covered | FRM-25 |
+| Search | 2026-08-12 | Table search, global search | Covered | TBL-10, TBL-11 |
+| Status indicators | 2026-08-12 | `badge()`, navigation badges, stat descriptions | Covered | DSH-4, TBL-16, TBL-17, NAV-8 |
 | Text toolbar | 2026-08-12 | `RichEditor`, `MarkdownEditor` (no pattern uses them) | Not applicable | |
 | **Foundations** | | | | |
-| 2x Grid | 2026-09-25 | `Grid`/`columns()`, dashboard and stats columns | Gaps | DSH-2, RUL-4 |
-| Spacing | 2026-09-30 | Tailwind spacing, Compact theme tokens | Gaps | CMP-16 |
-| Typography (overview) | 2026-09-29 | Theme sizes and weights | Gaps | CMP-9, CMP-10, CMP-18 |
+| 2x Grid | 2026-09-25 | `Grid`/`columns()`, dashboard and stats columns | Covered | DSH-2, RUL-4 |
+| Spacing | 2026-09-30 | Tailwind spacing, Compact theme tokens | Covered | CMP-16 |
+| Typography (overview) | 2026-09-29 | Theme sizes and weights | Covered | CMP-9, CMP-10, CMP-18 |
 | Typography (style strategies) | 2026-09-29 | None (a choice of styles) | Covered | |
 | Typography (type sets) | 2026-09-29 | Tailwind sizes and weights on Filament classes | Covered | |
-| Color | 2026-09-25 | Theme colours, dark mode, brand logos | Gaps | DSH-1, NAV-13, NAV-14 |
-| Icons | 2026-08-12 | Heroicons (`.fi-icon`) | Gaps | CMP-2, RUL-5 |
+| Color | 2026-09-25 | Theme colours, dark mode, brand logos | Covered | DSH-1, NAV-13, NAV-14 |
+| Icons | 2026-08-12 | Heroicons (`.fi-icon`) | Covered | CMP-2, RUL-5 |
 | Motion (overview) | 2026-08-12 | Filament transitions, reduced-motion reset | Covered | |
 | Motion (choreography) | 2026-08-12 | None | Not applicable | |
 | Accessibility (overview) | 2026-09-25 | None (principles) | Covered | |
-| Accessibility (keyboard) | 2026-09-25 | Landmarks, skip link | Gaps | BTN-1 |
+| Accessibility (keyboard) | 2026-09-25 | Landmarks, skip link | Covered | BTN-1 |
 | Accessibility (color) | 2026-09-25 | None | Covered | |
-| Content | 2026-09-30 | None (links to IBM Style) | Gaps | RUL-6 |
+| Content | 2026-09-30 | None (links to IBM Style) | Covered | RUL-6 |
 | **Data visualisation** | | | | |
-| Chart anatomy | 2026-09-17 | `ChartWidget`, `Stat` | Gaps | RUL-1 |
-| Axes and labels | 2026-09-17 | Chart.js `scales` | Gaps | DSH-5, DSH-6, DSH-7, DSH-8 |
-| Legends | 2026-09-17 | Chart.js legend | Gaps | DSH-3, DSH-9, A11Y-5 |
-| Simple charts | 2026-09-17 | `ChartWidget::getType()`, `Stat::chart()` | Gaps | DSH-10 |
-| Dashboards | 2026-09-17 | `Filament\Pages\Dashboard`, page filters | Gaps | DSH-11, DSH-12, DSH-13 |
-| Color palettes | 2026-09-17 | `ChartWidget::$color`, dataset colours | Gaps | DSH-1, DSH-14 |
+| Chart anatomy | 2026-09-17 | `ChartWidget`, `Stat` | Covered | RUL-1 |
+| Axes and labels | 2026-09-17 | Chart.js `scales` | Covered | DSH-5, DSH-6, DSH-7, DSH-8 |
+| Legends | 2026-09-17 | Chart.js legend | Covered | DSH-3, DSH-9, A11Y-5 |
+| Simple charts | 2026-09-17 | `ChartWidget::getType()`, `Stat::chart()` | Covered | DSH-10 |
+| Dashboards | 2026-09-17 | `Filament\Pages\Dashboard`, page filters | Covered | DSH-11, DSH-12, DSH-13 |
+| Color palettes | 2026-09-17 | `ChartWidget::$color`, dataset colours | Covered | DSH-1, DSH-14 |
 | Flow charts | 2026-10-06 | None | Not applicable | |
 | Gantt charts | 2026-09-17 | None | Not applicable | |
 | Spatial charts | 2026-09-17 | None | Not applicable | |
@@ -236,25 +236,25 @@ Each finding gives what to do, its basis, its kind and its status. All are **Pro
 
 ### Type, icons and spacing (compact)
 
-- **CMP-1** — 16px icons in buttons, links, icon buttons, menu items, tabs and the section chevron; Filament's `md` is 20px. Check the Compact theme's negative margins on `.fi-icon-btn`. — Carbon button: "Use a 16px icon within buttons."; same in the link, menu, tabs and accordion specs. — compact CSS + test check. — Proposed.
-- **CMP-2** — 20px icons where Filament uses 24px (top bar, toasts, callouts), and a 16px modal close icon. Add a sentence to the compact rule. — Carbon icons: "Be sure icon size is consistent throughout your product"; Carbon notification: "16px and 20px icons are optimized … paired with 14px". — compact CSS + rule + test check. — Proposed.
-- **CMP-3** — Menus are sized to their content, between 160px and 288px wide, instead of a fixed 224px. — Carbon menu buttons (spec: minimum 160px, maximum 288px). — compact CSS. — Proposed.
-- **CMP-4** — Menu items and sidebar labels wrap instead of truncating. Filament truncates them with no way to reveal the text. Look at it in a browser. — Carbon overflow content: "Truncation should not be used on … labels"; Carbon menu (title tooltip on hover, which our truncation rule doesn't accept). — compact CSS + test check. — Proposed.
-- **CMP-5** — Dropdowns sit 4px from their trigger (`ActionGroup` `dropdownOffset(4)`); filter dropdown padding is 16px if a selector is easy. — Carbon popover (spec: 4px gap, 16px padding). — compact CSS. — Proposed.
-- **CMP-6** — Tooltips are at most 288px wide with 2px block padding, and sit 4px from their trigger if that can be set globally (not verified). — Carbon tooltip (spec: 288px multi-line, 2px block padding, 4px gap). — compact CSS. — Proposed.
-- **CMP-7** — Pagination text and page numbers are 400; the current page is 600. — Carbon pagination (spec: 14px regular; selected page 600). — compact CSS + test check. — Proposed.
-- **CMP-8** — Bring the wide pagination strip down from about 36px to 32px. Check in a browser. — Carbon data table (spec: small 32px). — compact CSS. — Proposed.
-- **CMP-9** — The stat label is weight 400. — Carbon tile (spec: title 14px regular); Carbon typography (label-01, 12px regular). — compact CSS + test check. — Proposed.
+- **CMP-1** — 16px icons in buttons, links, icon buttons, menu items, tabs and the section chevron; Filament's `md` is 20px. Check the Compact theme's negative margins on `.fi-icon-btn`. — Carbon button: "Use a 16px icon within buttons."; same in the link, menu, tabs and accordion specs. — compact CSS + test check. — Done 2026-10-11 (compact CSS).
+- **CMP-2** — 20px icons where Filament uses 24px (top bar, toasts, callouts), and a 16px modal close icon. Add a sentence to the compact rule. — Carbon icons: "Be sure icon size is consistent throughout your product"; Carbon notification: "16px and 20px icons are optimized … paired with 14px". — compact CSS + rule + test check. — Done 2026-10-11 (compact CSS; checked: 20px in the top bar and toasts).
+- **CMP-3** — Menus are sized to their content, between 160px and 288px wide, instead of a fixed 224px. — Carbon menu buttons (spec: minimum 160px, maximum 288px). — compact CSS. — Done 2026-10-11 (compact CSS; the user menu is 160px).
+- **CMP-4** — Menu items and sidebar labels wrap instead of truncating. Filament truncates them with no way to reveal the text. Look at it in a browser. — Carbon overflow content: "Truncation should not be used on … labels"; Carbon menu (title tooltip on hover, which our truncation rule doesn't accept). — compact CSS + test check. — Done 2026-10-11 (compact CSS).
+- **CMP-5** — Dropdowns sit 4px from their trigger (`ActionGroup` `dropdownOffset(4)`); filter dropdown padding is 16px if a selector is easy. — Carbon popover (spec: 4px gap, 16px padding). — compact CSS. — Done 2026-10-11: menus open 4px from their button (`dropdownOffset(4)` under `compact()`); the filter dropdown's padding is left as the theme sets it.
+- **CMP-6** — Tooltips are at most 288px wide with 2px block padding, and sit 4px from their trigger if that can be set globally (not verified). — Carbon tooltip (spec: 288px multi-line, 2px block padding, 4px gap). — compact CSS. — Done 2026-10-11 for width and padding (compact CSS); Filament has no global setting for the tooltip's offset.
+- **CMP-7** — Pagination text and page numbers are 400; the current page is 600. — Carbon pagination (spec: 14px regular; selected page 600). — compact CSS + test check. — Done 2026-10-11 (compact CSS).
+- **CMP-8** — Bring the wide pagination strip down from about 36px to 32px. Check in a browser. — Carbon data table (spec: small 32px). — compact CSS. — Not reproduced: the starter's pagination strip measures 33px (32px plus its border) under compact tables.
+- **CMP-9** — The stat label is weight 400. — Carbon tile (spec: title 14px regular); Carbon typography (label-01, 12px regular). — compact CSS + test check. — Done 2026-10-11: weight 400, size kept at 14px, Carbon's tile title.
   - *The batches disagree on size:* batch c keeps 14px (tile title); batch f adopts 12px (label-01). Both agree on 400.
-- **CMP-10** **[Owner]** — Sweep the remaining `font-medium` (500) selectors to 400 or 600, by role. Whether the page title's `font-bold` (700) goes is the owner's call. — Carbon typography: "We suggest using IBM Plex Light, Regular, and SemiBold for digital experiences." — compact CSS + test check + owner decision. — Decided by the owner 2026-10-11: the page title becomes semibold (600). To do in the compact batch.
-- **CMP-11** — The current menu item is semibold. — Carbon UI shell left panel (a11y): "The link becomes bold to show it is the current page." — compact CSS + test check. — Proposed.
-- **CMP-12** — Menu items sit 16px from the panel edge, with no gap between groups. — Carbon UI shell left panel (spec: 16px link padding; sub-menus stacked with no gap). — compact CSS. — Proposed.
-- **CMP-13** — Toasts stack 8px apart. — Carbon notification: "stack with $spacing-03". — compact CSS. — Proposed.
-- **CMP-14** — Breadcrumb items are 4px apart. — Carbon breadcrumb (spec: `$spacing-02`, 4px). — compact CSS. — Proposed.
-- **CMP-15** **[Owner]** — A text brand name is 14px semibold; an image logo keeps `brandLogoHeight()`. Someone could read this as branding. — Carbon UI shell header (spec: product name `$heading-compact-01`, 14px semibold). — compact CSS + owner decision. — Decided by the owner 2026-10-11: a text brand name is 14px semibold. To do in the compact batch.
-- **CMP-16** — Off-scale 6px gaps become 8px: stat label to value, stat icon to label, and infolist entry label to value. — Carbon spacing: "deviating from the spacing scales should be avoided whenever possible". — compact CSS. — Proposed.
-- **CMP-17** — Disabled buttons show `cursor: not-allowed`. Low value. — Carbon disabled states (spec: `cursor: not-allowed`). — compact CSS. — Proposed.
-- **CMP-18** — Italic is only for titles of works and technical terms, never a whole value or column. Low value. — Carbon typography: italic "should only be used when you need to emphasize certain words in a sentence". — rule; test possible. — Proposed.
+- **CMP-10** **[Owner]** — Sweep the remaining `font-medium` (500) selectors to 400 or 600, by role. Whether the page title's `font-bold` (700) goes is the owner's call. — Carbon typography: "We suggest using IBM Plex Light, Regular, and SemiBold for digital experiences." — compact CSS + test check + owner decision. — Done 2026-10-11: the remaining 500s go to 400 or 600 by role, and the page title is semibold, as the owner decided.
+- **CMP-11** — The current menu item is semibold. — Carbon UI shell left panel (a11y): "The link becomes bold to show it is the current page." — compact CSS + test check. — Done 2026-10-11 (compact CSS).
+- **CMP-12** — Menu items sit 16px from the panel edge, with no gap between groups. — Carbon UI shell left panel (spec: 16px link padding; sub-menus stacked with no gap). — compact CSS. — Done 2026-10-11 for the 16px edge; the gap between groups stays, since the Noir theme draws its group divider in it (removing it put the divider through the item above).
+- **CMP-13** — Toasts stack 8px apart. — Carbon notification: "stack with $spacing-03". — compact CSS. — Done 2026-10-11 (compact CSS).
+- **CMP-14** — Breadcrumb items are 4px apart. — Carbon breadcrumb (spec: `$spacing-02`, 4px). — compact CSS. — Done 2026-10-11 (compact CSS).
+- **CMP-15** **[Owner]** — A text brand name is 14px semibold; an image logo keeps `brandLogoHeight()`. Someone could read this as branding. — Carbon UI shell header (spec: product name `$heading-compact-01`, 14px semibold). — compact CSS + owner decision. — Done 2026-10-11 (compact CSS), as the owner decided.
+- **CMP-16** — Off-scale 6px gaps become 8px: stat label to value, stat icon to label, and infolist entry label to value. — Carbon spacing: "deviating from the spacing scales should be avoided whenever possible". — compact CSS. — Done 2026-10-11 (compact CSS, except inside read-only tables, where labels are hidden).
+- **CMP-17** — Disabled buttons show `cursor: not-allowed`. Low value. — Carbon disabled states (spec: `cursor: not-allowed`). — compact CSS. — Done 2026-10-11 (compact CSS).
+- **CMP-18** — Italic is only for titles of works and technical terms, never a whole value or column. Low value. — Carbon typography: italic "should only be used when you need to emphasize certain words in a sentence". — rule; test possible. — Done 2026-10-11 (rule).
 
 ### Accessibility bugs
 
