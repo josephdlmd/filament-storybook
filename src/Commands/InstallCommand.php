@@ -99,10 +99,15 @@ class InstallCommand extends Command
         return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
     }
 
+    /** The package's published CSS and script are build output, like Filament's own. */
     public static function addGitignoreLine(string $gitignore): string
     {
-        return str_contains($gitignore, '/public/css/josephdlmd')
-            ? $gitignore
-            : rtrim($gitignore, "\n").($gitignore === '' ? '' : "\n")."/public/css/josephdlmd\n";
+        foreach (['/public/css/josephdlmd', '/public/js/josephdlmd'] as $line) {
+            if (! str_contains($gitignore, $line)) {
+                $gitignore = rtrim($gitignore, "\n").($gitignore === '' ? '' : "\n")."{$line}\n";
+            }
+        }
+
+        return $gitignore;
     }
 }

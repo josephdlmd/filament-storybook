@@ -495,8 +495,9 @@ it('installs into an app that meets the standard, and changing nothing on a seco
     $boost = InstallCommand::addBoostPackage('{"agents": ["claude_code"], "packages": ["filament/filament"]}');
     expect(json_decode($boost, true)['packages'])->toBe(['filament/filament', 'josephdlmd/filament-storybook'])
         ->and(InstallCommand::addBoostPackage($boost))->toBe($boost)
-        ->and(InstallCommand::addGitignoreLine("/vendor\n"))->toBe("/vendor\n/public/css/josephdlmd\n")
-        ->and(InstallCommand::addGitignoreLine("/vendor\n/public/css/josephdlmd\n"))->toBe("/vendor\n/public/css/josephdlmd\n");
+        ->and(InstallCommand::addGitignoreLine("/vendor\n"))->toBe("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n")
+        ->and(InstallCommand::addGitignoreLine("/vendor\n/public/css/josephdlmd\n"))->toBe("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n")
+        ->and(InstallCommand::addGitignoreLine("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n"))->toBe("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n");
 });
 
 it('refuses an app that does not meet the standard, saying what to change', function (): void {
