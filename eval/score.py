@@ -66,6 +66,7 @@ checks = {
     "approval: Reject is gray, not danger": bool(re.search(r"make\('reject'\)(?:(?!make\().)*?->color\('gray'\)", code, re.S)),
     "approval: shown only while awaiting a decision": bool(re.search(r"make\('approve'\)(?:(?!make\().)*?->(visible|hidden)\(", code, re.S)),
     "line items: table repeater": "Repeater::make" in code and "->table([" in code,
+    "line items: a row each, through relationship()": bool(re.search(r"Repeater::make\([^;]*?->relationship\(", code, re.S)),
     "related list: a relation manager": "extends RelationManager" in code,
     # Import prompt: the importer validates like the form and never rounds amounts.
     "import: ImportAction with an importer": "ImportAction::make" in code and "extends Importer" in code,
@@ -84,6 +85,8 @@ checks = {
     "cancel: Void, with a reason": "make('void')" in code and "reason" in code,
     "payments: checked against the balance": "balance" in code and ("maxValue(" in code or "$fail(" in code),
     "payments: a collection under its receipt's serial, checked": bool(re.search(r"->unique\([^)]*Payment", code)),
+    "payments: VAT withheld kept apart from income tax withheld": "vat_withheld" in app_code and "tax_withheld" in app_code,
+    "payments: a duplicate serial from the unique index caught": "UniqueConstraintViolationException" in app_code,
     "purchases: withholding worked out once on the supplier's invoice": "withholding_code" in app_code and "DocumentTotals::withholding(" in app_code,
     "printing: the shared, tagged PDF layout": "filament-storybook::documents.print" in app_code and "->tagged()" in app_code,
     "customer picker: searchable relationship": bool(re.search(r"relationship\('customer'(?:(?!make\().)*?->searchable\(", code, re.S)),
