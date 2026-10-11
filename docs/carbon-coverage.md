@@ -334,7 +334,6 @@ One line each, with the reason.
 - Search on the left, stretching to the actions (Data table): a layout change of little value.
 - Column titles wrapping to two lines (Data table): Filament scrolls the table instead.
 - Structured list 60/36px rows and 500px minimum width (Structured list): bigger; the minimum width conflicts with WCAG 1.4.10.
-- 32px search field (Search): we keep 28px inside the 32px toolbar strip (compact tables decision).
 - Disabling Cancel while saving; "Saving…" button label (Inline loading): Filament has no setting.
 - Mid-line truncation (Overflow content): needs JavaScript.
 - Breadcrumbs that never wrap, with an overflow menu (Breadcrumb): Filament has no overflow menu, and our truncation rule needs a reveal.

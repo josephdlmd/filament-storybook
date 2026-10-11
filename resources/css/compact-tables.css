@@ -1,8 +1,8 @@
 /*
  * Compact tables, for data-dense apps (StorybookPlugin::make()->compactTables()): Carbon data table's small size,
- * 32px plus Filament's 1px divider, with the same 14px text. Every strip of the table matches the rows, as Carbon
- * asks of the header row, the toolbar and the pagination; the controls in them are 28px, above WCAG 2.5.8's 24px.
- * Filament has no setting for any of it; it pads each part instead, so these selectors follow its classes, and
+ * 32px plus Filament's 1px divider, with the same 14px text. The header row and the pagination match the rows, as
+ * Carbon asks; so do the toolbar's controls, with Carbon's 8px above and below the toolbar. Filament has no setting
+ * for any of it; it pads each part instead, so these selectors follow its classes, and
  * tests/Feature/StorybookTest.php fails if Filament renames one.
  */
 
@@ -16,31 +16,34 @@
     padding-block: 0.25rem;
 }
 
-/* Filters above the table, the toolbar (search, bulk actions, column picker) and the pagination below it. */
-.fi-ta-filters-above-content-ctn {
-    padding-block: 0.375rem;
-}
-
-.fi-ta-header-toolbar,
-.fi-pagination {
-    padding-block: 0.125rem;
+/* The toolbar (search, bulk actions, column picker): Carbon's small toolbar, its controls as tall as the rows,
+   with $spacing-03 (8px) above and below. The filters above it are a form and keep the theme's spacing. */
+.fi-ta-header-toolbar {
+    padding-block: 0.5rem;
 }
 
 .fi-ta-header-toolbar > * {
-    min-height: 1.75rem;
+    min-height: 2rem;
 }
 
-:is(.fi-ta-header-toolbar, .fi-pagination) :is(.fi-input, .fi-select-input) {
-    padding-block: 0.125rem;
-}
-
-.fi-ta-header-toolbar .fi-btn {
+/* 32px: a field's 24px line, a button's 20px. */
+.fi-ta-header-toolbar :is(.fi-input, .fi-select-input) {
     padding-block: 0.25rem;
 }
 
+.fi-ta-header-toolbar .fi-btn {
+    padding-block: 0.375rem;
+}
+
 .fi-ta-header-toolbar .fi-icon-btn {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 2rem;
+    height: 2rem;
+}
+
+/* The pagination below the table: a strip as tall as the rows (Carbon pagination), its controls 28px. */
+.fi-pagination,
+.fi-pagination :is(.fi-input, .fi-select-input) {
+    padding-block: 0.125rem;
 }
 
 /* Every row is at least 32px, also when it holds only a badge. */
@@ -51,10 +54,4 @@
 /* A table's header holding only actions, such as a related list's New button, matches the 32px rows. */
 .fi-ta-header:not(:has(.fi-ta-header-heading)) {
     padding-block: 0;
-}
-
-/* The filter count sits inside the 32px filter strip instead of over the table's border. */
-.fi-ta-filters-above-content-ctn .fi-icon-btn > .fi-icon-btn-badge-ctn {
-    top: 0;
-    --tw-translate-y: 0;
 }
