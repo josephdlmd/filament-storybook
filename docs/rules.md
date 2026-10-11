@@ -145,6 +145,9 @@ Pattern `dashboards-key-figures-and-charts`. Checked against the live sources on
 - **Tabs group different but related content in the same context:** as few as possible, with one- or two-word labels, in one row. Switching formats or filters of the same content is a content switcher, not tabs. Carbon tabs (Sep 2026); NN/g tabs (Aug 2024: "Use Only One Row of Tabs").
 - **No crucial information or required input in a collapsed section; if users will read or fill all of it, don't collapse it.** NN/g accordions (Jul 2023): "Essential information should be presented outside of accordions"; Carbon accordion (Sep 2026).
 - **Pages in a hierarchy deeper than two levels show breadcrumbs; single-level navigation has none.** Carbon breadcrumb (Sep 2026).
+- **The menu has two levels at most: groups, then their pages.** A page inside a group has no pages under it; they become items of the group, or the page's own sub-navigation. Carbon UI shell left panel (Oct 2026: "does not support three tiers of navigation"); NN/g menu design (Jun 2024: "highly inadvisable for more than two tiers"). *Audit.*
+- **Menu groups and items are short, familiar words with the key word first,** in sentence case like every label. USWDS side navigation (Oct 2024: "Keep the navigation links short"); NN/g menu design (Jun 2024: familiar category labels, front-loaded key terms). *Audit (sentence case of groups).*
+- **Menu icons support the words and never replace them:** the sidebar never shrinks to icons only; to give the page room, it hides whole (`sidebarFullyCollapsibleOnDesktop()`). NN/g menu design (Jun 2024: icons "should be additional supportive elements, rather than replacing clear text labels"). *Audit.*
 - **A message that needs action goes at the top of the content area it relates to;** a system-wide message goes directly below the header. Messages are never stacked: combine them into one, with a list of links. Carbon notifications (Aug 2026: "refrain from stacking them together"); USWDS site alert (Jan 2025: "Avoid stacking multiple site alerts").
 
 ### Read-only and locked records
@@ -287,6 +290,7 @@ These rules had no current basis, or a current source contradicts them:
 - **Input masks.** USWDS's own mask failed WCAG 2.1 AA.
 - **Inline labels on forms,** including slide-overs and settings pages. This contradicts labels above fields.
 - **Save button on the right.** No qualifying source requires it.
+- **The order of menu groups and items, which icon an item gets, and whether every item has one.** Checked on 2026-10-11: Carbon's left panel, USWDS side navigation and NN/g's menu checklist set none of these.
 - **How a missing value shows,** whether "—" or a link to where it's added. GOV.UK's summary list links it, but GOV.UK covers form wording, and no qualifying source sets either. An empty section follows Carbon's empty states.
 - **Two thirds and one third on record pages** (GOV.UK layout). Carbon's 2x grid advises against layouts in thirds, and GOV.UK covers form wording, not layout.
 - **Rules backed only by GOV.UK outside form wording, or by its style guide** (re-checked 2026-10-11):

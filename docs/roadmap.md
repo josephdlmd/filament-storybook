@@ -1,8 +1,12 @@
 # Roadmap
 
-What the package covers at v0.25.0 (2026-10-11), and what comes next.
+What the package covers at v0.28.0 (2026-10-11), and what comes next.
 
 ## Covered
+
+Accessibility: every story and audited page is checked against WCAG 2.2 AA with axe-core (v0.27.0).
+
+The menu (v0.28.0): two levels at most, groups in sentence case, words that stay on screen; checked by `storybook-audit`. No source sets the order of groups or their icons.
 
 Generic screens: list tables (search, filters, money, status, import and export), record forms (every field pattern, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications and dashboards.
 

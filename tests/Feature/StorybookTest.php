@@ -385,6 +385,25 @@ it('audits the dashboard\'s widgets on a full audit', function (): void {
         ->not->toContain('- `OrdersPerMonthChart`:');
 });
 
+it('audits the panel\'s menu on a full audit: two levels at most, groups in sentence case, words always on screen', function (): void {
+    expect((string) (new AuditPages)->handle(new Request)->content())
+        ->toContain('- `navigation`: the sidebar shrinks to icons only')
+        ->toContain('- `navigation`: the group "Stock Control" is in Title Case')
+        ->toContain('- `navigation`: "Gadgets" in "Stock Control" has items under it, a third level')
+        ->not->toContain('"Help"');
+
+    // A screen-by-screen audit leaves the menu alone.
+    expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+        ->not->toContain('`navigation`');
+});
+
+it('reports a menu that fails to build, such as a visibility check querying a missing table, instead of stopping the audit', function (): void {
+    Filament\Facades\Filament::getPanel('fixture')->navigationItems([Filament\Navigation\NavigationItem::make('Broken')->visible(fn () => throw new RuntimeException('no such table: orders'))->url('#')]);
+
+    expect((string) (new AuditPages)->handle(new Request)->content())
+        ->toContain('- `navigation`: RuntimeException: no such table: orders at ');
+});
+
 it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 

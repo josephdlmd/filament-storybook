@@ -58,7 +58,7 @@ class AuditPages extends Tool
 {
     protected string $name = 'storybook-audit';
 
-    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists and the dashboard\'s widgets, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.2 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
+    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists, the dashboard\'s widgets and the menu, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.2 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -177,6 +177,15 @@ class AuditPages extends Tool
                 $passing[] = "- `{$key}`";
             } catch (Throwable $e) {
                 $failing[] = "- `{$key}`: ".static::failure($e);
+            }
+        }
+
+        // The menu, on a full audit. Building it runs the app's own code, such as visibility checks, so an error is reported like a page's.
+        if (! $request->get('resources')) {
+            try {
+                $warnings = [...$warnings, ...static::navigationWarnings($panel)];
+            } catch (Throwable $e) {
+                $failing[] = '- `navigation`: '.static::failure($e);
             }
         }
 
@@ -431,6 +440,37 @@ class AuditPages extends Tool
 
         foreach (static::errorMessages($page) as $message) {
             $warn("the error \"{$message}\" doesn't say what to do; word it like \"Enter name\" or \"Select status\" (GOV.UK error message, NN/g 2023).");
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * The panel's menu as the signed-in user sees it: two levels at most, groups in sentence case, and words that stay on screen.
+     *
+     * @return list<string>
+     */
+    protected static function navigationWarnings(Panel $panel): array
+    {
+        $warnings = [];
+
+        if ($panel->isSidebarCollapsibleOnDesktop()) {
+            $warnings[] = '- `navigation`: the sidebar shrinks to icons only, so the menu loses its words; use `->sidebarFullyCollapsibleOnDesktop()`, which hides it whole (NN/g menu design: icons support text labels, never replace them).';
+        }
+
+        foreach ($panel->getNavigation() as $group) {
+            $label = trim((string) $group->getLabel());
+
+            if (static::isTitleCase($label, $label)) {
+                $warnings[] = "- `navigation`: the group \"{$label}\" is in Title Case; write it in sentence case (Carbon content).";
+            }
+
+            // Inside a group, an item's children are a third level; an ungrouped item and its children are only two.
+            foreach (filled($label) ? $group->getItems() : [] as $item) {
+                if (filled($item->getChildItems())) {
+                    $warnings[] = "- `navigation`: \"{$item->getLabel()}\" in \"{$label}\" has items under it, a third level; make them items of the group, or the page's own sub-navigation (Carbon UI shell left panel: no three tiers; NN/g menu design).";
+                }
+            }
         }
 
         return $warnings;
