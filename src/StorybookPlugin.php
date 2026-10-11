@@ -36,6 +36,7 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Contracts\Support\Htmlable;
@@ -258,6 +259,9 @@ class StorybookPlugin implements Plugin
 
         // A toggle in a table shows a tick when on, so on and off don't differ by colour alone (Carbon toggle; WCAG 1.4.1).
         ToggleColumn::configureUsing(fn (ToggleColumn $column) => $column->onIcon(Heroicon::Check));
+
+        // A yes-or-no filter's empty choice says "All", as a select filter's does, not Filament's "-" (plain words, no codes; Carbon empty states).
+        TernaryFilter::configureUsing(fn (TernaryFilter $filter) => $filter->placeholder(__('filament-tables::table.filters.select.placeholder')));
 
         // Errors say what to do with the field's own label: "Enter name", not "The name field is required" (GOV.UK error message).
         Field::configureUsing(fn (Field $field) => $field->validationMessages([

@@ -236,6 +236,7 @@ it('leaves form errors to the app, keeps amounts as text and marks optional fiel
         ->and(Filament\Forms\Components\TextInput::make('email')->email()->getType())->toBe('email')
         ->and(Filament\Forms\Components\TextInput::make('name')->required()->isMarkedAsRequired())->toBeFalse()
         ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
+        ->and(Filament\Tables\Filters\TernaryFilter::make('has_credit_limit')->getPlaceholder())->toBe('All')
         ->and(Filament\Facades\Filament::getPanel('fixture')->hasUnsavedChangesAlerts())->toBeTrue()
         ->and(__('filament-panels::auth/pages/login.messages.failed'))->toBe('Incorrect email or password. Try again.');
 });
@@ -398,7 +399,8 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 13 passing, 3 failing, 25 warnings, 4 accessibility issues')
+        ->toStartWith('# 14 passing, 3 failing, 26 warnings, 5 accessibility issues')
+        ->toContain('- `broken-story.collapsedFilters`: AboveContentCollapsible puts the filter button alone')
         ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')
         ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
         ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
@@ -420,11 +422,11 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.crampedChoices`: the wizard step "Choose the supplier now" is longer than 16 characters')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:50')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:53')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:34')
-        ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:37')
+        ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:40')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 

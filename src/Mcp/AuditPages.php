@@ -363,8 +363,9 @@ class AuditPages extends Tool
                 $warn("{$inline->count()} row actions are inline; keep at most two and put the rest in an `ActionGroup` (Carbon data table, NN/g data tables).");
             }
 
-            if (count($table->getFilters()) > 1 && in_array($table->getFiltersLayout(), [FiltersLayout::Dropdown, FiltersLayout::Modal], true)) {
-                $warn('several filters are hidden in a dropdown; put them above the table with `layout: FiltersLayout::AboveContentCollapsible` (Carbon filtering).');
+            if (count($table->getFilters()) > 1 && in_array($table->getFiltersLayout(), [FiltersLayout::Dropdown, FiltersLayout::Modal, FiltersLayout::AboveContentCollapsible], true)) {
+                // The collapsible layout puts its button alone in a row above the search, with a count even when none apply.
+                $warn('several filters are hidden in a dropdown or behind a button; put them above the table, open, with `layout: FiltersLayout::AboveContent` (Carbon filtering: "horizontally at the top of the data set").');
             }
 
             if ($page instanceof ListRecords && blank($table->getEmptyStateDescription()) && $table->getEmptyStateActions() === []) {

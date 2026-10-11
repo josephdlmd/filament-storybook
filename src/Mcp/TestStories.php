@@ -213,6 +213,10 @@ class TestStories extends Tool
                 }
             }
 
+            if (str_contains($story['snippet'], 'FiltersLayout::AboveContentCollapsible')) {
+                $warnings[] = "{$key}: AboveContentCollapsible puts the filter button alone in a row above the search, with a count even when no filter applies; show the filters open with `FiltersLayout::AboveContent` (Carbon filtering: \"horizontally at the top of the data set\").";
+            }
+
             if (preg_match('/->collapsible\\(\\)/', $story['snippet']) && ! str_contains($story['snippet'], '->collapsed(')) {
                 $warnings[] = "{$key}: a collapsible section starts collapsed, `->collapsed()`; one that should start open isn't collapsible (Carbon accordion).";
             }

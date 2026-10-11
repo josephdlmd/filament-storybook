@@ -12,6 +12,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
@@ -133,5 +136,13 @@ class BrokenStories extends Stories
     {
         return TextColumn::make('total')
             ->state(fn (Model $record): float => round($record->quantity * $record->unit_price, 2));
+    }
+
+    /** Renders, but hides its filters behind a lone button above the search. */
+    public function collapsedFilters(Table $table): Table
+    {
+        return $table
+            ->columns([TextColumn::make('code')])
+            ->filters([SelectFilter::make('code'), TernaryFilter::make('active')], layout: FiltersLayout::AboveContentCollapsible);
     }
 }
