@@ -445,7 +445,28 @@ it('says how to enable the accessibility check when it cannot run', function ():
 it('gives agents the story-writing rules', function (): void {
     expect((string) (new ShowInstructions)->handle(new Request)->content())
         ->toContain('# Writing Filament stories')
-        ->toContain('Run `storybook-test`');
+        ->toContain('## Choosing the component')
+        ->toContain('## Fit the other patterns')
+        ->toContain('Run `storybook-test`')
+        ->toContain('# Filament coverage')
+        ->toContain('| `KeyValue` |')
+        ->toContain('## Business standards (from the owner)');
+});
+
+/** Agents look up each component in the coverage table, so a component Filament adds must get a row before it is used. */
+it('lists every component Filament ships in the coverage table', function (): void {
+    $coverage = file_get_contents(__DIR__.'/../../docs/filament-coverage.md');
+    $dirs = ['forms/src/Components', 'infolists/src/Components', 'tables/src/Columns', 'tables/src/Filters', 'schemas/src/Components', 'actions/src'];
+
+    $missing = collect($dirs)
+        ->flatMap(fn (string $dir): array => glob(__DIR__."/../../vendor/filament/{$dir}/*.php"))
+        ->reject(fn (string $file): bool => (bool) preg_match('/^(abstract class|interface|trait) /m', file_get_contents($file)))
+        ->map(fn (string $file): string => basename($file, '.php'))
+        ->reject(fn (string $class): bool => str_contains($coverage, "`{$class}`"))
+        ->values()
+        ->all();
+
+    expect($missing)->toBe([]);
 });
 
 it('joins the Boost MCP server when laravel/mcp is installed', function (): void {

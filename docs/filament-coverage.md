@@ -65,9 +65,10 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 
 | Component | Status | Guidance |
 |---|---|---|
-| `SelectFilter`, `TernaryFilter` | Pattern | `tables-list-table` (above the table, kept for the session); filter defaults rule |
+| `SelectFilter`, `TernaryFilter` | Pattern | `tables-list-table` (open above the table with `FiltersLayout::AboveContent`, applied as they change, kept for the session; never the collapsible layout); house default ("All" as a yes-or-no filter's empty choice); test and audit (the collapsible layout) |
 | `TrashedFilter` | Pattern | `actions-delete.restorable` ("filtered by Deleted records") |
 | `QueryBuilder` | Rule | applies on an explicit action; the closed filter shows the count and a clear option |
+| `Filter` (a filter with its own form) | Rule | the filter rules: open above the table, applied as they change, a way to clear them all; its fields follow the form patterns |
 
 ## Layout and schema components
 
@@ -100,7 +101,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `DeleteAction`, `ForceDeleteAction` | Pattern | `actions-delete`; house defaults; audit |
 | `RestoreAction`, `ReplicateAction` | Rule | label table (Restore; Copy, a house default) |
 | `AttachAction`, `DetachAction`, `AssociateAction`, `DissociateAction` | Pattern | `records-related-records`; house defaults (Add, Remove) |
-| `BulkAction`, `BulkActionGroup`, bulk delete, restore and detach | Rule | bulk changes rule; engineering rule (`authorizeIndividualRecords()`); house defaults (headings) |
+| `BulkAction`, `BulkActionGroup`, `DeleteBulkAction`, `ForceDeleteBulkAction`, `RestoreBulkAction`, `DetachBulkAction`, `DissociateBulkAction` | Rule | bulk changes rule; engineering rule (`authorizeIndividualRecords()`); house defaults (headings) |
 | `ImportAction`, `ExportAction`, `ExportBulkAction` | Pattern | `tables-import-and-export`; house defaults |
 | `SelectAction` | General | the choice rules |
 
@@ -121,6 +122,17 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 |---|---|---|
 | `Notification` (toast) | Pattern | `feedback-notifications`; house defaults (errors persist) |
 | Database notifications | Rule | not sent twice while unread; long work ends with one |
+
+## Deprecated, base and internal classes
+
+| Component | Status | Guidance |
+|---|---|---|
+| `BadgeColumn`, `TagsColumn` | Not applicable | deprecated: `TextColumn` with `->badge()` (`tables-status-badge`) |
+| `BooleanColumn` | Not applicable | deprecated: `IconColumn` with `->boolean()` (the icon rule) |
+| `MultiSelect`, `MultiSelectFilter` | Not applicable | deprecated: `Select` or `SelectFilter` with `->multiple()` |
+| `RelationshipRepeater` | Not applicable | deprecated: `Repeater` with `->relationship()` (`forms-line-items`) |
+| `ButtonAction`, `IconButtonAction` | Not applicable | deprecated: `Action` with `->button()` or `->iconButton()` |
+| `Field`, `Entry`, `Column`, `Component`, `BaseFilter`, `BaseFileUpload`, `LivewireField`, `EmbeddedSchema`, `Form`, `RenderHook`, `Indicator`, `ActionName`, `ActionsServiceProvider` | Not applicable | base classes and plumbing, not used on their own |
 
 ## Gaps
 

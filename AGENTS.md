@@ -17,12 +17,12 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `src/Accessibility.php` + `resources/a11y/axe.mjs` | WCAG 2.2 AA checks with axe-core in headless Chromium, shared by the test and audit tools. |
 | `src/StorybookPlugin.php` | Registers the page and the **house defaults**: Filament defaults corrected app-wide where they break a rule. |
 | `resources/boost/guidelines/core.blade.php` | The guideline Boost puts in each app's `AGENTS.md`. Keep it short: Storybook found that long agent instructions get truncated. |
-| `resources/instructions/stories.md` | How to write a story. `storybook-instructions` returns it followed by `docs/rules.md`. |
+| `resources/instructions/stories.md` | How to write a story: choosing the component, fitting the other patterns, checking the result. `storybook-instructions` returns it followed by `docs/filament-coverage.md` and `docs/rules.md`. |
 | `resources/js/house.js` | Script for rules Filament can't meet with CSS: copyable values the keyboard can use. Loaded on every panel page. |
 | `resources/css/house.css` | CSS for rules Filament has no setting for, published by `filament:upgrade`. |
 | `docs/rules.md` | **The rulebook:** every rule with its source and date, where we differ from Carbon, and what was dropped and why. |
 | `docs/carbon-coverage.md` | Every Carbon page checked against the rules and `compact()`: one row per page with its updated date, and each gap as a numbered finding with its status. Re-check a page when its date changes. |
-| `docs/filament-coverage.md` | Every Filament component and the guidance that covers it (a pattern, a rule, general rules, or a gap), so a new component or a gap is visible. |
+| `docs/filament-coverage.md` | Every Filament component and the guidance that covers it (a pattern, a rule, general rules, or a gap), so a new component or a gap is visible. Agents look components up in it (through `storybook-instructions`), and a test fails when Filament ships a class it doesn't list. |
 | `docs/roadmap.md` | What is covered, what comes next, and the business facts to ask the owner first. |
 | `eval/` | A headless agent eval: an ordinary feature prompt in a throwaway app, scored on whether the agent used the patterns. |
 

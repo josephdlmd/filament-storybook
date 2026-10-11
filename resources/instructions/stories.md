@@ -6,6 +6,19 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 - Call `storybook-list`. If a pattern already covers the need, reuse it; do not add a near-duplicate.
 - Check the method signatures in `storybook-show`'s API section. Never guess an argument.
 
+## Choosing the component
+- Pick the component by the job, with the rules: up to five choices are radios and more are a searchable select, a yes or no saved with the form is a checkbox, a state the user acts on is a badge with its word.
+- Find each component you use in the coverage table below ("Filament coverage") and follow what its row names. **Pattern:** copy that pattern's configuration. **Rule:** apply the rule. **General:** only the general rules named there apply; say so to the user. **Not applicable:** don't use it.
+- When no row covers what you need, or a rule would be a guess, say so instead of inventing one. A UI rule needs a current source; a business fact comes from the owner.
+
+## Fit the other patterns
+A new story is one more screen in the same app, so it agrees with the patterns already there:
+- The same field has the same name, label and width as in every other pattern (a customer picker is `forms-record-picker`; an amount is `forms-money-input`).
+- Sample data uses the same records and formats: the example customers and suppliers, PO-000042 for a numbered document and 001234 for a form's serial, ₱ amounts.
+- One status field per kind of state: a document's status (Draft, For approval, Posted, Void) and its payment status are separate fields and columns, each with the colours `tables-status-badge` gives.
+- Toasts name the record ("Invoice 001234 voided"), and a modal's title and confirm button repeat the label of the button that opened it.
+- A screen built from several components keeps the theme's spacing between them; never add margins to make them fit.
+
 ## The class
 - Extend `Josephdlmd\FilamentStorybook\Stories` in `app/Stories/<Name>Stories.php`.
 - `title()` is `Group/Name`, for example `Forms/Money input` or `Tables/Status badge`.
@@ -34,4 +47,5 @@ The full rules, each with its source, follow these instructions. `storybook-test
 
 ## Verify
 - Run `storybook-test` with the pattern's id. Fix every failure, warning and accessibility issue, then run it again. Repeat until it reports none.
-- Then give the user the preview link from `storybook-show`.
+- `storybook-test` checks components, not how they sit together. If you can view pages, open the preview link from `storybook-show` and look at every part of the screen, not only your component: each strip of a table (filters, toolbar, header, rows, pagination), the gaps between fields, and anything that sits alone in a row, overlaps or touches a border. Open every modal and slide-over the story has.
+- Then give the user the preview link.
