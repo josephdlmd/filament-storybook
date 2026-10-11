@@ -37,7 +37,7 @@ class RecordFormStories extends Stories
                     ->label('TIN')
                     ->regex('/^[\s.-]*(\d[\s.-]*){12}$/')
                     ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
-                    ->helperText('For example, 123-456-789-000, with 000 for the head office')
+                    ->helperText('For example, 123-456-789-000')
                     ->maxWidth('xs')
                     ->required(),
                 TextInput::make('credit_limit')

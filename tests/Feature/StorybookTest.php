@@ -139,7 +139,7 @@ it('renders a screen story as the resource would, with its sample rows', functio
 
     Livewire::test(StoryCanvas::class, ['stories' => RecordFormStories::class, 'story' => 'default'])
         ->assertSet('data.tin', '123-456-789-000')
-        ->assertSee('with 000 for the head office');
+        ->assertSee('For example, 123-456-789-000');
 });
 
 it('loads the house CSS the patterns depend on, on every panel page', function (): void {

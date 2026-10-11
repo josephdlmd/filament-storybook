@@ -147,3 +147,19 @@
 .fi-modal:not(.fi-modal-slide-over) > .fi-modal-window-ctn > .fi-modal-window.fi-modal-window-has-icon > :is(.fi-modal-header, .fi-modal-content, .fi-modal-footer) {
     padding-inline: 1rem;
 }
+
+/* Text weights from Carbon's specifications. Regular (400): field and radio, checkbox and read-only labels
+   ($label-01, $body-compact-01), buttons and links, tags, unselected tabs, wizard steps and the menu's items under a
+   group. Semibold (600): the menu's group headings and its items outside a group ($heading-compact-01), a selected
+   tab and a notification's title. Filament sets 500 on all of them. */
+:is(.fi-fo-field-label-content, .fi-fo-radio-label-text, .fi-fo-checkbox-list-option-label, .fi-in-entry-label, .fi-btn, .fi-link:not(.fi-font-semibold, .fi-font-bold), .fi-badge, .fi-tabs-item, .fi-sc-wizard-header-step-label),
+.fi-sidebar-group:has(> .fi-sidebar-group-btn) .fi-sidebar-item-label {
+    font-weight: 400;
+}
+
+.fi-sidebar-group-label,
+.fi-sidebar-group:not(:has(> .fi-sidebar-group-btn)) .fi-sidebar-item-label,
+.fi-tabs-item.fi-active,
+.fi-no-notification-title {
+    font-weight: 600;
+}
