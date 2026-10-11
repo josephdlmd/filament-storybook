@@ -166,6 +166,13 @@ class StorybookPlugin implements Plugin
         // puts them in that order, in the page as on screen, only when the footer is centred. A full-page form keeps its primary first.
         Action::configureUsing(fn (Action $action) => $action->modalFooterActionsAlignment(Alignment::Center));
 
+        // A confirmation that destroys nothing focuses its primary button; a danger one keeps Filament's focus on Cancel (Carbon
+        // modal: "the primary button takes focus"; "For destructive interactions, the 'cancel' button takes focus").
+        // Filament passes the submit button to the closure as `$action`, by name.
+        Action::configureUsing(fn (Action $parent) => $parent->modalSubmitAction(fn (Action $action): Action => $parent->isConfirmationRequired() && $parent->getColor() !== 'danger'
+            ? $action->extraAttributes(['autofocus' => true], merge: true)
+            : $action));
+
         // A form modal keeps its header and buttons in view while the fields scroll (Carbon modal). Confirmations are short.
         Action::configureUsing(fn (Action $action) => $action
             ->stickyModalHeader(fn (Action $action): bool => ! $action->isConfirmationRequired())

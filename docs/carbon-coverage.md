@@ -1,6 +1,6 @@
 # Carbon coverage
 
-Every Carbon page was checked against `docs/rules.md` and `StorybookPlugin::compact()` on 2026-10-11, and the findings were worked through the same day in six releases (v0.33.0 to v0.38.0). Each page gets one row below, and each gap gets one finding.
+Every Carbon page was checked against `docs/rules.md` and `StorybookPlugin::compact()` on 2026-10-11, and the findings were worked through the same day in six releases (v0.33.0 to v0.38.0), and the last open items in v0.39.0. Each page gets one row below, and each gap gets one finding.
 To keep this up to date, re-check a page when its "updated" date changes. A finding's status changes when it is done, adopted or rejected.
 Status of a page: **Covered** (no open findings), **Gaps** (open findings), **Not applicable** (no Filament equivalent, or not relevant).
 Marks: **[WCAG]** an accessibility failure; **[Owner]** needs an owner decision.
@@ -12,10 +12,10 @@ Dates are the pages' "Last updated" lines. Every form-input page shows 2026-09-3
 | Page | Updated | Filament equivalent | Status | Findings |
 |---|---|---|---|---|
 | **Components** | | | | |
-| Button | 2026-09-30 | `Action` (button, `outlined()`, `link()`, `iconButton()`) | Gaps | BTN-1, BTN-2, BTN-9, BTN-14, BTN-15, BTN-17, CMP-1 |
+| Button | 2026-09-30 | `Action` (button, `outlined()`, `link()`, `iconButton()`) | Covered | BTN-1, BTN-2, BTN-9, BTN-14, BTN-15, BTN-17, CMP-1 |
 | Menu buttons | 2026-09-28 | `ActionGroup` (`->button()`; "…" overflow) | Covered | BTN-9, BTN-10, BTN-11, CMP-3 |
 | Menu | 2026-09-30 | `x-filament::dropdown` (`.fi-dropdown-list`) | Covered | BTN-12, BTN-13, CMP-1, CMP-3, CMP-4 |
-| Link | 2026-09-28 | `.fi-link` (`Action::link()`, columns and entries with `url()`) | Gaps | A11Y-3, TBL-19, CMP-1 |
+| Link | 2026-09-28 | `.fi-link` (`Action::link()`, columns and entries with `url()`) | Covered | A11Y-3, TBL-19, CMP-1 |
 | Popover | 2026-09-30 | `.fi-dropdown-panel` (filters, column manager) | Covered | BTN-21, BTN-22, CMP-5 |
 | Toggletip | 2026-09-30 | None (nearest: `hintIcon(tooltip:)`) | Covered | A11Y-1 |
 | Tooltip | 2026-09-30 | `tooltip()` (tippy.js) | Covered | BTN-15, BTN-16, A11Y-1, CMP-6 |
@@ -31,7 +31,7 @@ Dates are the pages' "Last updated" lines. Every form-input page shows 2026-09-3
 | Toggle | 2026-09-30 | `Toggle`, `ToggleColumn` | Covered | FRM-12, FRM-13 |
 | Slider | 2026-09-30 | `Slider` (unused) | Covered | FRM-14 |
 | Date picker | 2026-09-30 | `DatePicker` (native), `DateTimePicker` | Covered | FRM-15, FRM-16 |
-| File uploader | 2026-09-30 | `FileUpload` (FilePond) | Gaps | FRM-17, FRM-18 |
+| File uploader | 2026-09-30 | `FileUpload` (FilePond) | Covered | FRM-17, FRM-18 |
 | Search | 2026-09-30 | Table search, global search | Covered | A11Y-4, TBL-7 |
 | Form | 2026-09-30 | Schema `Form`; resource and action forms | Covered | FRM-10, FRM-11, A11Y-1 |
 | Data table | 2026-09-30 | `Table` | Covered | TBL-1, TBL-2, TBL-3, TBL-4, TBL-5, CMP-8 |
@@ -50,11 +50,11 @@ Dates are the pages' "Last updated" lines. Every form-input page shows 2026-09-3
 | UI shell header | 2026-10-02 | Top bar (`.fi-topbar`) | Covered | NAV-1, NAV-2, CMP-2, CMP-15 |
 | UI shell left panel | 2026-10-02 | Sidebar (`.fi-sidebar`) | Covered | NAV-3, NAV-4, CMP-11, CMP-12, RUL-3 |
 | UI shell right panel | 2026-10-02 | Nearest: database notifications slide-over | Covered | |
-| Modal | 2026-09-30 | Action modals, confirmations, slide-overs | Gaps | BTN-1, BTN-2, BTN-3, BTN-4, BTN-6, CMP-2 |
+| Modal | 2026-09-30 | Action modals, confirmations, slide-overs | Covered | BTN-1, BTN-2, BTN-3, BTN-4, BTN-6, CMP-2 |
 | Notification | 2026-09-30 | `Notification` toasts, `Callout` | Covered | FDB-1, FDB-2, FDB-3, CMP-2, CMP-13 |
 | Breadcrumb | 2026-09-30 | `.fi-breadcrumbs` | Covered | NAV-5, CMP-14 |
 | **Patterns** | | | | |
-| Common actions | 2026-08-11 | Create, Edit, Delete, Cancel, Close and the other actions | Gaps | BTN-19, BTN-20, FRM-23, FRM-24, DSH-16 |
+| Common actions | 2026-08-11 | Create, Edit, Delete, Cancel, Close and the other actions | Covered | BTN-19, BTN-20, FRM-23, FRM-24, DSH-16 |
 | Dialogs | 2026-08-11 | Action modals, confirmations, slide-overs | Covered | BTN-1, BTN-4, BTN-5, BTN-7, BTN-8 |
 | Disabled states | 2026-08-11 | `disabled()`, `hidden()`, `readOnly()` | Covered | CMP-17 |
 | Disclosures | 2026-08-11 | `ActionGroup`, user menu, filter dropdowns | Covered | BTN-21, BTN-23 |
@@ -105,7 +105,7 @@ Each finding gives what to do, its basis, its kind and its status. All are **Pro
 - **BTN-1** — In a modal or slide-over, Cancel sits on the left and the primary button on the right, using the house default `modalFooterActionsAlignment(Alignment::Center)`. A full-page form keeps its primary first, on the left. — Carbon modal: "the secondary button is on the left and the primary button is placed on the right"; Carbon dialogs: "Cancel is always the outmost left button option"; Carbon button and forms: "right-aligned … within wizards and dialog windows"; Accessibility (keyboard): focus order "logical and predictable". — house default + rule; corrects the Dropped entry "Save button on the right" (RUL). — Done 2026-10-11 (house default, rule; checked in a browser).
   - *The batches disagree on the fix.* Batch e proposed `Alignment::End`. Filament's `CanOpenModal::getModalFooterActions()` reverses the actions only for `Center`. `End` keeps them in their order and reverses them only on screen (CSS `flex-row-reverse`), so focus would run right to left, which fails WCAG 2.4.3. Use `Center`. It also gives Carbon's equal-width buttons.
   - Batch e also says Carbon's tab order is "primary then secondary". Batches a and d don't support that. Check a three-button footer (Create & create another) and wide modals in a browser.
-- **BTN-2** — A danger confirmation focuses Cancel, which Filament already does. Any other confirmation focuses its primary button (`autofocus` on `modalSubmitAction`). — Carbon modal: "For dialogs which prompt for confirmation or user decision, the primary button takes focus"; "For destructive interactions, the 'cancel' button takes focus". — rule + house default; not verified. — Open: Filament's focus in a confirmation still needs checking in a browser before a house default.
+- **BTN-2** — A danger confirmation focuses Cancel, which Filament already does. Any other confirmation focuses its primary button (`autofocus` on `modalSubmitAction`). — Carbon modal: "For dialogs which prompt for confirmation or user decision, the primary button takes focus"; "For destructive interactions, the 'cancel' button takes focus". — rule + house default; not verified. — Done 2026-10-11 (house default; checked in a browser: Cancel in a delete, the primary in a confirmation that destroys nothing).
 - **BTN-3** — Modal headers and footers stay fixed while the body scrolls: house default `stickyModalHeader()->stickyModalFooter()`. — Carbon modal: "the body section should scroll vertically with the header and footer remaining fixed in place". — house default. — Done 2026-10-11 (house default for form modals, rule).
 - **BTN-4** — No modal opens on page load (`$defaultAction`, `mountAction()` in `mount()`); use a callout or toast. — Carbon modal: "Modals are triggered as a result of a user's action and are not system generated"; Carbon dialogs: "Don't use when the user hasn't triggered the dialog." — rule + audit check. — Done 2026-10-11 (rule).
 - **BTN-5** — A modal never opens another modal. That rules out `createOptionForm()`/`editOptionForm()`, `ModalTableSelect`, and confirming actions inside a modal form. — Carbon dialogs: "One modal should never trigger another modal." — rule + audit check + test check. — Done 2026-10-11 (rule).
@@ -122,7 +122,7 @@ Each finding gives what to do, its basis, its kind and its status. All are **Pro
 - **BTN-16** — Tooltips that define or instruct are full sentences with punctuation. Low value. — Carbon tooltip: "write the text as complete sentences with punctuation." — rule. — Done 2026-10-11 (rule).
 - **BTN-17** — An empty state's button is low-emphasis (`outlined()` or gray) when the page header already has the primary. Fix `tables-list-table`, which shows two primaries. The same applies to empty related lists. — Carbon button: "pages that already have the primary action defined, a tertiary button is the ideal solution"; Carbon empty states: "using a tertiary button for the call to action". — story fix + rule + audit check. — Done 2026-10-11 (rule, audit check, `tables-list-table` fixed).
 - **BTN-18** — An empty state offers one action. — Carbon empty states: "Don't cover multiple options in one empty state … pick the most important." — rule + audit check. — Done 2026-10-11 (rule, audit check).
-- **BTN-19** — A delete that also destroys other records asks the user to type the record's name (a `TextInput` with an `in:` rule). Add an `actions-delete` variant. — Carbon common actions: "have the user type the name of the resource they are deleting". — rule + story fix. — Rule done 2026-10-11; the `actions-delete` variant that asks for the name is still to do.
+- **BTN-19** — A delete that also destroys other records asks the user to type the record's name (a `TextInput` with an `in:` rule). Add an `actions-delete` variant. — Carbon common actions: "have the user type the name of the resource they are deleting". — rule + story fix. — Done 2026-10-11 (rule, `actions-delete.withTypedName`).
 - **BTN-20** — A failed delete says so in a notification. — Carbon common actions: "If the deletion fails, raise a notification to tell the user that deletion failed." — rule (a clause). — Done 2026-10-11 (rule).
 - **BTN-21** — No dropdown opens inside another; a nested `ActionGroup` uses `dropdown(false)`. — Carbon disclosures: "Do not nest one disclosure within another disclosure"; Carbon popover: "Avoid nesting popovers". — rule + audit check + test check. — Done 2026-10-11 (rule, test check; nested menus also fail axe).
 - **BTN-22** — A dropdown holding fields is at most 352px wide; anything wider is a modal. Low value. — Carbon popover: "If your popover exceeds four columns in width, use a modal instead". — rule; audit possible (`getFiltersFormWidth()`). — Done 2026-10-11 (rule).
@@ -152,7 +152,7 @@ Each finding gives what to do, its basis, its kind and its status. All are **Pro
 - **FRM-15** — A date range has two labelled fields ("From" and "To"). Add a variant to `forms-date` or `tables-list-table`. — Carbon date picker: "Range inputs should be properly labeled with a start and end label." — rule + story fix + audit check (partly). — Done 2026-10-11 (rule, `forms-date.range`).
 - **FRM-16** — A 12-hour time shows AM or PM in capitals, without full stops. Low value. — Carbon date picker: "Use uppercase letters and no periods for … AM and PM." — rule. — Done 2026-10-11 (rule).
 - **FRM-17** — An upload of several files (`multiple()`) goes in a slide-over or on a page, never in a modal. — Carbon file uploader: "Do not use upload in a modal when multiple files are uploaded". — rule + audit check. — Done 2026-10-11 (rule).
-- **FRM-18** — Upload errors say what to do ("Select a PDF or JPG", "Select a file smaller than 10 MB") instead of "File of invalid type". Whether FilePond's own labels can be overridden needs checking. — Carbon file uploader: "Error messages should provide clear guidance to help the user resolve the error." — house default + audit check. — Rule done 2026-10-11; overriding FilePond's own messages ("File of invalid type") is still to check.
+- **FRM-18** — Upload errors say what to do ("Select a PDF or JPG", "Select a file smaller than 10 MB") instead of "File of invalid type". Whether FilePond's own labels can be overridden needs checking. — Carbon file uploader: "Error messages should provide clear guidance to help the user resolve the error." — house default + audit check. — Done 2026-10-11 for the server's errors, in GOV.UK's words (`forms-file-upload`); FilePond's own browser messages are in Filament's bundled script and can't be reworded from outside it.
 - **FRM-19** — Forms have one column, with fields side by side only when they belong together. Filament forces `columns(2)` on modal forms opened from List, Edit and View pages. Cite Carbon in `forms-record-form`. — Carbon forms: "Carbon generally recommends single-column forms". — rule + house default (`columns(1)`) or pattern note + audit check. — Done 2026-10-11 (rule; `forms-record-form` sets `columns(1)`, which overrides the two columns Filament gives modal forms).
 - **FRM-20** — Save and Cancel stay at the bottom of a page form, never in the header. — Carbon forms: "Do not top align primary and secondary action buttons". — rule + audit check. — Done 2026-10-11 (rule).
 - **FRM-21** — The first field on a Create page gets `autofocus()`. Low value. — Carbon forms: "The first required input field in a form should receive focus on presentation." — story fix (pattern note). — Done 2026-10-11 (`autofocus()` in `forms-record-form`).
@@ -184,7 +184,7 @@ Each finding gives what to do, its basis, its kind and its status. All are **Pro
 - **TBL-16** — Show a badge only for a status the user acts on or scans for; other attributes are plain text. — Carbon status indicators: "Avoid using status indicators when no user action is required". — rule + audit check (heuristic: more than one badge column). — Done 2026-10-11 (rule).
 - **TBL-17** — Where statuses are combined (a summary badge), use the colour of the one that needs the most attention. Low value. — Carbon status indicators: "When multiple statuses are consolidated, use the highest-attention color." — rule. — Done 2026-10-11 (rule).
 - **TBL-18** — A multiple-choice filter has no select-all (`bulkToggleable()`). Low value. — Carbon dropdown: "not to use the parent checkbox in scenarios like filters when choosing all and choosing none means the same". — rule + audit check (possible). — Done 2026-10-11 (rule).
-- **TBL-19** — Row actions ("Edit", "View") name their record for screen readers, for example `aria-label` "Edit C-0001", starting with the visible label (WCAG 2.5.3). Medium effort; verify on a real table. — Carbon link: "Avoid using the same link text for different destinations on the same page". — house default + test check. — Open: naming each row action after its record needs checking on a real table, and must not turn off Filament's fast rendering of row actions.
+- **TBL-19** — Row actions ("Edit", "View") name their record for screen readers, for example `aria-label` "Edit C-0001", starting with the visible label (WCAG 2.5.3). Medium effort; verify on a real table. — Carbon link: "Avoid using the same link text for different destinations on the same page". — house default + test check. — Done 2026-10-11 (house script, which keeps Filament's fast row rendering; checked in a browser: "Edit Test User", "Delete Jane Cruz").
 - **TBL-20** — Empty states are left-aligned as a block, text and buttons alike (Filament centres them). — Carbon empty states: "Empty state elements should be left-aligned as a block". — house CSS (or compact) + test check. — Done 2026-10-11 (house CSS).
 
 ### Navigation, tabs and layout
@@ -287,7 +287,7 @@ These are text changes to `docs/rules.md`. BTN-1 (the Dropped entry "Save button
 
   — Carbon icons, modal, tabs, accordion, file uploader, breadcrumb, data table, inline loading. — rule. — Done 2026-10-11.
 - **RUL-6** — Check whether IBM Accessibility's public "Content design" pages (errors, labels, context) can be cited without a sign-in, to source writing rules that lost theirs when Carbon's content guidelines came down. This is a lead only, not fetched. — Carbon content (links to IBM Style and IBM Accessibility "Content design"). — rule (research). — Checked 2026-10-11: the IBM Accessibility content pages are public (ibm.com/able/toolkit/design/content). Accepted by the owner 2026-10-11 as the source for writing guidance Carbon took down; see RUL-7.
-- **RUL-7** — Read IBM Accessibility's content design pages (errors, labels, context) and source the writing rules that lost theirs when Carbon's content guidelines came down (second person, active voice, no "please", abbreviations). — IBM Accessibility content design (ibm.com/able/toolkit/design/content). — rule. — Proposed.
+- **RUL-7** — Read IBM Accessibility's content design pages (errors, labels, context) and source the writing rules that lost theirs when Carbon's content guidelines came down (second person, active voice, no "please", abbreviations). — IBM Accessibility content design (ibm.com/able/toolkit/design/content). — rule. — Done 2026-10-11: IBM Accessibility's content design page covers headings, labels, errors, link text, placeholders and consistency, not the withdrawn writing style; it confirms existing rules and adds one, consistent labels and icons across pages.
 
 ## Not adopted
 

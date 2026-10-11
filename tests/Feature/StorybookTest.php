@@ -150,7 +150,8 @@ it('loads the house CSS and script the patterns depend on, on every panel page',
     expect(file_get_contents(__DIR__.'/../../resources/js/house.js'))
         ->toContain("setAttribute('role', 'button')")
         ->toContain("['Enter', ' ']")
-        ->toContain('Copied to clipboard');
+        ->toContain('Copied to clipboard')
+        ->toContain('.fi-ta-actions :is(a, button):not([aria-label])');
 });
 
 it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on a panel that asks for it', function (): void {
@@ -236,6 +237,13 @@ it('leaves form errors to the app, keeps amounts as text and marks optional fiel
         ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
         ->and(Filament\Facades\Filament::getPanel('fixture')->hasUnsavedChangesAlerts())->toBeTrue()
         ->and(__('filament-panels::auth/pages/login.messages.failed'))->toBe('Incorrect email or password. Try again.');
+});
+
+it('focuses the primary in a confirmation that destroys nothing, and Cancel in a danger one', function (): void {
+    $reminder = Filament\Actions\Action::make('sendReminder')->requiresConfirmation();
+
+    expect($reminder->getModalSubmitAction()->getExtraAttributes())->toHaveKey('autofocus')
+        ->and(Filament\Actions\DeleteAction::make()->getModalSubmitAction()->getExtraAttributes())->not->toHaveKey('autofocus');
 });
 
 it('shows a skeleton while a table reloads', function (): void {
@@ -376,7 +384,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 57 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 58 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 

@@ -22,6 +22,12 @@ class FileUploadStories extends Stories
         return FileUpload::make('supporting_document')
             ->acceptedFileTypes(['application/pdf', 'image/jpeg'])
             ->maxSize(10240)
-            ->helperText('PDF or JPG, up to 10 MB');
+            ->helperText('PDF or JPG, up to 10 MB')
+            // The server's errors, worded as GOV.UK's file upload asks. FilePond's own messages in the browser ("File of
+            // invalid type") are in Filament's bundled script and can't be reworded from outside it.
+            ->validationMessages([
+                'mimetypes' => 'The selected file must be a PDF or JPG',
+                'max' => 'The selected file must be smaller than 10 MB',
+            ]);
     }
 }
