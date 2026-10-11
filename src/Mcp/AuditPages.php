@@ -177,6 +177,16 @@ class AuditPages extends Tool
                 $warnings[] = "- `{$key}`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
             }
 
+            $datasets = is_subclass_of($widget, ChartWidget::class) ? (rescue(fn (): mixed => (new ReflectionMethod($widget, 'getData'))->invoke(new $widget), [], report: false)['datasets'] ?? []) : [];
+
+            if (count($datasets) > 1 && collect($datasets)->contains(fn (array $series): bool => blank($series['borderColor'] ?? null) && blank($series['backgroundColor'] ?? null))) {
+                $warnings[] = "- `{$key}`: its ".count($datasets).' series share one colour, since Filament paints every series in the widget\'s colour; give each its own `borderColor` and `backgroundColor` from Filament\'s palette, meeting 3:1 on the light and dark backgrounds, and its own line style, as `CashFlowChart` does (Carbon color palettes; WCAG 1.4.1, 1.4.11).';
+            }
+
+            if (count($datasets) === 1 && static::showsLegend($widget)) {
+                $warnings[] = "- `{$key}`: it has one series but shows a legend; hide it with `'plugins' => ['legend' => ['display' => false]]` (Carbon legends: \"Remove legends … when only one data category is needed\").";
+            }
+
             if (is_subclass_of($widget, ChartWidget::class) && static::hasClickableLegend($widget)) {
                 $warnings[] = "- `{$key}`: its legend hides a series on a mouse click, which the keyboard can't do; set `'plugins' => ['legend' => ['onClick' => null]]` in `getOptions()`, and filter with the dashboard's filters instead (WCAG 2.1.1; Carbon legends).";
             }
@@ -210,6 +220,14 @@ class AuditPages extends Tool
         }
 
         return Response::text($text.($failing === [] && $issues === [] && $warnings === [] ? '' : "\nFix each one, then run storybook-audit again until none remain.\n"));
+    }
+
+    /** A chart whose legend shows, Chart.js's default. */
+    protected static function showsLegend(string $widget): bool
+    {
+        $options = rescue(fn (): mixed => (new ReflectionMethod($widget, 'getOptions'))->invoke(new $widget), false, report: false) ?? [];
+
+        return is_array($options) && (($options['plugins']['legend'] ?? [])['display'] ?? true) !== false;
     }
 
     /** A chart whose legend shows and still toggles a series on click, Chart.js's default. */

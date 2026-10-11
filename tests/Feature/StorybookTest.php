@@ -376,7 +376,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 56 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 57 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -503,6 +503,9 @@ it('audits the dashboard\'s widgets on a full audit', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
         ->toContain('- `GadgetStats`: it reloads itself every 5s, and the user can\'t stop it')
         ->toContain('- `GadgetSalesChart`: its legend hides a series on a mouse click')
+        ->toContain('- `GadgetSalesChart`: its 2 series share one colour')
+        ->toContain('- `GadgetStockChart`: it has one series but shows a legend')
+        ->not->toContain('- `GadgetStockChart`: its legend hides')
         ->toContain('- `OrdersPerMonthChart`')
         ->not->toContain('- `OrdersPerMonthChart`:');
 });

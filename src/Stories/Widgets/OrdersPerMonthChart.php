@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Carbon;
 
 class OrdersPerMonthChart extends ChartWidget
 {
@@ -20,10 +21,14 @@ class OrdersPerMonthChart extends ChartWidget
 
     protected function getData(): array
     {
-        // On a dashboard, count approved orders per month with a query.
+        // On a dashboard, count approved orders per month with a query, and list every month in the range: 0 where there
+        // were none, null where the count is unknown, never a month left out (Carbon axes: "Never change axis ticks
+        // increments to accommodate data availability"). Month names follow the app's locale.
+        $months = collect(['2026-05-01', '2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01'])->map(fn (string $month): string => Carbon::parse($month)->translatedFormat('F'));
+
         return [
             'datasets' => [['label' => 'Approved orders', 'data' => [42, 38, 51, 47, 63]]],
-            'labels' => ['May', 'June', 'July', 'August', 'September'],
+            'labels' => $months->all(),
         ];
     }
 
