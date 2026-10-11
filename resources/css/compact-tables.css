@@ -1,8 +1,9 @@
 /*
  * Compact tables, for data-dense apps (StorybookPlugin::make()->compactTables()): Carbon data table's medium size,
  * 40px plus Filament's 1px divider, with the same 14px text (owner, 2026-10-11). The header row matches the rows, as
- * Carbon asks, and so do the strips above and below the table. Filament has no setting for any of it; it pads each part
- * instead, so these selectors follow its classes, and tests/Feature/StorybookTest.php fails if Filament renames one.
+ * Carbon asks; the strips above and below the table hold 32px controls with 8px around them. Filament has no setting
+ * for any of it; it pads each part instead, so these selectors follow its classes, and tests/Feature/StorybookTest.php
+ * fails if Filament renames one.
  */
 
 /* Header and rows: Filament pads each cell's content, by column type. */
@@ -16,14 +17,13 @@
 }
 
 /* The strips around the table: the toolbar (search, bulk actions, column picker), a header holding only actions (a
-   related list's New button) and the pagination. Their controls are Carbon's small 32px, with 4px above and below, so
-   each strip is as tall as the 40px rows (owner, 2026-10-11). Carbon's 8px margin sits outside its borderless toolbar;
-   inside Filament's bordered strip it would make the strips taller than the rows. The filters above the table are
-   a form and keep the theme's spacing. */
+   related list's New button) and the pagination. Their controls are Carbon's small 32px, with its $spacing-03 (8px)
+   above and below (Carbon data table style, archived; owner, 2026-10-11, after 4px looked cramped). The filters
+   above the table are a form and keep the theme's spacing. */
 .fi-ta-header-toolbar,
 .fi-ta-header:not(:has(.fi-ta-header-heading)),
 .fi-pagination {
-    padding-block: 0.25rem;
+    padding-block: 0.5rem;
 }
 
 /* Filament pulls a header's actions 4px into its padding to line up with its heading; with no heading, that ate the gaps. */

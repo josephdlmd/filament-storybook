@@ -133,7 +133,7 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
-For a data-dense app, `StorybookPlugin::make()->compactTables()` gives every table one even height: Carbon's 40px medium rows and header, and a toolbar and pagination of the same height with 32px controls, instead of Filament's mix of 37 to 49px, with the same 14px text. It's off by default, since Filament's rows already break no rule. A package test fails if a Filament upgrade renames the classes it adjusts.
+For a data-dense app, `StorybookPlugin::make()->compactTables()` gives every table one even height: Carbon's 40px medium rows and header, and a toolbar and pagination with 32px controls and 8px around them, instead of Filament's mix of 37 to 49px, with the same 14px text. It's off by default, since Filament's rows already break no rule. A package test fails if a Filament upgrade renames the classes it adjusts.
 
 `StorybookPlugin::make()->compact()` goes further, for an app that is data-dense throughout: compact tables, plus Carbon's small sizes wherever Filament's Compact theme is looser. The menu is 256px wide with 32px items, no gap and 16px icons, a field's label sits 8px above its input and its helper text 4px below, stacked radios are 8px apart and checkboxes 4px, breadcrumbs are 12px, and line items fit their 32px fields with 4px above and below. Use it with the Compact theme, which already makes inputs and buttons 32px.
 
