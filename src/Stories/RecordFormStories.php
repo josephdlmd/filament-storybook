@@ -45,7 +45,9 @@ class RecordFormStories extends Stories
                     ->prefix('₱')
                     ->step(0.01)
                     ->minValue(0)
-                    ->maxWidth('xs'),
+                    ->rules(['decimal:0,2'])
+                    ->maxWidth('xs')
+                    ->validationMessages(['decimal' => 'Enter the credit limit with at most 2 decimal places, such as 250000.50']),
                 Radio::make('payment_terms')
                     ->options([
                         'cod' => 'Cash on delivery',

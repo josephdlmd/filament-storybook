@@ -178,7 +178,7 @@ Patterns `forms-document-totals`, `records-document-lifecycle`, `actions-void`, 
 
 ## Accessibility floor
 
-- **WCAG 2.1 AA checks on every story and page.** axe-core, the engine behind Storybook's accessibility addon. *Test, audit.*
+- **WCAG 2.2 AA checks on every story and page.** axe-core (its WCAG 2.0, 2.1 and 2.2 A and AA rules), the engine behind Storybook's accessibility addon. *Test, audit.*
 - **Targets at least 24 by 24 CSS pixels.** WCAG 2.5.8.
 - **Nothing lost at 320 CSS pixels wide (400% zoom), or with increased text spacing.** WCAG 1.4.10 and 1.4.12.
 - **Colour never alone:** gray for a draft or not started, blue for in progress, yellow for a warning, green for done, red for danger or error, always with a word. WCAG 1.4.1; Carbon status indicators (Aug 2026). *Pattern `tables-status-badge`.*

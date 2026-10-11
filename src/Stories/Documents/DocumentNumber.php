@@ -15,6 +15,11 @@ class DocumentNumber
     /** Call it inside the transaction that posts the document, so a posting that fails gives its number back. */
     public static function next(string $prefix): string
     {
+        // Outside a transaction the row lock ends at once, and a posting that fails afterwards leaves a gap.
+        if (DB::transactionLevel() === 0) {
+            throw new RuntimeException('Call DocumentNumber::next() inside the transaction that posts the document.');
+        }
+
         // The row lock makes a second posting wait for the first, so two users posting at once never share a number.
         $last = DB::table('document_numbers')->where('prefix', $prefix)->lockForUpdate()->value('last');
 

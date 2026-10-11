@@ -46,11 +46,12 @@ class PrintedDocument
                 'address' => data_get($invoice, 'customer.address'),
                 'tin' => data_get($invoice, 'customer.tin'),
             ],
-            'details' => [
-                'Date' => Carbon::parse($invoice->invoice_date)->isoFormat('LL'),
+            // A missing value leaves its line out; Carbon would read a missing date as today.
+            'details' => array_filter([
+                'Date' => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->isoFormat('LL') : null,
                 'Terms' => $invoice->terms,
-                'Due date' => Carbon::parse($invoice->due_date)->isoFormat('LL'),
-            ],
+                'Due date' => $invoice->due_date ? Carbon::parse($invoice->due_date)->isoFormat('LL') : null,
+            ], 'filled'),
             'columns' => [
                 'description' => ['label' => 'Description'],
                 'quantity' => ['label' => 'Quantity', 'format' => 'quantity'],

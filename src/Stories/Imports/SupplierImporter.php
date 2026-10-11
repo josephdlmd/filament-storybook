@@ -18,11 +18,12 @@ class SupplierImporter extends Importer
                 ->requiredMapping()
                 ->rules(['required', 'max:255'])
                 ->example('Abra Medical Supply'),
-            // The same check and stored format as the form's TIN field (forms-tin).
+            // The same check and stored format as the form's TIN field (forms-tin): only 12 digits with spaces, dashes or dots are
+            // formatted; anything else stays as typed, so the rule refuses it.
             ImportColumn::make('tin')
                 ->label('TIN')
                 ->requiredMapping()
-                ->castStateUsing(fn (?string $state): ?string => filled($state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : null)
+                ->castStateUsing(fn (?string $state): ?string => filled($state) && preg_match('/^[\s.-]*(\d[\s.-]*){12}$/', $state) ? implode('-', str_split(preg_replace('/\D/', '', $state), 3)) : $state)
                 ->rules(['required', 'regex:/^\d{3}-\d{3}-\d{3}-\d{3}$/'])
                 ->example('123-456-789-000'),
             // Kept as text, never numeric(), which rounds a third decimal away instead of rejecting it.

@@ -29,7 +29,7 @@ class TestStories extends Tool
     {
         return [
             'ids' => $schema->array()->items($schema->string())->description('Pattern ids from storybook-list. Omit to test every story.'),
-            'a11y' => $schema->boolean()->description('Also check each story against WCAG 2.1 AA with axe-core. Defaults to true.'),
+            'a11y' => $schema->boolean()->description('Also check each story against WCAG 2.2 AA with axe-core. Defaults to true.'),
         ];
     }
 
@@ -89,7 +89,7 @@ class TestStories extends Tool
         }
 
         if ($issues !== []) {
-            $text .= "\n## Accessibility\n\nThese stories break a WCAG 2.1 AA rule (axe-core). Fix each one, then run storybook-test again.\n\n"
+            $text .= "\n## Accessibility\n\nThese stories break a WCAG 2.2 AA rule (axe-core). Fix each one, then run storybook-test again.\n\n"
                 .implode("\n", $issues)."\n";
         }
 

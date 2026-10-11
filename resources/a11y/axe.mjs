@@ -28,7 +28,7 @@ for (const story of input.stories) {
     await page.setContent(`<!doctype html><html lang="en"><head><title>${story.key}</title><style>${css}</style></head><body class="fi-body"><main>${story.html}</main></body></html>`);
     await page.addScriptTag({ content: axe });
     // Scoped to the story, so whole-page rules (a level-one heading, landmarks) do not apply to a fragment.
-    const { violations } = await page.evaluate(() => window.axe.run(document.querySelector('main'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] }));
+    const { violations } = await page.evaluate(() => window.axe.run(document.querySelector('main'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }));
     results[story.key] = violations.map((v) => ({ id: v.id, impact: v.impact, help: v.help, elements: v.nodes.map((n) => n.target.join(' ')).slice(0, 3) }));
 }
 

@@ -247,6 +247,9 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
         ->and($import->getData()['credit_limit'])->toBe('250000.50')
         ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '123-456-789', 'credit_limit' => '1']))
         ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the TIN as 12 digits, such as 123-456-789-000')
+        // Refused by the form, so refused here too, never stripped down to its digits.
+        ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '123456789000X', 'credit_limit' => '1']))
+        ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the TIN as 12 digits, such as 123-456-789-000')
         ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '987-654-321-000', 'credit_limit' => '1.234']))
         ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the credit limit with at most 2 decimal places');
 
@@ -255,24 +258,29 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
         ->toContain('public function resolveRecord(): Supplier');
 });
 
-it('reports every story passing', function (): void {
-    expect((string) (new TestStories)->handle(new Request)->content())
-        ->toStartWith('# 55 passing, 0 failing, 0 warnings, 0 accessibility issues')
-        ->toContain('- `forms-money-input.required`');
-});
-
-it('names every line-item field under Filament\'s own CSS, which hides the cell labels once the table shows headers', function (): void {
-    // The tests have no published theme; Filament's compiled one is what apps load.
+/** Runs storybook-test under Filament's compiled theme, which apps load; the tests have no published one, and unstyled buttons fail WCAG 2.2's target size. */
+function testStoriesWithTheme(array $arguments = []): string
+{
     $theme = public_path('css/filament/filament/app.css');
     @mkdir(dirname($theme), recursive: true);
     copy(__DIR__.'/../../vendor/filament/filament/dist/theme.css', $theme);
 
     try {
-        expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-line-items']]))->content())
-            ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues');
+        return (string) (new TestStories)->handle(new Request($arguments))->content();
     } finally {
         unlink($theme);
     }
+}
+
+it('reports every story passing', function (): void {
+    expect(testStoriesWithTheme())
+        ->toStartWith('# 55 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toContain('- `forms-money-input.required`');
+});
+
+it('names every line-item field under Filament\'s own CSS, which hides the cell labels once the table shows headers', function (): void {
+    expect(testStoriesWithTheme(['ids' => ['forms-line-items']]))
+        ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues');
 });
 
 it('reports a failing story with the line to fix, so the agent can self-correct', function (): void {
@@ -469,6 +477,7 @@ it('holds amounts to centavos, unit costs to 4 decimals and quantities to 3, on 
 })->with([
     'amount, centavos' => [Josephdlmd\FilamentStorybook\Stories\MoneyInputStories::class, 'amount', '1250.50', true],
     'amount, a third decimal' => [Josephdlmd\FilamentStorybook\Stories\MoneyInputStories::class, 'amount', '1.234', false],
+    'record form credit limit, a third decimal' => [RecordFormStories::class, 'credit_limit', '250000.555', false],
     'unit cost, 4 decimals' => [Josephdlmd\FilamentStorybook\Stories\UnitCostStories::class, 'unit_cost', '89.2857', true],
     'unit cost, a fifth decimal' => [Josephdlmd\FilamentStorybook\Stories\UnitCostStories::class, 'unit_cost', '89.28571', false],
     'quantity, 3 decimals' => [Josephdlmd\FilamentStorybook\Stories\QuantityStories::class, 'quantity', '12.125', true],
@@ -563,10 +572,20 @@ it('numbers posted documents in one series per prefix, with no gaps', function (
         $table->unsignedInteger('last');
     });
     Illuminate\Support\Facades\DB::table('document_numbers')->insert([['prefix' => 'SI', 'last' => 0], ['prefix' => 'PO', 'last' => 41]]);
-    $next = fn (string $prefix): string => Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next($prefix);
+    $next = fn (string $prefix): string => Illuminate\Support\Facades\DB::transaction(fn (): string => Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next($prefix));
 
     expect([$next('SI'), $next('SI'), $next('PO')])->toBe(['SI-000001', 'SI-000002', 'PO-000042'])
-        ->and(fn () => $next('RR'))->toThrow(RuntimeException::class, 'no number series for RR');
+        ->and(fn () => $next('RR'))->toThrow(RuntimeException::class, 'no number series for RR')
+        ->and(fn () => Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next('SI'))->toThrow(RuntimeException::class, 'inside the transaction');
+
+    // A posting that fails after taking its number gives the number back.
+    rescue(fn () => Illuminate\Support\Facades\DB::transaction(function (): void {
+        Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next('SI');
+
+        throw new RuntimeException('Posting failed');
+    }), report: false);
+
+    expect($next('SI'))->toBe('SI-000003');
 });
 
 it('checks a payment against the balance due, with the tax withheld', function (array $data, ?string $error): void {
@@ -667,6 +686,13 @@ it('downloads a posted document as a tagged A4 PDF in the shared layout, an invo
 
     expect($pdf->tagged)->toBeTrue()
         ->and((fn (): ?string => $this->format)->call($pdf))->toBe('a4');
+});
+
+it('leaves a missing date off the printed copy instead of printing today', function (): void {
+    $invoice = (new Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice)->forceFill(['number' => '001232', 'invoice_date' => '2026-10-11', 'terms' => 'Cash', 'due_date' => null]);
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::salesInvoice($invoice)['details'])
+        ->toBe(['Date' => 'October 11, 2026', 'Terms' => 'Cash']);
 });
 
 it('refuses a serial another user saved after the form was checked, keeping the form open and saying what to check', function (string $stories, string $action, string $model, array $data, string $title): void {
