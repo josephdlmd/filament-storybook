@@ -1,24 +1,24 @@
 /*
- * Compact tables, for data-dense apps (StorybookPlugin::make()->compactTables()): Carbon data table's small size,
- * 32px plus Filament's 1px divider, with the same 14px text. The header row matches the rows, as Carbon asks; so do
- * the controls in the strips above and below the table. Filament has no setting for any of it; it pads each part
+ * Compact tables, for data-dense apps (StorybookPlugin::make()->compactTables()): Carbon data table's medium size,
+ * 40px plus Filament's 1px divider, with the same 14px text (owner, 2026-10-11). The header row matches the rows, as
+ * Carbon asks, and so do the strips above and below the table. Filament has no setting for any of it; it pads each part
  * instead, so these selectors follow its classes, and tests/Feature/StorybookTest.php fails if Filament renames one.
  */
 
 /* Header and rows: Filament pads each cell's content, by column type. */
 .fi-ta-table > thead > tr > th,
 .fi-ta-table > tbody > tr > td:is(.fi-ta-selection-cell, :has(.fi-ta-actions), :has(.fi-ta-record-checkbox)) {
-    padding-block: 0.375rem;
+    padding-block: 0.625rem;
 }
 
 .fi-ta-table > tbody > tr > td :is(.fi-ta-text, .fi-ta-icon, .fi-ta-image, .fi-ta-select, .fi-ta-color, .fi-ta-toggle, .fi-ta-text-input, .fi-ta-checkbox):not(.fi-inline) {
-    padding-block: 0.25rem;
+    padding-block: 0.5rem;
 }
 
 /* The strips around the table: the toolbar (search, bulk actions, column picker), a header holding only actions (a
-   related list's New button) and the pagination. Their controls are Carbon's small 32px, with 4px above and below:
-   Carbon's 8px margin sits outside its borderless toolbar, while Filament's framed controls sit inside a bordered
-   strip, where 8px made the strip half as tall again as the rows (owner, 2026-10-11). The filters above the table are
+   related list's New button) and the pagination. Their controls are Carbon's small 32px, with 4px above and below, so
+   each strip is as tall as the 40px rows (owner, 2026-10-11). Carbon's 8px margin sits outside its borderless toolbar;
+   inside Filament's bordered strip it would make the strips taller than the rows. The filters above the table are
    a form and keep the theme's spacing. */
 .fi-ta-header-toolbar,
 .fi-ta-header:not(:has(.fi-ta-header-heading)),
@@ -49,7 +49,7 @@
     height: 2rem;
 }
 
-/* Every row is at least 32px, also when it holds only a badge. */
+/* Every row is at least 40px, also when it holds only a badge. */
 .fi-ta-table > tbody > tr > td {
-    height: 2rem;
+    height: 2.5rem;
 }

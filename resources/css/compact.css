@@ -70,7 +70,7 @@
 }
 
 /* Line items and read-only tables are not Filament tables, so compact tables don't reach them. Line items: each 32px
-   field has 4px above and below, and the header row matches the rows (Carbon data table). Only once they show as a
+   field has 4px above and below, a 40px row, and the header row matches the rows (Carbon data table). Only once they show as a
    table. */
 @container (width >= 36rem) {
     .fi-fo-table-repeater:not(.fi-compact) > table > tbody > tr > td {
@@ -86,10 +86,10 @@
         padding-block: 0.625rem;
     }
 
-    /* Read-only tables (a RepeatableEntry's table, such as a View page's lines): 32px rows and header, like a
+    /* Read-only tables (a RepeatableEntry's table, such as a View page's lines): 40px rows and header, like a
        Filament table under compact tables. */
     .fi-in-table-repeatable > table > :is(thead, tbody) > tr > :is(th, td) {
-        padding-block: 0.375rem;
+        padding-block: 0.625rem;
     }
 }
 

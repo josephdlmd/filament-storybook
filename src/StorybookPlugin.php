@@ -72,8 +72,8 @@ class StorybookPlugin implements Plugin
     }
 
     /**
-     * Carbon data table's small rows (32px, the same 14px text), for an app whose screens are data-dense.
-     * Off by default: Filament's rows are Carbon's default size, which breaks no rule.
+     * Carbon data table's medium rows (40px, the same 14px text) with the toolbar and pagination as tall, for an app
+     * whose screens are data-dense. Off by default: Filament's rows break no rule.
      */
     public function compactTables(bool $condition = true): static
     {

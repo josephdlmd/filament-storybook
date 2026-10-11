@@ -169,7 +169,7 @@ it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on 
     // compact() brings the compact tables with it.
     $page()->assertSee('compact-tables.css', false)->assertSee('compact.css', false);
 
-    // Rows of 32px and tighter stacks still leave every checkbox, radio and action its WCAG 2.2 target size.
+    // Rows of 40px and tighter stacks still leave every checkbox, radio and action its WCAG 2.2 target size.
     expect(testStoriesWithTheme(['ids' => ['tables-list-table', 'records-related-records', 'tables-money-column', 'tables-status-badge', 'forms-choice', 'forms-record-form', 'forms-yes-or-no']]))
         ->toContain('0 failing, 0 warnings, 0 accessibility issues');
 });
