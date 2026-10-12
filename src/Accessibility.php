@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
@@ -20,10 +21,20 @@ class Accessibility
     public static function check(array $rendered, array $pages = []): array
     {
         preg_match_all('/href="([^"]+\.css[^"]*)"/', (string) Storybook::panel()?->getTheme()->getHtml()->toHtml(), $hrefs);
-        $css = array_values(array_unique(array_filter(
-            array_map(fn (string $url): string => public_path(ltrim((string) parse_url($url, PHP_URL_PATH), '/')), $hrefs[1]),
-            'is_file',
-        )));
+        $css = [];
+        $downloaded = [];
+
+        foreach (array_unique($hrefs[1]) as $url) {
+            $file = public_path(ltrim((string) parse_url($url, PHP_URL_PATH), '/'));
+
+            if (is_file($file)) {
+                $css[] = $file;
+            } elseif (str_starts_with($url, 'http') && filled($body = rescue(fn (): string => Http::timeout(10)->get($url.(str_contains($url, '?') ? '&' : '?').'direct')->throw()->body(), '', report: false))) {
+                // While `npm run dev` runs, the theme comes from Vite's dev server; `?direct` asks for the CSS, not its script wrapper.
+                file_put_contents($css[] = $downloaded[] = sys_get_temp_dir().'/fs-theme-'.Str::random(16).'.css', $body);
+            }
+        }
+
         // Every panel page loads the house CSS too; the line-item labels depend on it.
         $css[] = __DIR__.'/../resources/css/house.css';
 
@@ -37,13 +48,17 @@ class Accessibility
             $css[] = __DIR__.'/../resources/css/compact.css';
         }
 
-        $result = Process::path(base_path())->timeout(120)
-            ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
-            ->input((string) json_encode(['css' => $css, 'stories' => [
-                ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html], array_keys($rendered), $rendered),
-                ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html, 'page' => true], array_keys($pages), $pages),
-            ]]))
-            ->run(['node', __DIR__.'/../resources/a11y/axe.mjs']);
+        try {
+            $result = Process::path(base_path())->timeout(120)
+                ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
+                ->input((string) json_encode(['css' => $css, 'stories' => [
+                    ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html], array_keys($rendered), $rendered),
+                    ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html, 'page' => true], array_keys($pages), $pages),
+                ]]))
+                ->run(['node', __DIR__.'/../resources/a11y/axe.mjs']);
+        } finally {
+            array_map('unlink', $downloaded);
+        }
 
         if ($result->failed()) {
             $reason = Str::of($result->errorOutput())->explode("\n")->first(fn (string $line): bool => str_contains($line, 'Error')) ?? 'node could not run';

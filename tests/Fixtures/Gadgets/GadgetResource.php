@@ -81,7 +81,8 @@ class GadgetResource extends Resource
                 \Filament\Actions\ActionGroup::make([Action::make('inspect'), Action::make('retire')->modalHeading(fn (Gadget $record): string => "Retire {$record->name}?")]),
             ])
             ->headerActions([
-                Action::make('report')->color('gray')->keyBindings(['r']),
+                // Carries data (a month and year), so its capitals are names, not Title Case.
+                Action::make('report')->label('Report For May 2026')->color('gray')->keyBindings(['r']),
                 // Title Case that isn't the action's name, as Filament writes it from a capitalised model label.
                 Action::make('labels')->label('Print Gadget Labels')->color('gray'),
             ])

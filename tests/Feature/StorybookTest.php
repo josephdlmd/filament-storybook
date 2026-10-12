@@ -686,6 +686,7 @@ it('audits the real resource screens against the house rules', function (): void
     expect($report)
         ->toStartWith('# 2 pages rendered, 0 failing, 49 warnings')
         ->toContain('- `ListGadgets`: the action "Print Gadget Labels" is in Title Case')
+        ->not->toContain('"Report For May 2026"')
         ->toContain('- `ListGadgets`: the action `report` runs on the key `r` alone')
         ->toContain('- `CreateGadget`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
@@ -1463,3 +1464,24 @@ it('refuses a serial another user saved after the form was checked, keeping the 
     'a receipt' => [Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'recordPayment', Josephdlmd\FilamentStorybook\Stories\Documents\Payment::class, ['paid_on' => '2026-10-11', 'number' => '004520', 'amount' => '1000', 'tax_withheld' => '0', 'vat_withheld' => '0'], 'Receipt 004520 not recorded'],
     'an invoice' => [Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'post', Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::class, ['number' => '001240'], 'Invoice 001240 not posted'],
 ]);
+
+it('reads the theme from Vite\'s dev server while `npm run dev` runs, then deletes its copy', function (): void {
+    file_put_contents(public_path('hot'), 'http://dev.test:5173');
+    Josephdlmd\FilamentStorybook\Pages\Storybook::panel()->viteTheme('resources/css/theme.css');
+    Illuminate\Support\Facades\Http::fake(['dev.test:5173/*' => Illuminate\Support\Facades\Http::response('.fi-btn { min-height: 2rem }')]);
+    Illuminate\Support\Facades\Process::fake(['*' => Illuminate\Support\Facades\Process::result('{}')]);
+
+    try {
+        Josephdlmd\FilamentStorybook\Accessibility::check(['story' => '<p>Text</p>']);
+    } finally {
+        unlink(public_path('hot'));
+    }
+
+    // `?direct` gets the CSS itself; without it Vite answers with a script that loads it.
+    Illuminate\Support\Facades\Http::assertSent(fn ($request): bool => $request->url() === 'http://dev.test:5173/resources/css/theme.css?direct');
+    Illuminate\Support\Facades\Process::assertRan(function ($process): bool {
+        $theme = collect(json_decode($process->input, true)['css'])->first(fn (string $path): bool => str_contains($path, 'fs-theme-'));
+
+        return $theme !== null && ! file_exists($theme);
+    });
+});

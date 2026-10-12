@@ -517,7 +517,8 @@ class AuditPages extends Tool
             }
 
             // Against the label itself, as a page title is: Filament builds "Create Sales Invoice" from a capitalised model label.
-            if (static::isTitleCase($label, $label)) {
+            // A label carrying data, such as "Lock December 2025" or "Open #5", names something and is left alone.
+            if (static::isTitleCase($label, $label) && ! preg_match('/\d/', $label)) {
                 $warn("the action \"{$label}\" is in Title Case; write it in sentence case (Carbon button).");
             }
 
