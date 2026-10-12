@@ -22,7 +22,7 @@ In this order (a proposal; the owner confirms). Generic flows come first: every 
 
 All the generic flows are covered (2026-10-12).
 
-The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Turning one document into the next (v0.55.0), stock (v0.56.0), supplier statements and credit-limit holds (v0.57.0) are covered too. The planned list is done; what follows is built when an app needs it.
+The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Turning one document into the next (v0.55.0), stock (v0.56.0), supplier statements and credit-limit holds (v0.57.0), and withholding (v0.60.0: VAT-invoice checks, quarterly 2307 details, QAP and SAWT) are covered too. The planned list is done; what follows is built when an app needs it.
 
 ## Later: everyday business screens
 
@@ -42,7 +42,7 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
 - When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit. No change planned for now (owner, 2026-10-12).
-- From the CPA: whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160
+- From the CPA: which quarter's SAWT a customer's withholding belongs to (paid, as now, or 2307 received); whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160
 
 ## How
 
