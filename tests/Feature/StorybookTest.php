@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -357,6 +357,43 @@ it('words two-factor setup by the house rules and emails the owner when it is tu
         ->and(__('filament-panels::auth/pages/login.multi_factor.subheading'))->toBe('To continue logging in, you need to verify your identity.');
 });
 
+it('lets an invited user set their password once, from the latest link, within 7 days', function (): void {
+    $user = User::forceCreate(['name' => 'Ben', 'email' => 'ben@example.com', 'password' => null, 'invited_at' => now()]);
+    $link = fn (): string => (new Josephdlmd\FilamentStorybook\Stories\Invitations\UserInvitation)->toMail($user->fresh())->actionUrl;
+    $works = function (string $url): bool {
+        $request = Illuminate\Http\Request::create($url);
+        $request->setRouteResolver(fn () => app('router')->getRoutes()->match($request));
+
+        return Josephdlmd\FilamentStorybook\Stories\Invitations\AcceptInvitation::invitedUser($request) !== null;
+    };
+    $first = $link();
+
+    $this->get($first)->assertOk()->assertSee('Set your password')->assertSee('ben@example.com')->assertSee('At least 15 characters');
+    expect($works($first))->toBeTrue()
+        ->and($works(str_replace('invitation/'.$user->id, 'invitation/999', $first)))->toBeFalse();
+
+    $this->travel(8)->days();
+    expect($works($first))->toBeFalse();
+    $this->travelBack();
+
+    // Sending again stops the first link.
+    $user->forceFill(['invited_at' => now()->addMinute()])->save();
+    expect($works($first))->toBeFalse()
+        ->and($works($second = $link()))->toBeTrue();
+
+    Illuminate\Support\Facades\Http::fake(['api.pwnedpasswords.com/*' => Illuminate\Support\Facades\Http::response('')]);
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\OpenInvitation::$user = $user->fresh();
+    Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\OpenInvitation::class)
+        ->fillForm(['password' => 'a long enough passphrase', 'passwordConfirmation' => 'a long enough passphrase'])
+        ->call('resetPassword')
+        ->assertRedirect(Filament\Facades\Filament::getUrl());
+
+    expect(Illuminate\Support\Facades\Hash::check('a long enough passphrase', $user->fresh()->password))->toBeTrue()
+        ->and(Filament\Facades\Filament::auth()->id())->toBe($user->id)
+        // Used once: the link no longer works.
+        ->and($works($second))->toBeFalse();
+});
+
 it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
     $delete = Filament\Actions\DeleteAction::make();
 
@@ -430,7 +467,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -489,7 +526,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 65 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 67 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 

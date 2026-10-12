@@ -13,6 +13,8 @@ class User extends Authenticatable implements FilamentUser
 
     protected $guarded = [];
 
+    protected $casts = ['invited_at' => 'datetime'];
+
     public function canAccessPanel(Panel $panel): bool
     {
         return true;

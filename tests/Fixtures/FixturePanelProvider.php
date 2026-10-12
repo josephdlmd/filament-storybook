@@ -25,6 +25,7 @@ class FixturePanelProvider extends PanelProvider
             ->path('fixture')
             ->login()
             ->profile()
+            ->routes(fn () => \Illuminate\Support\Facades\Route::get('invitation/{user}', \Josephdlmd\FilamentStorybook\Stories\Invitations\AcceptInvitation::class)->name('invitation'))
             ->plugin(StorybookPlugin::make())
             ->resources([GadgetResource::class])
             ->widgets([GadgetStats::class, GadgetSalesChart::class, GadgetStockChart::class, \Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class])
