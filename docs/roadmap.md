@@ -22,16 +22,15 @@ In this order (a proposal; the owner confirms). Generic flows come first: every 
 
 All the generic flows are covered (2026-10-12).
 
-The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Next is the first of the everyday business screens below: turning one document into the next.
+The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Turning one document into the next (v0.55.0) is covered too. Next is stock movements, below.
 
 ## Later: everyday business screens
 
 After the documents, in this order. Shared patterns stay generic; anything that depends on one business's rules goes in that app's `app/Stories`, with the rules recorded as business standards.
 
-1. **Turning one document into the next** (quotation, order, delivery, invoice), copying lines and tracking partly fulfilled orders. Shared.
-2. **Stock movements:** receipts against a purchase order (including partial receipts), issues, transfers, and adjustments with a reason; stock on hand per item and location; low-stock warnings. Shared. **Lot and expiry tracking**, and which lot is used first, is a business standard.
-3. **Supplier statements and the ageing screen**; the customer statement of account is covered. Shared screens; the ageing buckets are a business standard.
-4. **Credit-limit warnings or holds** when an order would go over a customer's limit. Shared; warning or hold is a business standard.
+1. **Stock movements:** receipts against a purchase order (including partial receipts), issues, transfers, and adjustments with a reason; stock on hand per item and location; low-stock warnings. Shared. **Lot and expiry tracking**, and which lot is used first, is a business standard.
+2. **Supplier statements**; the customer statement of account and the receivables ageing report are covered. Shared screens; the ageing buckets are a business standard.
+3. **Credit-limit warnings or holds** when an order would go over a customer's limit. Shared; warning or hold is a business standard.
 
 Then, as an app needs them:
 

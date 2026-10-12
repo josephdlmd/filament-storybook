@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -468,7 +468,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-create-next-document, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -527,7 +527,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 77 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 81 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -1139,6 +1139,39 @@ it('ages each customer\'s open balance by days past due, as of a date', function
         ->filterTable('as_of', ['as_of' => '2026-12-01'])
         ->assertDontSee('₱14,563.71')
         ->assertSee(['₱3,363.71', '₱11,200.00', '₱20,454.21']);
+});
+
+it('copies the lines of one document into the next, with their prices and only what is left', function (): void {
+    $F = Josephdlmd\FilamentStorybook\Stories\Documents\Fulfilment::class;
+    $lines = [
+        ['id' => 1, 'description' => 'Gloves', 'vat_class' => 'vatable', 'quantity' => '100', 'delivered' => '40', 'unit_price' => '285.50'],
+        ['id' => 2, 'description' => 'Pens', 'vat_class' => 'exempt', 'quantity' => '20', 'delivered' => '20', 'unit_price' => '1450.00'],
+    ];
+
+    expect($F::remaining('12.5', '0.25'))->toBe('12.250')
+        ->and($F::status($lines))->toBe('Partly delivered')
+        ->and($F::status([['quantity' => '5', 'delivered' => '0']]))->toBe('Not delivered')
+        ->and($F::status([['quantity' => '5', 'delivered' => '5']]))->toBe('Delivered')
+        ->and($F::nextLines($lines, [1 => '60', 2 => '0']))->toBe([
+            ['source_line_id' => 1, 'description' => 'Gloves', 'vat_class' => 'vatable', 'unit_price' => '285.50', 'quantity' => '60'],
+        ]);
+});
+
+it('creates a delivery of what is left on an order, refusing more', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\NextDocumentStories::class, 'story' => 'default'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('createDelivery')->schemaComponent('story', 'form'));
+    // The delivered pens are left out; the gloves and the alcohol start at what is left.
+    [$gloves, $alcohol] = array_keys($canvas->get('mountedActions.0.data.lines'));
+
+    expect(array_column($canvas->get('mountedActions.0.data.lines'), 'quantity'))->toEqual([60, 12.5]);
+
+    $canvas->setActionData(["lines.{$gloves}.quantity" => '61'])
+        ->callMountedAction()
+        ->assertHasActionErrors(["lines.{$gloves}.quantity" => 'max'])
+        ->setActionData(["lines.{$gloves}.quantity" => '60', "lines.{$alcohol}.quantity" => '0'])
+        ->callMountedAction()
+        ->assertHasNoActionErrors()
+        ->assertNotified('Delivery created for order SO-000012');
 });
 
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
