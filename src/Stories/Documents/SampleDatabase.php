@@ -27,7 +27,18 @@ class SampleDatabase
             $table->id();
             $table->string('code');
             $table->string('name');
+            $table->decimal('credit_limit', 15, 2)->nullable();
             $table->softDeletes();
+        });
+
+        $schema->create('sales_orders', function (Blueprint $table): void {
+            $table->id();
+            $table->string('number')->nullable()->unique();
+            $table->foreignId('customer_id');
+            $table->string('status');
+            $table->decimal('total', 15, 2)->default(0);
+            $table->decimal('invoiced_total', 15, 2)->default(0);
+            $table->string('approval_reason')->nullable();
         });
 
         $schema->create('sales_invoices', function (Blueprint $table): void {
@@ -128,6 +139,12 @@ class SampleDatabase
             ['item_id' => 1, 'document' => 'Receiving report RR-000006', 'moved_on' => '2026-09-20', 'quantity' => '100', 'unit_cost' => '210.0000', 'on_hand' => '100'],
             ['item_id' => 1, 'document' => 'Delivery DR-000030', 'moved_on' => '2026-09-28', 'quantity' => '-40', 'unit_cost' => '210.0000', 'on_hand' => '60'],
             ['item_id' => 1, 'document' => 'Receiving report RR-000007', 'moved_on' => '2026-10-05', 'quantity' => '80', 'unit_cost' => '214.3750', 'on_hand' => '140'],
+        ]);
+
+        // Abra's credit limit, and an order of theirs posted but not yet invoiced: with its unpaid invoices, ₱205,890.50 is taken.
+        DB::connection('storybook')->table('customers')->where('code', 'C-0001')->update(['credit_limit' => '250000.00']);
+        DB::connection('storybook')->table('sales_orders')->insert([
+            ['number' => 'SO-000011', 'customer_id' => 1, 'status' => 'posted', 'total' => '200000.00', 'invoiced_total' => '0.00'],
         ]);
 
         DB::connection('storybook')->table('purchase_orders')->insert([

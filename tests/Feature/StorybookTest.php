@@ -1207,6 +1207,29 @@ it('sends a stock adjustment for approval with a reason, never a change of 0', f
         ->assertNotified('Adjustment of Insulin pens, 3 mL sent for approval');
 });
 
+it('counts unpaid invoices, uninvoiced orders and this order toward a customer\'s credit limit', function (): void {
+    $CreditLimit = Josephdlmd\FilamentStorybook\Stories\Documents\CreditLimit::class;
+    $abra = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0001')->sole();
+    $bicol = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0002')->sole();
+
+    // Unpaid invoices ₱5,890.50 and order SO-000011 not yet invoiced, ₱200,000.00, against a ₱250,000.00 limit.
+    expect($CreditLimit::exposure($abra, '56509.50'))->toBe('262400.00')
+        ->and($CreditLimit::over($abra, '56509.50'))->toBe('12400.00')
+        ->and($CreditLimit::over($abra, '44109.50'))->toBeNull()
+        ->and($CreditLimit::reason($abra, '12400.00'))->toBe("₱12,400.00 over Abra Medical Supply's ₱250,000.00 credit limit")
+        // No limit set: never held.
+        ->and($CreditLimit::over($bicol, '9999999.00'))->toBeNull();
+});
+
+it('holds an order over the credit limit: says by how much and sends it for approval', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\CreditLimitStories::class, 'story' => 'default'])
+        ->assertSee('This order would take Abra Medical Supply ₱12,400.00 over its ₱250,000.00 credit limit', false);
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\CreditLimitStories::class, 'story' => 'sendForApproval'])
+        ->callAction(Filament\Actions\Testing\TestAction::make('sendForApproval')->schemaComponent('story', 'form'))
+        ->assertNotified('Order sent for approval');
+});
+
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
     $invoice = (new Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice)->forceFill(['number' => '001232', 'invoice_date' => '2026-10-11', 'terms' => 'Cash', 'due_date' => null]);
 

@@ -30,4 +30,10 @@ class Customer extends Model
     {
         return $this->hasMany(SalesInvoice::class);
     }
+
+    /** @return HasMany<SalesOrder, $this> */
+    public function salesOrders(): HasMany
+    {
+        return $this->hasMany(SalesOrder::class);
+    }
 }
