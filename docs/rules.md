@@ -260,6 +260,7 @@ Patterns `forms-document-totals`, `records-document-lifecycle`, `actions-void`, 
 - **A link inside running text is underlined,** in a description, a notification, a callout or helper text; Filament underlines links only on hover. Carbon link (Sep 2026: an inline link "is styled with an underline"); WCAG 1.4.1. *House CSS.*
 - **Every icon-only action keeps a `label()`, which becomes its accessible name.** WCAG 4.1.2. *Test, audit.*
 - **Row actions are named after their row for screen readers,** "Edit C-0001" rather than every row's "Edit", starting with the visible label; the house script does it, so Filament keeps its fast row rendering. Carbon link (Sep 2026: "Avoid using the same link text for different destinations"); IBM Accessibility content design ("Provide clear, concise, and unique link text"); WCAG 2.4.4 and 2.5.3. *House script.*
+- **A field's helper text and its error are read with it:** each is the field's description (`aria-describedby`, the error first), and a field with an error is marked invalid (`aria-invalid`), so a screen reader says both on focus. Filament shows them under the field without linking them. WCAG 1.3.1, 3.3.1 and 4.1.2 (Understanding 3.3.1: errors "identified and described to the user in text"; ARIA21). Decided by the owner on 2026-10-12, after deferring it on 2026-10-11. *House script.*
 
 ## Sign-in
 

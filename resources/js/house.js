@@ -45,6 +45,27 @@
             }
         });
 
+        // A field's helper text and error are its description: a screen reader reads them when the field takes focus, and
+        // an error marks it invalid (WCAG 1.3.1, 3.3.1, 4.1.2). Filament shows both under the field without linking them.
+        document.querySelectorAll('.fi-fo-field').forEach((wrapper) => {
+            const column = wrapper.querySelector(':scope > .fi-fo-field-content-col');
+            const labelFor = wrapper.querySelector(':scope > .fi-fo-field-label-col label[for]')?.htmlFor;
+            const field = (labelFor && document.getElementById(labelFor)) || column?.querySelector('fieldset, [role="radiogroup"], [role="group"]');
+
+            if (! column || ! field) {
+                return;
+            }
+
+            const name = field.id || labelFor || `fs-field-${[...document.querySelectorAll('.fi-fo-field')].indexOf(wrapper)}`;
+            const errors = [...column.querySelectorAll(':scope > [data-validation-error]')];
+            const hints = [...column.querySelectorAll(':scope > .fi-sc .fi-sc-text')];
+            const ids = [...errors.map((element, i) => [element, `${name}-fs-error-${i}`]), ...hints.map((element, i) => [element, `${name}-fs-hint-${i}`])]
+                .map(([element, id]) => (element.id ||= id));
+
+            ids.length ? field.setAttribute('aria-describedby', ids.join(' ')) : field.removeAttribute('aria-describedby');
+            errors.length ? field.setAttribute('aria-invalid', 'true') : field.removeAttribute('aria-invalid');
+        });
+
         document.querySelectorAll('.fi-ta-row').forEach((row) => {
             const cell = [...row.querySelectorAll(':scope > td:not(.fi-ta-selection-cell)')].find((td) => ! td.querySelector('.fi-ta-actions') && text(td) !== '');
             const name = cell ? text(cell).slice(0, 60) : '';
