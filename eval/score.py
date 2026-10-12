@@ -91,6 +91,9 @@ checks = {
     "purchases: withholding worked out once on the supplier's invoice": "withholding_code" in app_code and "DocumentTotals::withholding(" in app_code,
     "printing: the shared, tagged PDF layout": "filament-storybook::documents.print" in app_code and "->tagged()" in app_code,
     "customer picker: searchable relationship": bool(re.search(r"relationship\('customer'(?:(?!make\().)*?->searchable\(", code, re.S)),
+    "chain: deliveries copy the order's lines, quantities up to what is left": "maxValue(" in code and ("Fulfilment" in app_code or "remaining" in app_code),
+    "chain: one invoice per delivery": bool(re.search(r"make\('createInvoice'\)|Create invoice", code)),
+    "credit limit: an order over it goes for approval": "credit_limit" in app_code and bool(re.search(r"for.?approval", app_code, re.I)),
     "contact: email field is email()": bool(re.search(r"make\('email'\)(?:(?!make\().)*?->email\(\)", code, re.S)),
     "contact: phone field is tel(), stored as +63": bool(re.search(r"make\('phone'\)(?:(?!make\().)*?->tel\(\)", code, re.S)) and "+63" in app_code,
     "contact: address in Philippine fields": "barangay" in code and "zip_code" in code,
@@ -104,7 +107,7 @@ prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
         "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "customer", "printing": "print", "purchases": "purchase",
-        "contact": "(email|phone|address)", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
+        "chain": "deliver", "credit limit": "credit limit", "contact": "(email|phone|address)", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
