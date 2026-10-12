@@ -120,6 +120,48 @@ it('checks a TIN in its stored form, so unique() catches one typed without dashe
         ->and($tin->mutateStateForValidation('123-456-789'))->toBe('123-456-789');
 });
 
+it('records a supplier\'s invoice only once it is confirmed as a proper VAT invoice', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
+        ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => '567.64', 'is_vat_invoice' => false])
+        ->callMountedAction()
+        ->assertHasActionErrors(['is_vat_invoice' => 'accepted']);
+});
+
+it('warns, without blocking, when the printed VAT is more than ₱0.05 from 12/112 of the total', function (string $vat, bool $warned): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
+        ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => $vat, 'is_vat_invoice' => true]);
+
+    // Only visible components are listed. 12/112 of ₱5,298.00 is ₱567.6429.
+    $shown = collect($canvas->instance()->getSchema('mountedActionSchema0')->getFlatComponents())
+        ->contains(fn ($component): bool => $component instanceof Filament\Schemas\Components\Callout);
+
+    expect($shown)->toBe($warned);
+    $canvas->callMountedAction()->assertHasNoActionErrors();
+})->with([
+    'as worked out' => ['567.64', false],
+    'within ₱0.05' => ['567.69', false],
+    'over ₱0.05' => ['576.40', true],
+]);
+
+it('withholds at the rate the codes table gives, not one written into the app', function (): void {
+    // The sample database lives for the whole test run, so the rate goes back afterwards.
+    $code = Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode::find('WC158');
+    $code->update(['rate' => '1.50']);
+
+    try {
+        $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
+            ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
+            ->fillForm(['total' => '5298.00', 'vat' => '567.64']);
+
+        // 1.5% of ₱4,730.36 is ₱70.9554.
+        expect($canvas->instance()->getSchema('mountedActionSchema0')->getComponent('tax_withheld')->getState())->toBe('70.96');
+    } finally {
+        $code->update(['rate' => '1.00']);
+    }
+});
+
 it('refuses to render a class that is not a registered story', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => User::class, 'story' => 'delete'])->assertNotFound();
 });
@@ -930,9 +972,12 @@ it('works out a document\'s VAT once per class, as 12/112 of the VAT-inclusive t
 it('withholds from a supplier\'s invoice once, the rate on its total less VAT, and writes amounts as on a receipt', function (): void {
     $totals = Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::class;
 
-    expect($totals::withholding('5298.00', '567.64', '0.01'))->toBe('47.30')
-        ->and($totals::withholding('1120.00', '120.00', '0.02'))->toBe('20.00')
-        ->and($totals::withholding('100.50', '0.00', '0.01'))->toBe('1.01')
+    $code = fn (string $code) => Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode::find($code);
+
+    expect($totals::withholding('5298.00', '567.64', $code('WC158')))->toBe('47.30')
+        ->and($totals::withholding('1120.00', '120.00', $code('WC160')))->toBe('20.00')
+        ->and($totals::withholding('100.50', '0.00', $code('WC158')))->toBe('1.01')
+        ->and($totals::withholding('5298.00', '567.64', null))->toBe('0.00')
         ->and($totals::inWords('6266.41'))->toBe('Six thousand two hundred sixty-six pesos and 41/100')
         ->and($totals::inWords('1'))->toBe('One peso and 00/100');
 });
@@ -941,7 +986,7 @@ it('records a supplier\'s invoice as printed, withholding at the supplier\'s cod
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
         ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
         ->assertSchemaStateSet(['withholding_code' => 'WC158', 'vat' => null], 'mountedActionSchema0')
-        ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => '567.64']);
+        ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => '567.64', 'is_vat_invoice' => true]);
     $schema = $canvas->instance()->getSchema('mountedActionSchema0');
 
     expect($schema->getComponent('tax_withheld')->getState())->toBe('47.30')

@@ -55,12 +55,19 @@ class DocumentTotals
     }
 
     /**
-     * The tax withheld from a supplier's bill: the rate of its ATC on the bill's total less VAT, worked out once when
-     * the bill is posted. Payments then settle the net payable, and the purchase order's BIR Form 2307 shows this figure.
+     * The tax withheld from a supplier's invoice: its code's rate on the invoice's total less VAT, worked out once when
+     * the invoice is recorded; none without a code. Payments then settle the net payable, and the supplier's BIR Form
+     * 2307 for the quarter includes this figure.
      */
-    public static function withholding(string $total, string $vat, string $rate): string
+    public static function withholding(string $total, string $vat, ?WithholdingCode $code): string
     {
-        return static::round(bcmul(bcsub($total, $vat, 2), $rate, 6));
+        return $code === null ? '0.00' : static::round(bcmul(bcsub($total, $vat, 2), bcdiv((string) $code->rate, '100', 4), 6));
+    }
+
+    /** How far a supplier's printed VAT is from 12/112 of its printed total, as a positive amount, to 4 decimals. */
+    public static function vatGap(string $total, string $vat): string
+    {
+        return ltrim(bcsub($vat, bcdiv(bcmul($total, '12', 4), '112', 4), 4), '-');
     }
 
     /**

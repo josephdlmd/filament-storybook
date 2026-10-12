@@ -200,7 +200,8 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: a menu opens inside another menu; give the inner `ActionGroup` `->dropdown(false)`, so its actions sit in the outer menu under a divider (Carbon disclosures: \"Do not nest one disclosure within another\").";
             }
 
-            if (preg_match("/Callout::make\\((?:(?!::make\\().)*?->(?:success\\(\\)|danger\\(\\)|color\\('(?:success|danger)'\\))/s", $story['snippet'])) {
+            // A callout's chain runs to the next ::make() or to the action that holds it, whose $action->success() isn't the callout's.
+            if (preg_match("/Callout::make\\((?:(?!::make\\(|->action\\().)*?->(?:success\\(\\)|danger\\(\\)|color\\('(?:success|danger)'\\))/s", $story['snippet'])) {
                 $warnings[] = "{$key}: a callout is info or warning only; say how something went in a toast (Carbon notification: \"The callout variant only includes informational and warning statuses\").";
             }
 
