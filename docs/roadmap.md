@@ -41,8 +41,8 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
-- When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit
-- The CPA review in `rules.md`: rounding, VAT per document and withholding on partial supplier payments
+- When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit. No change planned for now (owner, 2026-10-12).
+- The rest of the CPA review in `rules.md`: the supplier's printed VAT, the ATC list, withholding when the supplier's invoice is recorded, and creditable withholding recorded before the 2307 (rounding, VAT per document and the government threshold were settled on 2026-10-12)
 
 ## How
 
