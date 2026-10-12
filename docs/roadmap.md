@@ -10,7 +10,7 @@ Density (v0.29.0 to v0.50.0): `compact()` sets Carbon's sizes and spacing where 
 
 The menu (v0.28.0): two levels at most, groups in sentence case, words that stay on screen; checked by `storybook-audit`. No source sets the order of groups or their icons.
 
-Generic screens: list tables (search, filters, money, status, import and export, bulk actions), record forms (every field pattern, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications and dashboards.
+Generic screens: list tables (search, filters, money, status, import and export, bulk actions), record forms (every field pattern, contact details and percentages, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications, dashboards and the settings page.
 
 Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing documents as PDFs in one shared layout (spatie/laravel-pdf, chosen by the owner), and a copy-from view for the hand-written collection receipts. The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
 
@@ -18,15 +18,12 @@ Transactional documents (v0.25.0): document totals with VAT per class, the lifec
 
 In this order (a proposal; the owner confirms). Generic flows come first: every internal tool needs them, and they need no business facts. The list comes from Mobbin (2026-10-11), which confirms that real apps have a screen but never justifies a rule; each pattern still needs its basis under the rules policy.
 
-1. Contact fields (email, Philippine phone number, address)
-2. Percentages (discounts, tax rates)
-3. A settings page
-4. Account and security: changing the password or email, and two-factor setup with recovery codes. Filament ships these pages; the rules (NIST, under "Sign-in") exist, the pattern doesn't. The QR code needs a text key beside it, and code fields allow pasting (WCAG 1.1.1, 3.3.8).
-5. Inviting a user: email and role, a Pending badge, and revoking an invite. Goes with roles and permissions.
-6. The notifications inbox: Filament's bell with a count, unread and all, mark all as read
-7. Showing and hiding table columns, with a reset to the default. Reordering needs a way that isn't dragging (WCAG 2.5.7).
-8. A date-range filter on a list, with presets such as "Last 7 days"
-9. Archiving instead of deleting, with an archived list and restore (needs a source for when to archive)
+1. Account and security: changing the password or email, and two-factor setup with recovery codes. Filament ships these pages; the rules (NIST, under "Sign-in") exist, the pattern doesn't. The QR code needs a text key beside it, and code fields allow pasting (WCAG 1.1.1, 3.3.8).
+2. Inviting a user: email and role, a Pending badge, and revoking an invite. Goes with roles and permissions.
+3. The notifications inbox: Filament's bell with a count, unread and all, mark all as read
+4. Showing and hiding table columns, with a reset to the default. Reordering needs a way that isn't dragging (WCAG 2.5.7).
+5. A date-range filter on a list, with presets such as "Last 7 days"
+6. Archiving instead of deleting, with an archived list and restore (needs a source for when to archive)
 
 Then the document work, which waits for the owner's business facts:
 

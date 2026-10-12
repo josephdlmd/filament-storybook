@@ -33,6 +33,18 @@
             value.setAttribute('aria-label', `Copy ${text(value)}`);
         });
 
+        // A unit shown before or after a field (₱, kg, %) isn't part of its name, so a screen reader doesn't say it (GOV.UK
+        // text input: "Do not rely on prefixes or suffixes alone"). It is added after the label: "Discount, %".
+        document.querySelectorAll('.fi-input-wrp:has(:is(.fi-input-wrp-prefix-has-label, .fi-input-wrp-suffix-has-label))').forEach((wrapper) => {
+            const input = wrapper.querySelector('input');
+            const label = input?.labels?.[0];
+            const units = [...wrapper.querySelectorAll(':is(.fi-input-wrp-prefix-has-label, .fi-input-wrp-suffix-has-label) .fi-input-wrp-label')].map(text).join(' ');
+
+            if (label && units !== '') {
+                input.setAttribute('aria-label', `${text(label)}, ${units}`);
+            }
+        });
+
         document.querySelectorAll('.fi-ta-row').forEach((row) => {
             const cell = [...row.querySelectorAll(':scope > td:not(.fi-ta-selection-cell)')].find((td) => ! td.querySelector('.fi-ta-actions') && text(td) !== '');
             const name = cell ? text(cell).slice(0, 60) : '';

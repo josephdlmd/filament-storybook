@@ -41,6 +41,8 @@ class GadgetResource extends Resource
         return $schema->columns(2)->components([
             TextInput::make('name')->label('Name')->required(),
             TextInput::make('code')->label('Code:')->placeholder('GAD-0001'),
+            TextInput::make('support_email')->label('Support email (optional)'),
+            TextInput::make('support_phone')->label('Support phone (optional)'),
             Section::make('Stock Keeping')->collapsible()->schema([TextInput::make('sku')->label('SKU')->readOnly()]),
             TextInput::make('serial')->label('Serial')->hintIcon('heroicon-o-information-circle', tooltip: 'On the back of the gadget')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),

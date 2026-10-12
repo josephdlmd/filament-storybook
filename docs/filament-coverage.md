@@ -8,7 +8,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 
 | Component | Status | Guidance |
 |---|---|---|
-| `TextInput` | Pattern | `forms-record-form`, `forms-tin`, `forms-money-input`, `forms-quantity`, `forms-unit-cost`; house defaults (numeric as text, no asterisk, browser validation off) |
+| `TextInput` | Pattern | `forms-record-form`, `forms-tin`, `forms-contact-details`, `forms-percentage`, `forms-money-input`, `forms-quantity`, `forms-unit-cost`, `forms-settings-page`; house defaults (numeric as text, no asterisk, browser validation off); house script (units named); audit (email and phone fields) |
 | `Textarea` | Pattern | `forms-record-form`; house CSS (vertical resize) |
 | `Select` | Pattern | `forms-choice.manyOptions`, `forms-record-picker`; audit (searchable relationship) |
 | `MorphToSelect` | General | the select rules (`forms-choice`, `forms-record-picker`) |
@@ -77,7 +77,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Section` | Pattern | used throughout; collapsible rule; audit and test |
 | `Grid`, `Group` | Pattern | `records-view-page` (halves and quarters), `forms-document-totals`; one-column rule |
 | `Flex`, `FusedGroup` | General | one-column rule: side by side only when the fields belong together |
-| `Fieldset` | Pattern | `forms-date.range` |
+| `Fieldset` | Pattern | `forms-date.range`, `forms-contact-details.address` |
 | `Tabs` | Rule | tabs rules; audit (related lists not in tabs) |
 | `Wizard` | Pattern | `forms-form-container.wizard`; test (step names) |
 | `Callout` | Pattern | `feedback-notifications.inline`; test (info or warning only) |

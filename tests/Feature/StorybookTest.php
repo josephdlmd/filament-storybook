@@ -14,6 +14,8 @@ use Josephdlmd\FilamentStorybook\Stories\MoneyColumnStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyInputStories;
 use Josephdlmd\FilamentStorybook\Stories\RecordFormStories;
 use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
+use Josephdlmd\FilamentStorybook\Stories\ContactStories;
+use Josephdlmd\FilamentStorybook\Stories\PercentageStories;
 use Josephdlmd\FilamentStorybook\Stories\TinInputStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget;
@@ -28,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -77,6 +79,36 @@ it('accepts a TIN typed any reasonable way and stores one format', function (str
     'dots and stray spaces' => [' 123.456.789.000 ', '123-456-789-000'],
     'missing branch code' => ['123-456-789', null],
     'letters' => ['ABC-456-789-000', null],
+]);
+
+it('accepts a Philippine phone number typed any reasonable way and stores it as +63', function (string $typed, ?string $stored): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => ContactStories::class, 'story' => 'phone'])->set('data.phone', $typed);
+
+    $stored !== null
+        ? expect($canvas->instance()->form->getState())->toBe(['phone' => $stored])
+        : expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, 'Enter a phone number, like 0917 123 4567');
+})->with([
+    'mobile' => ['0917 123 4567', '+63 917 123 4567'],
+    'mobile, +63 and dashes' => ['+63 917-123-4567', '+63 917 123 4567'],
+    'mobile, +63 and the 0' => ['+63 0917 123 4567', '+63 917 123 4567'],
+    'Metro Manila landline' => ['(02) 8123 4567', '+63 2 8123 4567'],
+    'provincial landline' => ['(032) 123-4567', '+63 32 123 4567'],
+    'area code 63' => ['(063) 221 1234', '+63 63 221 1234'],
+    'too short' => ['0917 123 456', null],
+    'foreign' => ['+1 415 555 0100', null],
+]);
+
+it('accepts a percentage with or without a typed % and up to 2 decimals', function (string $typed, ?string $stored, ?string $error = null): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => PercentageStories::class, 'story' => 'default'])->set('data.discount', $typed);
+
+    $stored !== null
+        ? expect($canvas->instance()->form->getState())->toBe(['discount' => $stored])
+        : expect(fn () => $canvas->instance()->form->getState())->toThrow(Illuminate\Validation\ValidationException::class, $error);
+})->with([
+    'plain' => ['12.5', '12.5'],
+    'typed %' => ['12.5 %', '12.5'],
+    'three decimals' => ['12.125', null, 'Enter the discount with at most 2 decimal places'],
+    'over 100' => ['120', null, 'Discount must be 100 or less'],
 ]);
 
 it('refuses to render a class that is not a registered story', function (): void {
@@ -369,7 +401,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-record-picker, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -428,7 +460,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 60 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 65 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -524,7 +556,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 45 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 47 warnings')
         ->toContain('- `ListGadgets`: the action `report` runs on the key `r` alone')
         ->toContain('- `CreateGadget`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
@@ -545,6 +577,8 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
         ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
+        ->toContain('- `CreateGadget`: the field `support_email` holds an email address but isn\'t `email()`')
+        ->toContain('- `CreateGadget`: the field `support_phone` holds a phone number but isn\'t `tel()`')
         ->toContain('- `CreateGadget`: the field `is_active` is a toggle in a form that is saved')
         ->toContain('- `CreateGadget`: the date field `released_on` uses `native(false)`')
         ->toContain('- `CreateGadget`: the upload `manual` does not state its accepted types and largest size')
@@ -616,7 +650,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 78 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 82 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')

@@ -543,6 +543,14 @@ class AuditPages extends Tool
                 $warn("the field `{$name}` uses placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).");
             }
 
+            if ($field instanceof TextInput && preg_match('/(^|_)e?mail(_|$)/i', $name) && ! $field->isEmail()) {
+                $warn("the field `{$name}` holds an email address but isn't `email()`; add it, with `maxLength(254)` and spellcheck off, as `forms-contact-details` does (GOV.UK email addresses).");
+            }
+
+            if ($field instanceof TextInput && preg_match('/(^|_)(phone|mobile|telephone|landline)(_|$)/i', $name) && ! $field->isTel()) {
+                $warn("the field `{$name}` holds a phone number but isn't `tel()`; add it, and store the number as +63, as `forms-contact-details.phone` does (GOV.UK telephone numbers; business standards).");
+            }
+
             if (method_exists($field, 'isReadOnly') && $field->isReadOnly() && static::isSaved($field)) {
                 $warn("the read-only field `{$name}` is still saved, and its value can be changed in the browser; put it in a group with `->saved(false)`, as `records-locked` does, and set the value on the server (Filament docs).");
             }
@@ -697,7 +705,8 @@ class AuditPages extends Tool
      */
     public static function isTitleCase(string $label, string $name): bool
     {
-        return str_contains($label, ' ') && $label === Str::headline(Str::afterLast($name, '.'));
+        // Two capitalised words at least: "Discount (%)" is one word and its unit.
+        return preg_match_all('/\b\p{Lu}/u', $label) > 1 && $label === Str::headline(Str::afterLast($name, '.'));
     }
 
     /** Whether a field's value reaches the save: neither it nor any group around it is `saved(false)`. */
