@@ -516,7 +516,8 @@ class AuditPages extends Tool
                 $warn("`{$action->getName()}` has a button labelled \"{$vague}\"; say what it does with a verb, such as \"Approve order\" (Carbon modal and forms).");
             }
 
-            if (static::isTitleCase($label, $action->getName())) {
+            // Against the label itself, as a page title is: Filament builds "Create Sales Invoice" from a capitalised model label.
+            if (static::isTitleCase($label, $label)) {
                 $warn("the action \"{$label}\" is in Title Case; write it in sentence case (Carbon button).");
             }
 

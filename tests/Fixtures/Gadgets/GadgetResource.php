@@ -82,7 +82,8 @@ class GadgetResource extends Resource
             ])
             ->headerActions([
                 Action::make('report')->color('gray')->keyBindings(['r']),
-                Action::make('labels')->color('gray'),
+                // Title Case that isn't the action's name, as Filament writes it from a capitalised model label.
+                Action::make('labels')->label('Print Gadget Labels')->color('gray'),
             ])
             ->toolbarActions([
                 \Filament\Actions\BulkActionGroup::make([DeleteBulkAction::make()->color('danger')->label('Remove selected')]),
