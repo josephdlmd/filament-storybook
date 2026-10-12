@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-delete', 'actions-download-pdf', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -468,7 +468,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-delete, actions-download-pdf, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -527,7 +527,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 69 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 72 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -1061,6 +1061,53 @@ it('downloads a posted document as a tagged A4 PDF in the shared layout, an invo
 
     expect($pdf->tagged)->toBeTrue()
         ->and((fn (): ?string => $this->format)->call($pdf))->toBe('a4');
+});
+
+it('lists a customer\'s open invoices on a statement, with each ageing bucket and the total due', function (): void {
+    $customer = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard', 'tin' => '987-654-321-000']);
+    $invoice = fn (string $number, string $due, string $balance) => (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => $number, 'invoice_date' => '2026-08-01', 'due_date' => $due, 'balance_due' => $balance]);
+    $statement = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::statementOfAccount($customer, [
+        $invoice('001200', '2026-07-01', '100.10'),  // 152 days
+        $invoice('001214', '2026-09-01', '890.50'),  // 90 days
+        $invoice('001220', '2026-10-01', '10.00'),   // 60 days
+        $invoice('001233', '2026-11-30', '2363.71'), // due today
+        $invoice('001240', '2026-12-20', '4480.00'), // not yet due
+    ], Illuminate\Support\Carbon::parse('2026-11-30'));
+
+    expect($statement['totals'])->toBe(['Current' => '6843.71', '1–30 days' => '0.00', '31–60 days' => '10.00', '61–90 days' => '890.50', 'Over 90 days' => '100.10', 'Total due' => '7844.31'])
+        ->and(array_column($statement['lines'], 'days'))->toBe([152, 90, 60, null, null])
+        ->and($statement['number'])->toBe('Nov 30, 2026');
+});
+
+it('acknowledges a collection under its receipt\'s serial, not as an official receipt', function (): void {
+    $payment = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => '000387', 'paid_on' => '2026-11-08', 'amount' => '6298.69', 'tax_withheld' => '27.31', 'vat_withheld' => '0.00', 'reference' => 'Check 0047731']);
+
+    $document = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::paymentAcknowledgement($payment);
+
+    expect($document['totals'])->toBe(['Amount received' => '6298.69', 'Income tax withheld' => '27.31', 'Total settled' => '6326.00'])
+        ->and($document['statement'])->toBe('THIS IS NOT AN OFFICIAL RECEIPT');
+});
+
+it('emails a document as its PDF from the company address, and tells the sender when it has gone or failed', function (): void {
+    Spatie\LaravelPdf\Facades\Pdf::fake();
+    config(['mail.default' => 'array', 'queue.default' => 'sync']);
+    $sender = User::forceCreate(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret']);
+    $document = ['title' => 'Statement of account', 'number' => 'Nov 30, 2026'] + Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::statementOfAccount((new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Cebu Diagnostics Laboratory']), []);
+    $job = new Josephdlmd\FilamentStorybook\Stories\Documents\EmailDocument($document, 'accounts@cebudiagnostics.ph', null, $sender);
+
+    $job->handle();
+    $job->failed(new RuntimeException('Mail server down'));
+
+    $sent = app('mailer')->getSymfonyTransport()->messages()->first()->getOriginalMessage();
+    expect($sent->getFrom()[0]->getAddress())->toBe('billing@sample.ph')
+        ->and($sent->getTo()[0]->getAddress())->toBe('accounts@cebudiagnostics.ph')
+        ->and($sent->getSubject())->toStartWith('Statement of account')
+        ->and($sent->getTextBody())->toStartWith('Attached is Statement of account')
+        ->and($sent->getAttachments()[0]->getFilename())->toEndWith('.pdf')
+        ->and($sender->notifications()->pluck('data')->pluck('title')->all())->toEqualCanonicalizing([
+            'Statement of account Nov 30, 2026 emailed to accounts@cebudiagnostics.ph',
+            'Statement of account Nov 30, 2026 not emailed',
+        ]);
 });
 
 it('leaves a missing date off the printed copy instead of printing today', function (): void {

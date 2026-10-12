@@ -18,7 +18,7 @@ class DownloadPdfStories extends Stories
 
     public function description(): string
     {
-        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). Sales invoices and collection receipts are written by hand on BIR pre-printed forms, which are the official copies. A sales invoice\'s printout is for the business\'s own file: titled "Sales invoice (copy)", with the form\'s serial, and not valid for claim of input tax. Customers get a statement of account instead. A collection receipt isn\'t printed; staff copy it from `records-paper-receipt`. Business standards from the owner (2026-10-11). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
+        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). Sales invoices and collection receipts are written by hand on BIR pre-printed forms, which are the official copies. A sales invoice\'s printout is titled "Sales invoice (copy)", with the form\'s serial, and not valid for claim of input tax; it is kept on file and may be emailed to the customer (`actions-email-document`). A collection is written onto its paper receipt from `records-paper-receipt`; what the customer gets by email is a payment acknowledgement, "Payment received (copy)", not an official receipt (`paymentAcknowledgement`). A statement of account lists a customer\'s open invoices with their ageing (`statementOfAccount`). Business standards from the owner (2026-10-11 and 2026-10-12). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
     }
 
     public function examples(): array
@@ -133,6 +133,55 @@ class DownloadPdfStories extends Stories
                 ],
                 'totals' => ['Invoice total' => '5298.00', 'Tax withheld (WC158, 1%)' => '47.30', 'Amount paid' => '5250.70'],
                 'signatures' => ['Prepared by', 'Approved by', 'Received by'],
+            ]]);
+    }
+    /** What a customer gets by email for a collection: an acknowledgement under the receipt form's serial, not an official receipt. */
+    public function paymentAcknowledgement(): View
+    {
+        return View::make('filament-storybook::documents.document')
+            ->viewData(['document' => [
+                'title' => 'Payment received (copy)',
+                'number_label' => 'Receipt No.',
+                'number' => '000387',
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
+                'party' => ['label' => 'Received from', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
+                'details' => ['Date received' => 'Nov 8, 2026', 'Reference' => 'Check 0047731'],
+                'columns' => [
+                    'invoice' => ['label' => 'Invoice'],
+                    'amount' => ['label' => 'Amount settled', 'format' => 'money'],
+                ],
+                'lines' => [
+                    ['invoice' => '001232', 'amount' => '6326.00'],
+                ],
+                'totals' => ['Amount received' => '6298.69', 'Income tax withheld' => '27.31', 'Total settled' => '6326.00'],
+                'statement' => 'THIS IS NOT AN OFFICIAL RECEIPT',
+            ]]);
+    }
+
+    /** A statement of account: the customer's open invoices, how far past due each is, and the balance in each ageing bucket. */
+    public function statementOfAccount(): View
+    {
+        return View::make('filament-storybook::documents.document')
+            ->viewData(['document' => [
+                'title' => 'Statement of account',
+                'number_label' => 'As of',
+                'number' => 'Nov 30, 2026',
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
+                'party' => ['label' => 'Customer', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
+                'details' => [],
+                'columns' => [
+                    'invoice' => ['label' => 'Invoice'],
+                    'date' => ['label' => 'Date'],
+                    'due' => ['label' => 'Due date'],
+                    'days' => ['label' => 'Days past due', 'format' => 'quantity'],
+                    'balance' => ['label' => 'Balance', 'format' => 'money'],
+                ],
+                'lines' => [
+                    ['invoice' => '001214', 'date' => 'Aug 20, 2026', 'due' => 'Sep 19, 2026', 'days' => '72', 'balance' => '890.50'],
+                    ['invoice' => '001233', 'date' => 'Oct 14, 2026', 'due' => 'Nov 13, 2026', 'days' => '17', 'balance' => '2363.71'],
+                    ['invoice' => '001240', 'date' => 'Nov 20, 2026', 'due' => 'Dec 20, 2026', 'days' => null, 'balance' => '4480.00'],
+                ],
+                'totals' => ['Current' => '4480.00', '1–30 days' => '2363.71', '31–60 days' => '0.00', '61–90 days' => '890.50', 'Over 90 days' => '0.00', 'Total due' => '7734.21'],
             ]]);
     }
 }

@@ -18,14 +18,27 @@ class PrintedDocument
     /** @param  array<string, mixed>  $document  The layout's data, as the `actions-download-pdf` stories show. */
     public static function download(array $document): StreamedResponse
     {
-        $name = "{$document['title']} {$document['number']}";
+        return response()->streamDownload(fn () => file_put_contents('php://output', static::content($document)), static::fileName($document), ['Content-Type' => 'application/pdf']);
+    }
 
-        $pdf = Pdf::view('filament-storybook::documents.print', ['document' => $document])
+    /**
+     * The PDF itself, to attach to an email (`EmailDocument`) or keep.
+     *
+     * @param  array<string, mixed>  $document
+     */
+    public static function content(array $document): string
+    {
+        return Pdf::view('filament-storybook::documents.print', ['document' => $document])
             ->format('a4')
             ->tagged()
-            ->meta(title: $name);
+            ->meta(title: "{$document['title']} {$document['number']}")
+            ->generatePdfContent();
+    }
 
-        return response()->streamDownload(fn () => file_put_contents('php://output', $pdf->generatePdfContent()), "{$name}.pdf", ['Content-Type' => 'application/pdf']);
+    /** @param  array<string, mixed>  $document */
+    public static function fileName(array $document): string
+    {
+        return "{$document['title']} {$document['number']}.pdf";
     }
 
     /**
@@ -78,6 +91,112 @@ class PrintedDocument
             'notes' => $invoice->notes,
             'signatures' => ['Prepared by', 'Received by'],
             'statement' => 'THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX',
+        ];
+    }
+    /** The ageing buckets of a statement and the ageing report, by days past the due date (owner's business standard). */
+    public const AGEING = ['Current', '1–30 days', '31–60 days', '61–90 days', 'Over 90 days'];
+
+    public static function ageingBucket(int $daysPastDue): string
+    {
+        return match (true) {
+            $daysPastDue <= 0 => 'Current',
+            $daysPastDue <= 30 => '1–30 days',
+            $daysPastDue <= 60 => '31–60 days',
+            $daysPastDue <= 90 => '61–90 days',
+            default => 'Over 90 days',
+        };
+    }
+
+    /**
+     * A customer's statement of account: every posted invoice not yet fully paid, by its form serial, with its balance and
+     * how many days it is past due, then the balance in each ageing bucket and the total due (owner's business standards).
+     *
+     * @param  iterable<Model>  $invoices  The customer's posted invoices with a balance due, oldest first.
+     * @return array<string, mixed>
+     */
+    public static function statementOfAccount(Model $customer, iterable $invoices, ?Carbon $asOf = null): array
+    {
+        $asOf ??= today();
+        $format = Schema::make()->getDefaultDateDisplayFormat();
+        $buckets = array_fill_keys(static::AGEING, '0.00');
+        $lines = [];
+
+        foreach ($invoices as $invoice) {
+            $due = Carbon::parse($invoice->due_date);
+            $days = max(0, (int) $due->diffInDays($asOf, false));
+            $bucket = static::ageingBucket($days);
+            $buckets[$bucket] = bcadd($buckets[$bucket], (string) $invoice->balance_due, 2);
+
+            $lines[] = [
+                'invoice' => $invoice->number,
+                'date' => Carbon::parse($invoice->invoice_date)->translatedFormat($format),
+                'due' => $due->translatedFormat($format),
+                'days' => $days ?: null,
+                'balance' => $invoice->balance_due,
+            ];
+        }
+
+        return [
+            'title' => 'Statement of account',
+            'number_label' => 'As of',
+            'number' => $asOf->translatedFormat($format),
+            'company' => config('company'),
+            'party' => [
+                'label' => 'Customer',
+                'name' => $customer->name,
+                'address' => $customer->address,
+                'tin' => $customer->tin,
+            ],
+            'details' => [],
+            'columns' => [
+                'invoice' => ['label' => 'Invoice'],
+                'date' => ['label' => 'Date'],
+                'due' => ['label' => 'Due date'],
+                'days' => ['label' => 'Days past due', 'format' => 'quantity'],
+                'balance' => ['label' => 'Balance', 'format' => 'money'],
+            ],
+            'lines' => $lines,
+            'totals' => [...$buckets, 'Total due' => array_reduce($buckets, fn (string $sum, string $amount): string => bcadd($sum, $amount, 2), '0.00')],
+        ];
+    }
+
+    /**
+     * What is emailed for a collection: an acknowledgement of the payment, under the serial of the BIR receipt form it was
+     * written on, which stays the official receipt (owner's business standards).
+     *
+     * @return array<string, mixed>
+     */
+    public static function paymentAcknowledgement(Model $payment): array
+    {
+        $settled = bcadd(bcadd((string) $payment->amount, (string) ($payment->tax_withheld ?? '0'), 2), (string) ($payment->vat_withheld ?? '0'), 2);
+
+        return [
+            'title' => 'Payment received (copy)',
+            'number_label' => 'Receipt No.',
+            'number' => $payment->number,
+            'company' => config('company'),
+            'party' => [
+                'label' => 'Received from',
+                'name' => data_get($payment, 'salesInvoice.customer.name'),
+                'address' => data_get($payment, 'salesInvoice.customer.address'),
+                'tin' => data_get($payment, 'salesInvoice.customer.tin'),
+            ],
+            'details' => array_filter([
+                'Date received' => $payment->paid_on ? Carbon::parse($payment->paid_on)->translatedFormat(Schema::make()->getDefaultDateDisplayFormat()) : null,
+                'Reference' => $payment->reference,
+            ], 'filled'),
+            'columns' => [
+                'invoice' => ['label' => 'Invoice'],
+                'amount' => ['label' => 'Amount settled', 'format' => 'money'],
+            ],
+            'lines' => [['invoice' => data_get($payment, 'salesInvoice.number'), 'amount' => $settled]],
+            // Withholding shows only when there is some.
+            'totals' => array_filter([
+                'Amount received' => $payment->amount,
+                'Income tax withheld' => $payment->tax_withheld,
+                'VAT withheld' => $payment->vat_withheld,
+            ], fn (mixed $amount): bool => (float) $amount !== 0.0) + ['Total settled' => $settled],
+            'statement' => 'THIS IS NOT AN OFFICIAL RECEIPT',
         ];
     }
 }
