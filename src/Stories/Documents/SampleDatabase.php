@@ -56,6 +56,14 @@ class SampleDatabase
             $table->decimal('balance_due', 15, 2)->default(0);
         });
 
+        $schema->create('withholding_codes', function (Blueprint $table): void {
+            $table->string('code')->primary();
+            $table->string('description');
+            $table->decimal('rate', 5, 2);
+            $table->string('kind');
+            $table->string('withheld_by');
+        });
+
         $schema->create('items', function (Blueprint $table): void {
             $table->id();
             $table->string('code');
@@ -127,6 +135,13 @@ class SampleDatabase
             ['number' => '000901', 'status' => 'posted', ...$invoice(1, '2026-06-01', '2026-07-01', '4464.29', '535.71', '0.00', '5000.00', '5000.00')],
             ['number' => '000902', 'status' => 'posted', ...$invoice(1, '2026-08-20', '2026-09-19', '795.09', '95.41', '0.00', '890.50', '890.50')],
             ['number' => '000903', 'status' => 'posted', ...$invoice(3, '2026-09-25', '2026-10-25', '10000.00', '1200.00', '0.00', '11200.00', '11200.00')],
+        ]);
+
+        // Only the codes the business standards name; the CPA confirms the rest.
+        DB::connection('storybook')->table('withholding_codes')->insert([
+            ['code' => 'WC158', 'description' => 'Goods bought by a top withholding agent', 'rate' => '1.00', 'kind' => 'income', 'withheld_by' => 'us'],
+            ['code' => 'WC160', 'description' => 'Services bought by a top withholding agent', 'rate' => '2.00', 'kind' => 'income', 'withheld_by' => 'us'],
+            ['code' => 'WV010', 'description' => 'VAT withheld by a government office', 'rate' => '5.00', 'kind' => 'vat', 'withheld_by' => 'customer'],
         ]);
 
         DB::connection('storybook')->table('items')->insert([
