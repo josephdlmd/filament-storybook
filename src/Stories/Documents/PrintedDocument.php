@@ -116,40 +116,65 @@ class PrintedDocument
      */
     public static function statementOfAccount(Model $customer, iterable $invoices, ?Carbon $asOf = null): array
     {
+        return static::openItems('Statement of account', ['label' => 'Customer', 'name' => $customer->name, 'address' => $customer->address, 'tin' => $customer->tin], 'Invoice', $invoices, 'invoice_date', $asOf);
+    }
+
+    /**
+     * What we owe one supplier, to check against the statement the supplier sends; kept on file, never emailed: every
+     * posted purchase order with a balance due, with how many days it is past due, then the balance in each ageing bucket
+     * and the total due (owner's business standards). The supplier is a name, or a model with `name`, `address` and `tin`.
+     *
+     * @param  iterable<Model>  $orders  The supplier's posted orders with a balance due, oldest due first.
+     * @return array<string, mixed>
+     */
+    public static function supplierStatement(string|Model $supplier, iterable $orders, ?Carbon $asOf = null): array
+    {
+        $party = is_string($supplier)
+            ? ['label' => 'Supplier', 'name' => $supplier]
+            : ['label' => 'Supplier', 'name' => $supplier->name, 'address' => $supplier->address, 'tin' => $supplier->tin];
+
+        return static::openItems('Supplier statement', $party, 'Order', $orders, 'order_date', $asOf);
+    }
+
+    /**
+     * A statement of open items, for a customer or a supplier: each document's date, due date, days past due and balance,
+     * then the balance in each ageing bucket and the total due.
+     *
+     * @param  array<string, mixed>  $party
+     * @param  iterable<Model>  $documents
+     * @return array<string, mixed>
+     */
+    protected static function openItems(string $title, array $party, string $documentLabel, iterable $documents, string $dateColumn, ?Carbon $asOf): array
+    {
         $asOf ??= today();
         $format = Schema::make()->getDefaultDateDisplayFormat();
         $buckets = array_fill_keys(static::AGEING, '0.00');
         $lines = [];
 
-        foreach ($invoices as $invoice) {
-            $due = Carbon::parse($invoice->due_date);
+        foreach ($documents as $document) {
+            $due = Carbon::parse($document->due_date);
             $days = max(0, (int) $due->diffInDays($asOf, false));
             $bucket = static::ageingBucket($days);
-            $buckets[$bucket] = bcadd($buckets[$bucket], (string) $invoice->balance_due, 2);
+            $buckets[$bucket] = bcadd($buckets[$bucket], (string) $document->balance_due, 2);
 
             $lines[] = [
-                'invoice' => $invoice->number,
-                'date' => Carbon::parse($invoice->invoice_date)->translatedFormat($format),
+                'number' => $document->number,
+                'date' => Carbon::parse($document->{$dateColumn})->translatedFormat($format),
                 'due' => $due->translatedFormat($format),
                 'days' => $days ?: null,
-                'balance' => $invoice->balance_due,
+                'balance' => $document->balance_due,
             ];
         }
 
         return [
-            'title' => 'Statement of account',
+            'title' => $title,
             'number_label' => 'As of',
             'number' => $asOf->translatedFormat($format),
             'company' => config('company'),
-            'party' => [
-                'label' => 'Customer',
-                'name' => $customer->name,
-                'address' => $customer->address,
-                'tin' => $customer->tin,
-            ],
+            'party' => $party,
             'details' => [],
             'columns' => [
-                'invoice' => ['label' => 'Invoice'],
+                'number' => ['label' => $documentLabel],
                 'date' => ['label' => 'Date'],
                 'due' => ['label' => 'Due date'],
                 'days' => ['label' => 'Days past due', 'format' => 'quantity'],

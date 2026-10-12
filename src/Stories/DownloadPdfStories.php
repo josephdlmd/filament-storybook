@@ -18,7 +18,7 @@ class DownloadPdfStories extends Stories
 
     public function description(): string
     {
-        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). Sales invoices and collection receipts are written by hand on BIR pre-printed forms, which are the official copies. A sales invoice\'s printout is titled "Sales invoice (copy)", with the form\'s serial, and not valid for claim of input tax; it is kept on file and may be emailed to the customer (`actions-email-document`). A collection is written onto its paper receipt from `records-paper-receipt`; what the customer gets by email is a payment acknowledgement, "Payment received (copy)", not an official receipt (`paymentAcknowledgement`). A statement of account lists a customer\'s open invoices with their ageing (`statementOfAccount`). Business standards from the owner (2026-10-11 and 2026-10-12). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
+        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). Sales invoices and collection receipts are written by hand on BIR pre-printed forms, which are the official copies. A sales invoice\'s printout is titled "Sales invoice (copy)", with the form\'s serial, and not valid for claim of input tax; it is kept on file and may be emailed to the customer (`actions-email-document`). A collection is written onto its paper receipt from `records-paper-receipt`; what the customer gets by email is a payment acknowledgement, "Payment received (copy)", not an official receipt (`paymentAcknowledgement`). A statement of account lists a customer\'s open invoices with their ageing (`statementOfAccount`); a supplier statement lists what is owed to one supplier the same way, kept on file to check against the statement the supplier sends, never emailed (`supplierStatement`, `actions-download-supplier-statement`). Business standards from the owner (2026-10-11 and 2026-10-12). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
     }
 
     public function examples(): array
@@ -182,6 +182,32 @@ class DownloadPdfStories extends Stories
                     ['invoice' => '001240', 'date' => 'Nov 20, 2026', 'due' => 'Dec 20, 2026', 'days' => null, 'balance' => '4480.00'],
                 ],
                 'totals' => ['Current' => '4480.00', '1–30 days' => '2363.71', '31–60 days' => '0.00', '61–90 days' => '890.50', 'Over 90 days' => '0.00', 'Total due' => '7734.21'],
+            ]]);
+    }
+
+    /** A supplier statement: what we owe one supplier, to check against the statement they send; kept on file, not emailed. */
+    public function supplierStatement(): View
+    {
+        return View::make('filament-storybook::documents.document')
+            ->viewData(['document' => [
+                'title' => 'Supplier statement',
+                'number_label' => 'As of',
+                'number' => 'Oct 12, 2026',
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
+                'party' => ['label' => 'Supplier', 'name' => 'Luzon Medical Gases', 'address' => '3 MacArthur Highway, San Fernando, Pampanga 2000', 'tin' => '345-678-901-000'],
+                'details' => [],
+                'columns' => [
+                    'number' => ['label' => 'Order'],
+                    'date' => ['label' => 'Date'],
+                    'due' => ['label' => 'Due date'],
+                    'days' => ['label' => 'Days past due', 'format' => 'quantity'],
+                    'balance' => ['label' => 'Balance', 'format' => 'money'],
+                ],
+                'lines' => [
+                    ['number' => 'PO-000043', 'date' => 'Aug 15, 2026', 'due' => 'Sep 14, 2026', 'days' => '28', 'balance' => '7000.00'],
+                    ['number' => 'PO-000046', 'date' => 'Oct 1, 2026', 'due' => 'Oct 31, 2026', 'days' => null, 'balance' => '3360.00'],
+                ],
+                'totals' => ['Current' => '3360.00', '1–30 days' => '7000.00', '31–60 days' => '0.00', '61–90 days' => '0.00', 'Over 90 days' => '0.00', 'Total due' => '10360.00'],
             ]]);
     }
 }

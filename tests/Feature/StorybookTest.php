@@ -1207,6 +1207,32 @@ it('sends a stock adjustment for approval with a reason, never a change of 0', f
         ->assertNotified('Adjustment of Insulin pens, 3 mL sent for approval');
 });
 
+it('lists what is owed to a supplier in the receivables ageing buckets', function (): void {
+    $order = fn (string $number, string $due, string $balance) => (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => $number, 'order_date' => '2026-06-01', 'due_date' => $due, 'balance_due' => $balance]);
+    $statement = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::supplierStatement('Luzon Medical Gases', [
+        $order('PO-000040', '2026-07-01', '100.00'),  // 103 days
+        $order('PO-000043', '2026-09-14', '7000.00'), // 28 days
+        $order('PO-000046', '2026-10-31', '3360.00'), // not yet due
+    ], Illuminate\Support\Carbon::parse('2026-10-12'));
+
+    expect($statement['title'])->toBe('Supplier statement')
+        ->and($statement['party'])->toBe(['label' => 'Supplier', 'name' => 'Luzon Medical Gases'])
+        ->and($statement['columns']['number']['label'])->toBe('Order')
+        ->and(array_column($statement['lines'], 'days'))->toBe([103, 28, null])
+        ->and($statement['totals'])->toBe(['Current' => '3360.00', '1–30 days' => '7000.00', '31–60 days' => '0.00', '61–90 days' => '0.00', 'Over 90 days' => '100.00', 'Total due' => '10460.00']);
+});
+
+it('downloads a supplier\'s statement from their open purchase orders', function (): void {
+    Spatie\LaravelPdf\Facades\Pdf::fake();
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\SupplierStatementStories::class, 'story' => 'default'])
+        ->callAction(Filament\Actions\Testing\TestAction::make('downloadStatement')->schemaComponent('story', 'form'))
+        ->assertFileDownloaded('Supplier statement '.today()->translatedFormat('M j, Y').'.pdf');
+
+    // Benguet's PO-000041 is paid, so only PO-000042 is open.
+    Spatie\LaravelPdf\Facades\Pdf::assertSee(['Supplier statement', 'Supplier', 'Benguet Trading', 'PO-000042', '₱5,298.00', 'Total due']);
+});
+
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
     $invoice = (new Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice)->forceFill(['number' => '001232', 'invoice_date' => '2026-10-11', 'terms' => 'Cash', 'due_date' => null]);
 
