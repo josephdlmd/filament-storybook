@@ -12,6 +12,8 @@ The menu (v0.28.0): two levels at most, groups in sentence case, words that stay
 
 Generic screens: list tables (search, filters, money, status, import and export, bulk actions), record forms (every field pattern, contact details and percentages, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications, dashboards and the settings page. Account and security: Filament's profile and two-factor screens, reworded and checked against NIST by the house defaults (no passkeys in Filament yet). Inviting users by email, with a 7-day link they set their password from. The notifications panel. Hiding table columns, with Reset (no drag-only reordering). A date-range filter (no presets: no source). Archiving used records instead of deleting them, with Restore. Emailing documents as PDFs, the payment acknowledgement and the customer statement of account (open items).
 
+Reports (v0.54.0): sales, collections, receivables ageing, and purchases and payables, on screen with a totals row, as a PDF and as CSV or Excel.
+
 Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing documents as PDFs in one shared layout (spatie/laravel-pdf, chosen by the owner), and a copy-from view for the hand-written collection receipts. The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
 
 ## Next
@@ -20,9 +22,7 @@ In this order (a proposal; the owner confirms). Generic flows come first: every 
 
 All the generic flows are covered (2026-10-12).
 
-Then the document work, which waits for the owner's business facts:
-
-1. Reports (date range, a totals row, grouping such as ageing)
+The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Next is the first of the everyday business screens below: turning one document into the next.
 
 ## Later: everyday business screens
 
@@ -48,7 +48,6 @@ Then, as an app needs them:
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
 - When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit
-- Reports: which reports, and whether amounts are VAT-inclusive (ageing buckets decided 2026-10-11; see Business standards)
 - The CPA review in `rules.md`: rounding, VAT per document and withholding on partial supplier payments
 
 ## How

@@ -34,6 +34,28 @@ class SampleDatabase
             $table->id();
             $table->string('number')->nullable()->unique();
             $table->string('status');
+            $table->foreignId('customer_id')->nullable();
+            $table->date('invoice_date')->nullable();
+            $table->date('due_date')->nullable();
+            $table->decimal('vatable_sales', 15, 2)->default(0);
+            $table->decimal('vat', 15, 2)->default(0);
+            $table->decimal('zero_rated_sales', 15, 2)->default(0);
+            $table->decimal('exempt_sales', 15, 2)->default(0);
+            $table->decimal('total', 15, 2)->default(0);
+            $table->decimal('balance_due', 15, 2)->default(0);
+        });
+
+        $schema->create('purchase_orders', function (Blueprint $table): void {
+            $table->id();
+            $table->string('number')->unique();
+            $table->string('status');
+            $table->string('supplier');
+            $table->date('order_date');
+            $table->date('due_date')->nullable();
+            $table->decimal('vatable_purchases', 15, 2)->default(0);
+            $table->decimal('vat', 15, 2)->default(0);
+            $table->decimal('total', 15, 2)->default(0);
+            $table->decimal('balance_due', 15, 2)->default(0);
         });
 
         $schema->create('payments', function (Blueprint $table): void {
@@ -66,10 +88,26 @@ class SampleDatabase
             ['number' => null, 'status' => 'draft'],
         ]);
 
+        // The reports' figures: amounts, dates and balances on the posted invoices, and a few more of them.
+        $invoice = fn (int $customer, string $date, string $due, string $vatable, string $vat, string $exempt, string $total, string $balance): array => ['customer_id' => $customer, 'invoice_date' => $date, 'due_date' => $due, 'vatable_sales' => $vatable, 'vat' => $vat, 'exempt_sales' => $exempt, 'total' => $total, 'balance_due' => $balance];
+        DB::connection('storybook')->table('sales_invoices')->where('number', '001232')->update($invoice(3, '2026-10-11', '2026-11-10', '3058.93', '367.07', '2900.00', '6326.00', '0.00'));
+        DB::connection('storybook')->table('sales_invoices')->where('number', '001234')->update($invoice(2, '2026-10-14', '2026-11-13', '3003.31', '360.40', '0.00', '3363.71', '3363.71'));
+        DB::connection('storybook')->table('sales_invoices')->insert([
+            ['number' => '000901', 'status' => 'posted', ...$invoice(1, '2026-06-01', '2026-07-01', '4464.29', '535.71', '0.00', '5000.00', '5000.00')],
+            ['number' => '000902', 'status' => 'posted', ...$invoice(1, '2026-08-20', '2026-09-19', '795.09', '95.41', '0.00', '890.50', '890.50')],
+            ['number' => '000903', 'status' => 'posted', ...$invoice(3, '2026-09-25', '2026-10-25', '10000.00', '1200.00', '0.00', '11200.00', '11200.00')],
+        ]);
+
+        DB::connection('storybook')->table('purchase_orders')->insert([
+            ['number' => 'PO-000041', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-09-28', 'due_date' => '2026-10-28', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '0.00'],
+            ['number' => 'PO-000042', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-10-11', 'due_date' => '2026-11-10', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '5298.00'],
+            ['number' => 'PO-000043', 'status' => 'posted', 'supplier' => 'Luzon Medical Gases', 'order_date' => '2026-08-15', 'due_date' => '2026-09-14', 'vatable_purchases' => '12500.00', 'vat' => '1500.00', 'total' => '14000.00', 'balance_due' => '7000.00'],
+        ]);
+
         // Invoice 001232 has a live payment; 001234 has only a void one.
         DB::connection('storybook')->table('payments')->insert([
-            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted'],
-            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void'],
+            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted', 'paid_on' => '2026-11-08', 'amount' => '6298.69', 'tax_withheld' => '27.31', 'reference' => 'Check 0047731'],
+            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void', 'paid_on' => '2026-11-09', 'amount' => '3363.71', 'tax_withheld' => '0.00', 'reference' => 'Cash'],
         ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -22,5 +23,11 @@ class Customer extends Model
     protected static function booted(): void
     {
         SampleDatabase::boot();
+    }
+
+    /** @return HasMany<SalesInvoice, $this> */
+    public function salesInvoices(): HasMany
+    {
+        return $this->hasMany(SalesInvoice::class);
     }
 }

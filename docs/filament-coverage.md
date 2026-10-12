@@ -60,6 +60,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `TextInputColumn`, `SelectColumn`, `CheckboxColumn` | Rule | row editing in a slide-over; editable cells named after their row (house script) |
 | `ColumnGroup` | Rule | one level deep |
 | `ViewColumn` | Not applicable | patterns use native components only |
+| `Sum`, `Average`, `Count`, `Range`, `Values` (summarizers) | Pattern | `reports-sales` and the other reports (a totals row adding every row the filters keep); house CSS (4.5:1 values) |
 
 ## Table filters
 

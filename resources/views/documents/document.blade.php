@@ -1,7 +1,7 @@
 {{--
     A printed document: the shared layout for sales invoice copies, purchase orders, receiving reports and payments.
-    `$document` holds: title, number_label, number, company (name, address, tin, vat), party (label, name, address, tin),
-    details (label => value), columns (key => [label, format: text|quantity|money|unit price]), lines (rows keyed like columns),
+    `$document` holds: title, number_label, number, company (name, address, tin, vat), party (label, name, address, tin; none on a report),
+    details (label => value), columns (key => [label, format: text|date|quantity|money|unit price]), lines (rows keyed like columns),
     totals (label => amount; the last is the total), notes, signatures (labels) and statement (BIR's wording, if any).
 --}}
 @php
@@ -11,6 +11,8 @@
         // A unit price keeps the decimals it was stored with (2 to 4), so quantity × price still gives the line's amount.
         $as === 'unit price' => \Illuminate\Support\Number::currency((float) $value, 'PHP', precision: max(2, strlen(rtrim(strstr((string) $value, '.') ?: '.', '0')) - 1)),
         $as === 'quantity' => \Illuminate\Support\Number::format((float) $value, maxPrecision: 3),
+        // A date reads as it does on screen, in Filament's format.
+        $as === 'date' => \Illuminate\Support\Carbon::parse($value)->translatedFormat(\Filament\Schemas\Schema::make()->getDefaultDateDisplayFormat()),
         default => (string) $value,
     };
 @endphp
@@ -58,16 +60,19 @@
     </header>
 
     <div class="fs-document__parties">
-        <section>
-            <h2>{{ $document['party']['label'] }}</h2>
-            <p>{{ $document['party']['name'] }}</p>
-            @if (filled($document['party']['address'] ?? null))
-                <p>{{ $document['party']['address'] }}</p>
-            @endif
-            @if (filled($document['party']['tin'] ?? null))
-                <p>TIN {{ $document['party']['tin'] }}</p>
-            @endif
-        </section>
+        {{-- A report has no customer or supplier. --}}
+        @if (filled($document['party'] ?? null))
+            <section>
+                <h2>{{ $document['party']['label'] }}</h2>
+                <p>{{ $document['party']['name'] }}</p>
+                @if (filled($document['party']['address'] ?? null))
+                    <p>{{ $document['party']['address'] }}</p>
+                @endif
+                @if (filled($document['party']['tin'] ?? null))
+                    <p>TIN {{ $document['party']['tin'] }}</p>
+                @endif
+            </section>
+        @endif
 
         <dl>
             @foreach ($document['details'] ?? [] as $label => $value)
@@ -83,7 +88,7 @@
         <thead>
             <tr>
                 @foreach ($document['columns'] as $column)
-                    <th scope="col" @class(['fs-number' => ($column['format'] ?? 'text') !== 'text'])>{{ $column['label'] }}</th>
+                    <th scope="col" @class(['fs-number' => in_array($column['format'] ?? 'text', ['money', 'quantity', 'unit price'], true)])>{{ $column['label'] }}</th>
                 @endforeach
             </tr>
         </thead>
@@ -91,7 +96,7 @@
             @foreach ($document['lines'] as $line)
                 <tr>
                     @foreach ($document['columns'] as $key => $column)
-                        <td @class(['fs-number' => ($column['format'] ?? 'text') !== 'text'])>{{ $format($line[$key] ?? null, $column['format'] ?? 'text') }}</td>
+                        <td @class(['fs-number' => in_array($column['format'] ?? 'text', ['money', 'quantity', 'unit price'], true)])>{{ $format($line[$key] ?? null, $column['format'] ?? 'text') }}</td>
                     @endforeach
                 </tr>
             @endforeach

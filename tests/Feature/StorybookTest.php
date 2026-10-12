@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -468,7 +468,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -527,7 +527,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 72 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 77 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -1108,6 +1108,37 @@ it('emails a document as its PDF from the company address, and tells the sender 
             'Statement of account Nov 30, 2026 emailed to accounts@cebudiagnostics.ph',
             'Statement of account Nov 30, 2026 not emailed',
         ]);
+});
+
+it('totals a report over every row its filters keep, and prints it with the filters as its details', function (): void {
+    Spatie\LaravelPdf\Facades\Pdf::fake();
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\SalesReportStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        ->assertSee('₱26,780.21')
+        ->filterTable('invoice_date', ['from' => '2026-10-01'])
+        ->assertDontSee('₱26,780.21')
+        ->assertSee('₱9,689.71')
+        ->callTableAction('downloadPdf')
+        ->assertFileDownloaded('Sales report '.today()->translatedFormat('M j, Y').'.pdf');
+
+    Spatie\LaravelPdf\Facades\Pdf::assertSee(['Sales report', 'Period', 'From Oct 1, 2026', '001232', 'Oct 11, 2026', '₱9,689.71']);
+});
+
+it('ages each customer\'s open balance by days past due, as of a date', function (): void {
+    $this->travelTo('2026-10-12');
+    $abra = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0001')->sole();
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\ReceivablesAgeingStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        // Abra: ₱5,000 is 103 days past due and ₱890.50 is 23; Bicol and Cebu aren't due yet.
+        ->assertTableColumnStateSet('over_90', '5000.00', $abra)
+        ->assertTableColumnStateSet('days_1_30', '890.50', $abra)
+        ->assertSee(['₱14,563.71', '₱20,454.21'])
+        // By Dec 1 nothing is current any more; the total due is the same.
+        ->filterTable('as_of', ['as_of' => '2026-12-01'])
+        ->assertDontSee('₱14,563.71')
+        ->assertSee(['₱3,363.71', '₱11,200.00', '₱20,454.21']);
 });
 
 it('leaves a missing date off the printed copy instead of printing today', function (): void {

@@ -162,6 +162,21 @@
 }
 
 /*
+ * A table's totals row: Filament writes the values in gray-500 on the row's gray background, about 4.4:1; WCAG 1.4.3 asks
+ * 4.5:1. They take gray-700 (gray-300 in dark mode), as the figures a report is read for.
+ */
+.fi-ta-text-summary,
+.fi-ta-range-summary,
+.fi-ta-values-summary,
+.fi-ta-icon-count-summary {
+    color: var(--gray-700);
+}
+
+.dark :is(.fi-ta-text-summary, .fi-ta-range-summary, .fi-ta-values-summary, .fi-ta-icon-count-summary) {
+    color: var(--gray-300);
+}
+
+/*
  * A link in a gray section (Filament's secondary sections, such as two-factor on the profile page) takes the next darker
  * shade: Filament picks a shade that passes against white, and shade 500 can fall below 4.5:1 on gray (WCAG 1.4.3).
  */

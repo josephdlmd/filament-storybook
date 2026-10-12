@@ -235,8 +235,9 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: a notification title has no full stop (Carbon notification).";
             }
 
-            if (in_array($story['kind'], ['column', 'table'], true) && $stories->records() === []) {
-                $warnings[] = "{$key}: add sample rows in records(), so the table shows real values.";
+            // A table with its own ->query(), as a report has, shows the rows of its example models.
+            if (in_array($story['kind'], ['column', 'table'], true) && $stories->records() === [] && ! str_contains($story['snippet'], '->query(')) {
+                $warnings[] = "{$key}: add sample rows in records(), or a ->query() on an example model, so the table shows real values.";
             }
         }
 

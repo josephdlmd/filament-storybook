@@ -75,9 +75,14 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
     {
         // Set before a table story runs, so the story can still choose its own pagination. Rows are records, as in a resource,
         // so record actions such as `DeleteAction` get the model they expect.
-        $table->records(fn (): array => collect($this->instance()->records())
-            ->map(fn (array $row, int|string $key): Model => tap($this->model([(new class extends Model {})->getKeyName() => $key, ...$row]), fn (Model $record) => $record->exists = true))
-            ->all())->paginated(false);
+        // A story without sample rows sets its own query, as a report does, so its totals and filters run on real rows.
+        if ($this->instance()->records() !== []) {
+            $table->records(fn (): array => collect($this->instance()->records())
+                ->map(fn (array $row, int|string $key): Model => tap($this->model([(new class extends Model {})->getKeyName() => $key, ...$row]), fn (Model $record) => $record->exists = true))
+                ->all());
+        }
+
+        $table->paginated(false);
 
         return match ($this->kind()) {
             'column' => $table->columns([$this->build()]),

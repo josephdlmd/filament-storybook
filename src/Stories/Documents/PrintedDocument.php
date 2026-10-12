@@ -199,4 +199,43 @@ class PrintedDocument
             'statement' => 'THIS IS NOT AN OFFICIAL RECEIPT',
         ];
     }
+    /**
+     * A report in the shared layout: its filters as details (the period, a customer), one line per row, and a total for
+     * each money column, as on screen. Rows are models or arrays, read by the columns' keys ("customer.name").
+     *
+     * @param  array<string, string>  $details
+     * @param  array<string, array{label: string, format?: string}>  $columns
+     * @param  iterable<mixed>  $rows
+     * @return array<string, mixed>
+     */
+    public static function report(string $title, array $details, array $columns, iterable $rows): array
+    {
+        $lines = collect($rows)->map(fn (mixed $row): array => collect($columns)->mapWithKeys(fn (array $column, string $key): array => [$key => data_get($row, $key)])->all());
+        $money = collect($columns)->filter(fn (array $column): bool => ($column['format'] ?? null) === 'money');
+
+        return [
+            'title' => $title,
+            'number_label' => 'Printed',
+            'number' => today()->translatedFormat(Schema::make()->getDefaultDateDisplayFormat()),
+            'company' => config('company'),
+            'details' => $details,
+            'columns' => $columns,
+            'lines' => $lines->all(),
+            'totals' => $money->mapWithKeys(fn (array $column, string $key): array => [
+                $column['label'] => $lines->reduce(fn (string $sum, array $line): string => bcadd($sum, (string) ($line[$key] ?? '0'), 2), '0.00'),
+            ])->all(),
+        ];
+    }
+    /** A date-range filter's state in words, for a report's details: "Oct 1, 2026 to Oct 31, 2026", "From …", "Up to …". */
+    public static function period(?string $from, ?string $until): string
+    {
+        $date = fn (string $date): string => Carbon::parse($date)->translatedFormat(Schema::make()->getDefaultDateDisplayFormat());
+
+        return match (true) {
+            filled($from) && filled($until) => "{$date($from)} to {$date($until)}",
+            filled($from) => "From {$date($from)}",
+            filled($until) => "Up to {$date($until)}",
+            default => 'All dates',
+        };
+    }
 }
