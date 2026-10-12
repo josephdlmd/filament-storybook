@@ -2,6 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
+use Filament\Actions\Action;
+use Filament\Actions\ExportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
@@ -13,7 +15,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Customer;
+use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Reports\ReceivablesAgeing;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReceivablesAgeingExporter;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReceivablesAgeingStories extends Stories
 {
@@ -29,7 +35,7 @@ class ReceivablesAgeingStories extends Stories
 
     public function examples(): array
     {
-        return [ReceivablesAgeing::class];
+        return [ReceivablesAgeing::class, ReceivablesAgeingExporter::class, ReportExporter::class];
     }
 
     public function default(Table $table): Table
@@ -59,6 +65,23 @@ class ReceivablesAgeingStories extends Stories
                     ])
                     ->indicateUsing(fn (array $data): ?string => filled($data['as_of'] ?? null) ? 'As of '.Carbon::parse($data['as_of'])->isoFormat('LL') : null),
             ], layout: FiltersLayout::AboveContent)
-            ->deferFilters(false);
+            ->deferFilters(false)
+            ->headerActions([
+                Action::make('downloadPdf')
+                    ->label('Download PDF')
+                    ->color('gray')
+                    ->action(fn (HasTable $livewire): StreamedResponse => PrintedDocument::download(PrintedDocument::report(
+                        'Receivables ageing',
+                        ['As of' => Carbon::parse($livewire->getTableFilterState('as_of')['as_of'] ?? today())->isoFormat('LL')],
+                        [
+                            'name' => ['label' => 'Customer'],
+                            ...collect([...ReceivablesAgeing::COLUMNS, 'balance_due' => 'Total due'])->map(fn (string $label): array => ['label' => $label, 'format' => 'money'])->all(),
+                        ],
+                        $livewire->getFilteredSortedTableQuery()->get(),
+                    ))),
+                ExportAction::make()
+                    ->exporter(ReceivablesAgeingExporter::class)
+                    ->color('gray'),
+            ]);
     }
 }

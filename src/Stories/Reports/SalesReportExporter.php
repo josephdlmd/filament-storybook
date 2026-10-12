@@ -3,19 +3,18 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Filament\Actions\Exports\ExportColumn;
-use Filament\Actions\Exports\Exporter;
-use Filament\Actions\Exports\Models\Export;
-use Illuminate\Support\Number;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
 
 /**
  * The sales report as a CSV or Excel file: the same columns as on screen, amounts as plain numbers so a spreadsheet can
  * add them. The export takes the report's filters, so it holds what the screen shows. Copy it into `app/Filament/Exports`,
- * one per report.
+ * one per report, with `ReportExporter`.
  */
-class SalesReportExporter extends Exporter
+class SalesReportExporter extends ReportExporter
 {
     protected static ?string $model = SalesInvoice::class;
+
+    protected static string $rows = 'invoice';
 
     public static function getColumns(): array
     {
@@ -37,16 +36,5 @@ class SalesReportExporter extends Exporter
             ExportColumn::make('total')
                 ->label('Total'),
         ];
-    }
-
-    public static function getCompletedNotificationBody(Export $export): string
-    {
-        $body = Number::format($export->successful_rows).' '.str('invoice')->plural($export->successful_rows).' exported.';
-
-        if ($failed = $export->getFailedRowsCount()) {
-            $body .= ' '.Number::format($failed).' '.str('row')->plural($failed).' failed.';
-        }
-
-        return $body;
     }
 }

@@ -162,6 +162,59 @@
 }
 
 /*
+ * Line items show as a table from a 36rem container in Filament, where five or six columns leave the description about
+ * 100px and cut it off. Until 48rem each line stays a small form with every label on screen, as on a phone. (The class
+ * is doubled to outweigh the table rules, Filament's and compact()'s, at the same widths.)
+ */
+@container (36rem <= width < 45rem) {
+    .fi-fo-table-repeater.fi-fo-table-repeater > table {
+        display: block;
+
+        & > thead {
+            display: none;
+        }
+
+        & > tbody {
+            display: block;
+
+            & > tr {
+                display: grid;
+                gap: 1rem;
+                padding: 1rem;
+
+                & > td {
+                    display: block;
+                    padding: 0;
+
+                    &.fi-hidden {
+                        display: none;
+                    }
+
+                    & .fi-fo-field {
+                        row-gap: 0.5rem;
+                    }
+
+                    & .fi-in-entry-label {
+                        display: block;
+                    }
+
+                    & .fi-fo-field-label-content {
+                        display: inline;
+                        position: static;
+                        width: auto;
+                        height: auto;
+                        margin: 0;
+                        overflow: visible;
+                        clip-path: none;
+                        white-space: normal;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
  * A table's totals row: Filament writes the values in gray-500 on the row's gray background, about 4.4:1; WCAG 1.4.3 asks
  * 4.5:1. They take gray-700 (gray-300 in dark mode), as the figures a report is read for.
  */

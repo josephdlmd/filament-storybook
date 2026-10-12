@@ -1134,6 +1134,22 @@ it('totals a report over every row its filters keep, and prints it with the filt
     Spatie\LaravelPdf\Facades\Pdf::assertSee(['Sales report', 'Period', 'From Oct 1, 2026', '001232', 'Oct 11, 2026', '₱9,689.71']);
 });
 
+it('downloads every report as a PDF of the rows its filters keep', function (string $stories, string $story, string $title, array $sees): void {
+    Spatie\LaravelPdf\Facades\Pdf::fake();
+
+    Livewire::test(StoryCanvas::class, ['stories' => $stories, 'story' => $story])
+        ->call('loadTable')
+        ->callTableAction('downloadPdf')
+        ->assertFileDownloaded($title.' '.today()->translatedFormat('M j, Y').'.pdf');
+
+    Spatie\LaravelPdf\Facades\Pdf::assertSee([$title, ...$sees]);
+})->with([
+    'collections' => [Josephdlmd\FilamentStorybook\Stories\CollectionsReportStories::class, 'default', 'Collections report', ['004516', '₱6,298.69', 'All dates']],
+    'ageing' => [Josephdlmd\FilamentStorybook\Stories\ReceivablesAgeingStories::class, 'default', 'Receivables ageing', ['As of', 'Abra Medical Supply', 'Total due']],
+    'purchases' => [Josephdlmd\FilamentStorybook\Stories\PurchasesReportStories::class, 'default', 'Purchases report', ['PO-000043', '₱14,000.00']],
+    'payables' => [Josephdlmd\FilamentStorybook\Stories\PurchasesReportStories::class, 'payables', 'Payables', ['PO-000042', '₱12,298.00']],
+]);
+
 it('ages each customer\'s open balance by days past due, as of a date', function (): void {
     $this->travelTo('2026-10-12');
     $abra = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0001')->sole();

@@ -2,10 +2,13 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
+use Filament\Actions\Action;
+use Filament\Actions\ExportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -15,6 +18,10 @@ use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
+use Josephdlmd\FilamentStorybook\Stories\Reports\PayablesReportExporter;
+use Josephdlmd\FilamentStorybook\Stories\Reports\PurchasesReportExporter;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PurchasesReportStories extends Stories
 {
@@ -26,6 +33,11 @@ class PurchasesReportStories extends Stories
     public function description(): string
     {
         return 'What was bought in a date range (`default`): each posted purchase order with its supplier, the VAT-exclusive amount, the VAT and the total, with a totals row. And what is still owed (`payables`): each order with a balance, its due date and how many days it is past due, oldest first. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
+    }
+
+    public function examples(): array
+    {
+        return [PurchasesReportExporter::class, PayablesReportExporter::class, ReportExporter::class];
     }
 
     public function default(Table $table): Table
@@ -79,7 +91,28 @@ class PurchasesReportStories extends Stories
                     ->indicateUsing(fn (array $data): ?string => filled($data['from'] ?? null) || filled($data['until'] ?? null) ? PrintedDocument::period($data['from'] ?? null, $data['until'] ?? null) : null),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)
-            ->persistFiltersInSession();
+            ->persistFiltersInSession()
+            ->headerActions([
+                Action::make('downloadPdf')
+                    ->label('Download PDF')
+                    ->color('gray')
+                    ->action(fn (HasTable $livewire): StreamedResponse => PrintedDocument::download(PrintedDocument::report(
+                        'Purchases report',
+                        ['Period' => PrintedDocument::period($livewire->getTableFilterState('order_date')['from'] ?? null, $livewire->getTableFilterState('order_date')['until'] ?? null)],
+                        [
+                            'number' => ['label' => 'Order'],
+                            'order_date' => ['label' => 'Date', 'format' => 'date'],
+                            'supplier' => ['label' => 'Supplier'],
+                            'vatable_purchases' => ['label' => 'VATable purchases', 'format' => 'money'],
+                            'vat' => ['label' => 'VAT', 'format' => 'money'],
+                            'total' => ['label' => 'Total', 'format' => 'money'],
+                        ],
+                        $livewire->getFilteredSortedTableQuery()->get(),
+                    ))),
+                ExportAction::make()
+                    ->exporter(PurchasesReportExporter::class)
+                    ->color('gray'),
+            ]);
     }
 
     /** What is still owed to suppliers: every order with a balance, oldest due first. */
@@ -108,6 +141,25 @@ class PurchasesReportStories extends Stories
                     ->summarize(Sum::make()->money('PHP')->label('Total')),
             ])
             ->defaultSort('due_date')
-            ->searchPlaceholder('Search by order or supplier');
+            ->searchPlaceholder('Search by order or supplier')
+            ->headerActions([
+                Action::make('downloadPdf')
+                    ->label('Download PDF')
+                    ->color('gray')
+                    ->action(fn (HasTable $livewire): StreamedResponse => PrintedDocument::download(PrintedDocument::report(
+                        'Payables',
+                        ['As of' => today()->isoFormat('LL')],
+                        [
+                            'number' => ['label' => 'Order'],
+                            'supplier' => ['label' => 'Supplier'],
+                            'due_date' => ['label' => 'Due date', 'format' => 'date'],
+                            'balance_due' => ['label' => 'Balance', 'format' => 'money'],
+                        ],
+                        $livewire->getFilteredSortedTableQuery()->get(),
+                    ))),
+                ExportAction::make()
+                    ->exporter(PayablesReportExporter::class)
+                    ->color('gray'),
+            ]);
     }
 }

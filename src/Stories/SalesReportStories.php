@@ -18,6 +18,7 @@ use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Customer;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
 use Josephdlmd\FilamentStorybook\Stories\Reports\SalesReportExporter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -35,7 +36,7 @@ class SalesReportStories extends Stories
 
     public function examples(): array
     {
-        return [SalesReportExporter::class, PrintedDocument::class];
+        return [SalesReportExporter::class, ReportExporter::class, PrintedDocument::class];
     }
 
     public function default(Table $table): Table

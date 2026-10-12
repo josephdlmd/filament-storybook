@@ -2,10 +2,13 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
+use Filament\Actions\Action;
+use Filament\Actions\ExportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -13,6 +16,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
+use Josephdlmd\FilamentStorybook\Stories\Reports\CollectionsReportExporter;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CollectionsReportStories extends Stories
 {
@@ -24,6 +30,11 @@ class CollectionsReportStories extends Stories
     public function description(): string
     {
         return 'The payments received in a date range, by the serial of the receipt each was written on: the cash or check received, the income tax and VAT the customer withheld, and the total each settled, with a totals row. A voided payment is left out. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
+    }
+
+    public function examples(): array
+    {
+        return [CollectionsReportExporter::class, ReportExporter::class];
     }
 
     public function default(Table $table): Table
@@ -80,6 +91,28 @@ class CollectionsReportStories extends Stories
                     ->indicateUsing(fn (array $data): ?string => filled($data['from'] ?? null) || filled($data['until'] ?? null) ? PrintedDocument::period($data['from'] ?? null, $data['until'] ?? null) : null),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)
-            ->persistFiltersInSession();
+            ->persistFiltersInSession()
+            ->headerActions([
+                Action::make('downloadPdf')
+                    ->label('Download PDF')
+                    ->color('gray')
+                    ->action(fn (HasTable $livewire): StreamedResponse => PrintedDocument::download(PrintedDocument::report(
+                        'Collections report',
+                        ['Period' => PrintedDocument::period($livewire->getTableFilterState('paid_on')['from'] ?? null, $livewire->getTableFilterState('paid_on')['until'] ?? null)],
+                        [
+                            'number' => ['label' => 'Receipt'],
+                            'paid_on' => ['label' => 'Date', 'format' => 'date'],
+                            'salesInvoice.customer.name' => ['label' => 'Customer'],
+                            'salesInvoice.number' => ['label' => 'Invoice'],
+                            'amount' => ['label' => 'Amount received', 'format' => 'money'],
+                            'tax_withheld' => ['label' => 'Income tax withheld', 'format' => 'money'],
+                            'vat_withheld' => ['label' => 'VAT withheld', 'format' => 'money'],
+                        ],
+                        $livewire->getFilteredSortedTableQuery()->get(),
+                    ))),
+                ExportAction::make()
+                    ->exporter(CollectionsReportExporter::class)
+                    ->color('gray'),
+            ]);
     }
 }
