@@ -1281,6 +1281,44 @@ it('holds an order over the credit limit: says by how much and sends it for appr
         ->assertNotified('Order sent for approval');
 });
 
+it('groups the tax withheld from each supplier by quarter and month, as Form 2307 lists it', function (): void {
+    $rows = Josephdlmd\FilamentStorybook\Stories\Reports\SupplierWithholding::quarterQuery(Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder::query(), '2026-3')
+        ->where('supplier', 'Benguet Trading')
+        ->get();
+
+    // PO-000039 in July and PO-000041 in September; PO-000042, recorded in October, is the next quarter's.
+    $document = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::form2307Details('Benguet Trading', '234-567-890-000', '8 Session Road, Baguio City 2600', Josephdlmd\FilamentStorybook\Stories\Reports\SupplierWithholding::start('2026-3'), $rows);
+
+    expect($document['number'])->toBe('Jul 1, 2026 to Sep 30, 2026')
+        ->and($document['lines'])->toBe([['atc' => 'WC158', 'month_1' => '2232.14', 'month_2' => '0.00', 'month_3' => '4730.36', 'income_payment' => '6962.50', 'tax_withheld' => '69.62']])
+        ->and($document['totals'])->toBe(['Total income payments' => '6962.50', 'Total tax withheld' => '69.62']);
+});
+
+it('reports the quarter just ended and downloads each supplier\'s 2307 details, the report and the QAP', function (): void {
+    $this->travelTo('2026-10-12');
+    Spatie\LaravelPdf\Facades\Pdf::fake();
+
+    $report = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\SupplierWithholdingStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        ->assertSee(['Benguet Trading', 'Luzon Medical Gases', '₱19,462.50', '₱194.62'])
+        ->assertActionVisible(Filament\Actions\Testing\TestAction::make('export')->table())
+        // Benguet's row is keyed by its first order, PO-000041.
+        ->callTableAction('download2307', 1)
+        ->assertFileDownloaded('Form 2307 details Jul 1, 2026 to Sep 30, 2026.pdf');
+
+    Spatie\LaravelPdf\Facades\Pdf::assertSee(['Form 2307 details', 'Benguet Trading', '234-567-890-000', '₱2,232.14', '₱4,730.36', '₱69.62', 'not the certificate']);
+
+    // A fresh fake, since assertSee looks in every PDF made so far.
+    Spatie\LaravelPdf\Facades\Pdf::fake();
+    $report->callTableAction('downloadPdf')
+        ->assertFileDownloaded('Tax withheld from suppliers Oct 12, 2026.pdf');
+
+    Spatie\LaravelPdf\Facades\Pdf::assertSee(['Tax withheld from suppliers', 'Jul–Sep 2026', 'Luzon Medical Gases', '₱19,462.50']);
+
+    expect(collect(Josephdlmd\FilamentStorybook\Stories\Reports\QapExporter::getColumns())->map->getName()->all())
+        ->toBe(['supplier_tin', 'supplier', 'withholding_code', 'withholdingCode.rate', 'income_payment', 'tax_withheld']);
+});
+
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
     $invoice = (new Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice)->forceFill(['number' => '001232', 'invoice_date' => '2026-10-11', 'terms' => 'Cash', 'due_date' => null]);
 
