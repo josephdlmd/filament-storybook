@@ -51,7 +51,8 @@ for (const story of input.stories) {
         const html = story.html.replace(/<link[^>]+rel="stylesheet"[^>]*>/g, '').replace(/<script\b[\s\S]*?<\/script>/g, '');
         await page.setContent(html.replace('</head>', `<style>${css}</style></head>`));
     } else {
-        await page.setContent(`<!doctype html><html lang="en"><head><title>${story.key}</title><style>${css}</style></head><body class="fi-body"><main>${story.html}</main></body></html>`);
+        // Filament's page layout hides x-cloak (closed menus and modals) with an inline style the theme CSS doesn't carry.
+        await page.setContent(`<!doctype html><html lang="en"><head><title>${story.key}</title><style>[x-cloak=''],[x-cloak='x-cloak'],[x-cloak='1']{display:none !important}${css}</style></head><body class="fi-body"><main>${story.html}</main></body></html>`);
         // A mounted action's modal is in the HTML, hidden until Alpine opens it; show it as the browser would.
         await page.evaluate(() => document.querySelectorAll('[wire\\:partial="action-modals"] .fi-modal').forEach((modal) => {
             modal.classList.add('fi-modal-open');

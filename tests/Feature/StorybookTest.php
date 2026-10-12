@@ -601,7 +601,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 14 passing, 3 failing, 27 warnings, 5 accessibility issues')
+        ->toStartWith('# 14 passing, 3 failing, 27 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.vagueAndTitleCase`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
         ->toContain('- `broken-story.collapsedFilters`: AboveContentCollapsible puts the filter button alone')
         ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')

@@ -99,6 +99,9 @@ class DocumentTotalsStories extends Stories
                     ->addActionLabel('Add line')
                     ->reorderable(false)
                     ->minItems(1)
+                    // A document needs a line; required() also keeps the audit from asking for \"(optional)\".
+                    ->required()
+                    ->validationMessages(['required' => 'Add a line'])
                     ->defaultItems(1),
                 // The totals as a list of labels and amounts, in the right half under the line totals; stacked when narrow.
                 Grid::make(['@lg' => 2])

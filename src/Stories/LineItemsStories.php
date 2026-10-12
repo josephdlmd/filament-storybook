@@ -77,6 +77,9 @@ class LineItemsStories extends Stories
             ->addActionLabel('Add line')
             ->reorderable(false)
             ->minItems(1)
+            // A document needs a line; required() also keeps the audit from asking for \"(optional)\".
+            ->required()
+            ->validationMessages(['required' => 'Add a line'])
             ->defaultItems(1);
     }
 
@@ -128,6 +131,9 @@ class LineItemsStories extends Stories
             ->addActionLabel('Add line')
             ->reorderable(false)
             ->minItems(1)
+            // A document needs a line; required() also keeps the audit from asking for \"(optional)\".
+            ->required()
+            ->validationMessages(['required' => 'Add a line'])
             ->defaultItems(1);
     }
 }
