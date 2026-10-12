@@ -111,6 +111,15 @@ it('accepts a percentage with or without a typed % and up to 2 decimals', functi
     'over 100' => ['120', null, 'Discount must be 100 or less'],
 ]);
 
+it('checks a TIN in its stored form, so unique() catches one typed without dashes', function (): void {
+    $tin = (new Josephdlmd\FilamentStorybook\Stories\TinInputStories)->required();
+
+    expect($tin->mutateStateForValidation('123456789000'))->toBe('123-456-789-000')
+        ->and($tin->mutateStateForValidation(' 123.456 789-000 '))->toBe('123-456-789-000')
+        // Not a TIN: left as typed, for the format error.
+        ->and($tin->mutateStateForValidation('123-456-789'))->toBe('123-456-789');
+});
+
 it('refuses to render a class that is not a registered story', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => User::class, 'story' => 'delete'])->assertNotFound();
 });
