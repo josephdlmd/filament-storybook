@@ -263,4 +263,47 @@ class PrintedDocument
             default => 'All dates',
         };
     }
+
+    /**
+     * What a supplier's BIR Form 2307 for one quarter says, for staff to copy onto BIR's form, which stays the
+     * certificate the payor signs: the payee, the period, and for each ATC the income payments of each month of the
+     * quarter, their total and the tax withheld (owner's business standards: one 2307 per supplier per quarter).
+     *
+     * @param  iterable<Model|array<string, mixed>>  $rows  One per ATC, as `SupplierWithholding::quarterQuery()` gives them.
+     * @return array<string, mixed>
+     */
+    public static function form2307Details(string $payee, ?string $tin, ?string $address, Carbon $quarterStart, iterable $rows): array
+    {
+        // Database sums can come back as floats; each is turned back into its exact 2-decimal string first.
+        $amount = fn (mixed $value): string => number_format((float) $value, 2, '.', '');
+        $lines = collect($rows)->map(fn (mixed $row): array => [
+            'atc' => data_get($row, 'withholding_code'),
+            'month_1' => $amount(data_get($row, 'month_1')),
+            'month_2' => $amount(data_get($row, 'month_2')),
+            'month_3' => $amount(data_get($row, 'month_3')),
+            'income_payment' => $amount(data_get($row, 'income_payment')),
+            'tax_withheld' => $amount(data_get($row, 'tax_withheld')),
+        ]);
+        $sum = fn (string $key): string => $lines->reduce(fn (string $sum, array $line): string => bcadd($sum, $line[$key], 2), '0.00');
+
+        return [
+            'title' => 'Form 2307 details',
+            'number_label' => 'Period',
+            'number' => static::period($quarterStart->toDateString(), $quarterStart->copy()->addMonths(2)->endOfMonth()->toDateString()),
+            'company' => config('company'),
+            'party' => ['label' => 'Payee', 'name' => $payee, 'address' => $address, 'tin' => $tin],
+            'details' => [],
+            'columns' => [
+                'atc' => ['label' => 'ATC'],
+                'month_1' => ['label' => '1st month', 'format' => 'money'],
+                'month_2' => ['label' => '2nd month', 'format' => 'money'],
+                'month_3' => ['label' => '3rd month', 'format' => 'money'],
+                'income_payment' => ['label' => 'Total', 'format' => 'money'],
+                'tax_withheld' => ['label' => 'Tax withheld', 'format' => 'money'],
+            ],
+            'lines' => $lines->all(),
+            'totals' => ['Total income payments' => $sum('income_payment'), 'Total tax withheld' => $sum('tax_withheld')],
+            'notes' => 'For copying onto BIR Form 2307, which the payor signs and gives the payee. This page is not the certificate.',
+        ];
+    }
 }

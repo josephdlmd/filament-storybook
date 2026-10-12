@@ -96,6 +96,12 @@ class SampleDatabase
             $table->decimal('vat', 15, 2)->default(0);
             $table->decimal('total', 15, 2)->default(0);
             $table->decimal('balance_due', 15, 2)->default(0);
+            // The withholding, worked out once when the supplier's invoice is recorded (business standards).
+            $table->string('supplier_tin')->nullable();
+            $table->string('supplier_address')->nullable();
+            $table->string('withholding_code')->nullable();
+            $table->date('invoice_recorded_on')->nullable();
+            $table->decimal('tax_withheld', 15, 2)->default(0);
         });
 
         $schema->create('payments', function (Blueprint $table): void {
@@ -167,10 +173,12 @@ class SampleDatabase
             ['number' => 'SO-000011', 'customer_id' => 1, 'status' => 'posted', 'total' => '200000.00', 'invoiced_total' => '0.00'],
         ]);
 
+        $benguet = ['supplier_tin' => '234-567-890-000', 'supplier_address' => '8 Session Road, Baguio City 2600', 'withholding_code' => 'WC158'];
         DB::connection('storybook')->table('purchase_orders')->insert([
-            ['number' => 'PO-000041', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-09-28', 'due_date' => '2026-10-28', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '0.00'],
-            ['number' => 'PO-000042', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-10-11', 'due_date' => '2026-11-10', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '5298.00'],
-            ['number' => 'PO-000043', 'status' => 'posted', 'supplier' => 'Luzon Medical Gases', 'order_date' => '2026-08-15', 'due_date' => '2026-09-14', 'vatable_purchases' => '12500.00', 'vat' => '1500.00', 'total' => '14000.00', 'balance_due' => '7000.00'],
+            ['number' => 'PO-000041', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-09-28', 'due_date' => '2026-10-28', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '0.00', ...$benguet, 'invoice_recorded_on' => '2026-09-30', 'tax_withheld' => '47.30'],
+            ['number' => 'PO-000042', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-10-11', 'due_date' => '2026-11-10', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '5298.00', ...$benguet, 'invoice_recorded_on' => '2026-10-12', 'tax_withheld' => '47.30'],
+            ['number' => 'PO-000043', 'status' => 'posted', 'supplier' => 'Luzon Medical Gases', 'order_date' => '2026-08-15', 'due_date' => '2026-09-14', 'vatable_purchases' => '12500.00', 'vat' => '1500.00', 'total' => '14000.00', 'balance_due' => '7000.00', 'supplier_tin' => '345-678-901-000', 'supplier_address' => '21 MacArthur Highway, Valenzuela City 1440', 'withholding_code' => 'WC158', 'invoice_recorded_on' => '2026-08-20', 'tax_withheld' => '125.00'],
+            ['number' => 'PO-000039', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-07-10', 'due_date' => '2026-08-09', 'vatable_purchases' => '2232.14', 'vat' => '267.86', 'total' => '2500.00', 'balance_due' => '0.00', ...$benguet, 'invoice_recorded_on' => '2026-07-15', 'tax_withheld' => '22.32'],
         ]);
 
         // Invoice 001232 has a live payment; 001234 has only a void one.
