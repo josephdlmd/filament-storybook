@@ -32,7 +32,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `ColorPicker` | Rule | the value shows as text beside the swatch |
 | `Builder` | Not applicable | content blocks for pages, not business records |
 | `CodeEditor` | Not applicable | a developer tool |
-| `OneTimeCodeInput` | Rule | Filament's own multi-factor screens, under the sign-in rules (NIST) |
+| `OneTimeCodeInput` | Rule | Filament's own multi-factor screens, under the sign-in rules (NIST, GOV.UK security codes); house defaults (two-factor wording, email when turned on or off, password rule) |
 | `ViewField` | Not applicable | patterns use native components only |
 
 ## Read-only entries

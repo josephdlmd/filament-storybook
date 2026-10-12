@@ -24,6 +24,7 @@ use Filament\Auth\Pages\PasswordReset\RequestPasswordReset;
 use Filament\Auth\Pages\PasswordReset\ResetPassword;
 use Filament\Auth\Pages\Register;
 use Filament\Contracts\Plugin;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Checkbox;
@@ -50,6 +51,8 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
+use Illuminate\Validation\Rules\Password;
+use Josephdlmd\FilamentStorybook\Notifications\SignInMethodChanged;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 
 class StorybookPlugin implements Plugin
@@ -235,7 +238,7 @@ class StorybookPlugin implements Plugin
             // Carbon's words for signing in and out: "Log in", "Log out" (Carbon login pattern; owner's decision, 2026-10-11).
             foreach (['auth/pages/login', 'auth/pages/register', 'auth/pages/password-reset/request-password-reset', 'layout', 'widgets/account-widget'] as $group) {
                 $lines = Arr::dot((array) trans("filament-panels::{$group}", [], 'en'), "{$group}.");
-                $lines = array_map(fn (mixed $line): mixed => is_string($line) ? str_replace(['Sign in', 'sign in', 'Sign out', 'back to login', 'Login'], ['Log in', 'log in', 'Log out', 'back to log in', 'Log in'], $line) : $line, $lines);
+                $lines = array_map(fn (mixed $line): mixed => is_string($line) ? str_replace(['Sign in', 'sign in', 'signing in', 'Sign out', 'back to login', 'Login'], ['Log in', 'log in', 'logging in', 'Log out', 'back to log in', 'Log in'], $line) : $line, $lines);
 
                 app('translator')->addLines(array_filter($lines, 'is_string'), 'en', 'filament-panels');
             }
@@ -248,6 +251,65 @@ class StorybookPlugin implements Plugin
                 'table.fields.bulk_select_record.label' => 'Select :key',
                 'table.fields.bulk_select_group.label' => 'Select group :title',
             ], 'en', 'filament-tables');
+
+            // Two-factor wording to the house rules: labels say what goes in the field, errors say what to do with no "invalid"
+            // or "please", a confirmation says the consequence, a dialog has no links that leave it, and it is "log in"
+            // (Carbon forms, modal, dialogs and login; GOV.UK error messages and confirm a phone number: "Enter a correct
+            // security code"; IBM Accessibility content design).
+            $code = [
+                'label' => 'Security code',
+                'validation_attribute' => 'security code',
+                'below_content' => 'The 6-digit code in your authenticator app',
+                'messages.invalid' => 'Enter the code your authenticator app shows now',
+                'messages.rate_limited' => 'Too many attempts. Try again in a few minutes',
+            ];
+            $recoveryCode = [
+                'label' => 'Recovery code',
+                'messages.invalid' => 'Enter a recovery code you haven\'t used before',
+                'messages.rate_limited' => 'Too many attempts. Try again in a few minutes',
+            ];
+            $saveCodes = 'Save these recovery codes somewhere safe. They are shown only once. If you lose your authenticator app, each code lets you log in once.';
+            $prefix = fn (string $key, array $lines): array => collect($lines)->mapWithKeys(fn (string $line, string $name): array => ["{$key}.{$name}" => $line])->all();
+
+            foreach ([
+                'auth/multi-factor/app/actions/set-up' => [
+                    'modal.description' => 'You need an authenticator app on your phone, such as Google Authenticator or Microsoft Authenticator.',
+                    'modal.content.qr_code.instruction' => 'Scan this QR code with your authenticator app',
+                    'modal.content.text_code.instruction' => 'Or type this key into the app',
+                    'modal.content.recovery_codes.instruction' => $saveCodes,
+                    'modal.actions.submit.label' => 'Turn on',
+                    'notifications.enabled.title' => 'Authenticator app turned on',
+                    ...$prefix('modal.form.code', $code),
+                ],
+                'auth/multi-factor/app/actions/disable' => [
+                    'modal.heading' => 'Turn off authenticator app',
+                    'modal.description' => 'You will log in with your password alone, which is less secure.',
+                    'modal.actions.submit.label' => 'Turn off',
+                    'notifications.disabled.title' => 'Authenticator app turned off',
+                    ...$prefix('modal.form.code', [...$code, 'actions.use_recovery_code.label' => 'Use a recovery code instead']),
+                    ...$prefix('modal.form.recovery_code', $recoveryCode),
+                ],
+                'auth/multi-factor/app/actions/regenerate-recovery-codes' => [
+                    'label' => 'Make new recovery codes',
+                    'modal.heading' => 'Make new recovery codes',
+                    'modal.description' => 'Your old recovery codes stop working at once.',
+                    'modal.form.password.label' => 'Current password',
+                    'modal.actions.submit.label' => 'Make new codes',
+                    'notifications.regenerated.title' => 'New recovery codes made',
+                    'show_new_recovery_codes.modal.description' => $saveCodes,
+                    ...$prefix('modal.form.code', $code),
+                ],
+                'auth/multi-factor/app/provider' => [
+                    'management_schema.actions.below_content' => 'A 6-digit code from an app on your phone, asked for each time you log in',
+                    ...$prefix('login_form.code', [...$code, 'actions.use_recovery_code.label' => 'Use a recovery code instead']),
+                    ...$prefix('login_form.recovery_code', $recoveryCode),
+                ],
+                'auth/multi-factor/recovery-codes-modal-content' => ['actions.0' => '', 'actions.copy.label' => 'Copy', 'actions.2' => 'all the codes.'],
+                'auth/multi-factor/pages/set-up-required-multi-factor-authentication' => ['subheading' => 'Each time you log in, you\'ll enter a code from an app on your phone as well as your password.'],
+            ] as $group => $lines) {
+                app('translator')->load('filament-panels', $group, 'en');
+                app('translator')->addLines($prefix($group, $lines), 'en', 'filament-panels');
+            }
 
             // A failed log in says what happened and what to do (Carbon login: "Incorrect IBMid or password. Try again.").
             app('translator')->addLines(['auth/pages/login.messages.failed' => 'Incorrect email or password. Try again.'], 'en', 'filament-panels');
@@ -262,6 +324,31 @@ class StorybookPlugin implements Plugin
             // GOV.UK's error templates (text input, date input). Loaded first, so the app's own lang file can't replace them later.
             app('translator')->load('*', 'validation', 'en');
             app('translator')->addLines(static::ERROR_MESSAGES, 'en');
+        });
+
+        // A new password: 15 characters at least, or 8 when every user must also use two-factor; any characters, no rules on
+        // their mix; never a password known from a breach (NIST SP 800-63B-4). The breach check sends Have I Been Pwned the
+        // first 5 characters of the password's hash, never the password; if the service can't be reached, the password passes.
+        Password::defaults(fn (): Password => Password::min(static::minimumPasswordLength())->uncompromised());
+
+        // A new password's helper text states its minimum length (Carbon login, text input).
+        TextInput::configureUsing(fn (TextInput $input) => $input->helperText(function (TextInput $component): ?string {
+            $page = $component->hasContainer() ? $component->getLivewire() : null;
+
+            return $component->getName() === 'password' && Arr::first([Register::class, ResetPassword::class, EditProfile::class], fn (string $class): bool => $page instanceof $class)
+                ? 'At least '.static::minimumPasswordLength().' characters'
+                : null;
+        }));
+
+        // The account's owner hears by email when two-factor is turned on or off, in case it wasn't them (NIST SP 800-63B-4).
+        // Filament builds both with Action::make(), so they are found by their names, which are set before this runs.
+        Action::configureUsing(function (Action $action): void {
+            $change = ['setUpAppAuthentication' => 'turned on', 'disableAppAuthentication' => 'turned off'][$action->getName()] ?? null;
+
+            if ($change) {
+                // A user model without Laravel's Notifiable trait can't be emailed; the change still goes through.
+                $action->after(fn () => method_exists($user = auth()->user(), 'notify') ? $user->notify(new SignInMethodChanged('two-factor authentication with an authenticator app', $change)) : null);
+            }
         });
 
         // The browser's own validation is off, so a form's errors are ours, worded as GOV.UK asks, instead of "Please fill out
@@ -340,6 +427,7 @@ class StorybookPlugin implements Plugin
         'validation.max.numeric' => ':Attribute must be :max or less',
         'validation.between.numeric' => ':Attribute must be between :min and :max',
         'validation.min.string' => ':Attribute must be :min characters or more',
+        'validation.password.uncompromised' => 'Choose a different password: this one has appeared in a data breach',
         'validation.max.string' => ':Attribute must be :max characters or less',
         'validation.between.string' => ':Attribute must be between :min and :max characters',
         'validation.date' => ':Attribute must be a real date',
@@ -357,6 +445,12 @@ class StorybookPlugin implements Plugin
 
         // Keep acronyms such as "TIN" as written; lower-case an ordinary first word. "(optional)" is for the label only.
         return preg_match('/^\p{Lu}{2}/u', $label) ? $label : lcfirst($label);
+    }
+
+    /** NIST SP 800-63B-4: 15 characters when a password is the only factor, 8 when another is always required. */
+    public static function minimumPasswordLength(): int
+    {
+        return Filament::getCurrentPanel()?->isMultiFactorAuthenticationRequired() ? 8 : 15;
     }
 
     public static function requiredMessage(Field $field): string

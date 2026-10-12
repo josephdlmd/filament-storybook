@@ -328,6 +328,35 @@ it('says Log in and Log out, as Carbon does', function (): void {
         ->and(__('filament-panels::layout.actions.logout.label'))->toBe('Log out');
 });
 
+it('asks for a 15-character password that has not appeared in a breach, and says why it refuses one', function (): void {
+    // Have I Been Pwned answers with hash suffixes and counts; this one lists the SHA-1 of "correct horse battery staple".
+    $leaked = 'correct horse battery staple';
+    Illuminate\Support\Facades\Http::fake(['api.pwnedpasswords.com/*' => Illuminate\Support\Facades\Http::response(substr(strtoupper(sha1($leaked)), 5).':42')]);
+    $errors = fn (string $password): array => Illuminate\Support\Facades\Validator::make(['password' => $password], ['password' => Illuminate\Validation\Rules\Password::default()])->errors()->all();
+
+    expect($errors('short1'))->toBe(['Password must be 15 characters or more'])
+        ->and($errors('a long enough passphrase'))->toBe([])
+        ->and($errors($leaked))->toBe(['Choose a different password: this one has appeared in a data breach'])
+        ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::minimumPasswordLength())->toBe(15);
+});
+
+it('words two-factor setup by the house rules and emails the owner when it is turned on or off', function (): void {
+    Illuminate\Support\Facades\Notification::fake();
+    $this->actingAs($user = User::forceCreate(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret']));
+
+    Filament\Actions\Action::make('setUpAppAuthentication')->callAfter();
+    Filament\Actions\Action::make('disableAppAuthentication')->callAfter();
+    Filament\Actions\Action::make('somethingElse')->callAfter();
+
+    Illuminate\Support\Facades\Notification::assertSentToTimes($user, Josephdlmd\FilamentStorybook\Notifications\SignInMethodChanged::class, 2);
+    expect(__('filament-panels::auth/multi-factor/app/actions/set-up.modal.form.code.label'))->toBe('Security code')
+        ->and(__('filament-panels::auth/multi-factor/app/actions/set-up.modal.description'))->not->toContain('href')
+        ->and(__('filament-panels::auth/multi-factor/app/provider.login_form.code.messages.invalid'))->toBe('Enter the code your authenticator app shows now')
+        ->and(__('filament-panels::auth/multi-factor/app/actions/disable.modal.heading'))->toBe('Turn off authenticator app')
+        ->and(__('filament-panels::auth/multi-factor/app/actions/set-up.label'))->toBe('Set up')
+        ->and(__('filament-panels::auth/pages/login.multi_factor.subheading'))->toBe('To continue logging in, you need to verify your identity.');
+});
+
 it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
     $delete = Filament\Actions\DeleteAction::make();
 

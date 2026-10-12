@@ -162,6 +162,14 @@
 }
 
 /*
+ * A link in a gray section (Filament's secondary sections, such as two-factor on the profile page) takes the next darker
+ * shade: Filament picks a shade that passes against white, and shade 500 can fall below 4.5:1 on gray (WCAG 1.4.3).
+ */
+.fi-section.fi-secondary .fi-link.fi-text-color-500 {
+    --text: var(--color-600);
+}
+
+/*
  * "Deselect all" beside a table's selection count destroys nothing, so it takes "Select all"'s colour, not Filament's danger
  * red (Carbon button: danger is "for actions that could have destructive effects").
  */
