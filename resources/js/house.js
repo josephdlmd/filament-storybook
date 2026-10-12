@@ -61,6 +61,15 @@
 
             row.querySelector('.fi-ta-record-checkbox')?.setAttribute('aria-label', `Select ${name}`);
 
+            // A row that opens its record makes every cell a link, so an empty cell is a link with no name (WCAG 2.4.4). The
+            // row's other cells go to the same place, so the empty one leaves the keyboard and screen readers.
+            row.querySelectorAll(':scope > td > a.fi-ta-col').forEach((link) => {
+                if (text(link) === '' && ! link.querySelector('img, svg')) {
+                    link.setAttribute('aria-hidden', 'true');
+                    link.tabIndex = -1;
+                }
+            });
+
             // A field edited in the table is named by its column on every row; add the row ("Status, C-0001").
             row.querySelectorAll(':is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle):is([aria-label]), :is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle) [aria-label]').forEach((field) => {
                 if (field.dataset.fsRow !== name) {

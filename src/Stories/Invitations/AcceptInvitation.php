@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories\Invitations;
 
+use Filament\Actions\Action;
 use Filament\Auth\Http\Responses\Contracts\PasswordResetResponse;
 use Filament\Auth\Pages\PasswordReset\ResetPassword;
 use Filament\Facades\Filament;
@@ -93,5 +94,10 @@ class AcceptInvitation extends ResetPassword
     public function getHeading(): string|Htmlable|null
     {
         return 'Set your password';
+    }
+
+    public function getResetPasswordFormAction(): Action
+    {
+        return parent::getResetPasswordFormAction()->label('Set password');
     }
 }
