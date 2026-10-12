@@ -71,7 +71,8 @@ checks = {
     "approval: shown only while awaiting a decision": bool(re.search(r"make\('approve'\)(?:(?!make\().)*?->(visible|hidden|authorize)\(", code, re.S)),
     "line items: table repeater": "Repeater::make" in code and "->table([" in code,
     "line items: a row each, through relationship()": bool(re.search(r"Repeater::make\([^;]*?->relationship\(", code, re.S)),
-    "related list: a relation manager": "extends RelationManager" in code,
+    # Or a document's payments in a table on its View page, as records-view-page shows them.
+    "related list: a relation manager": "extends RelationManager" in code or "RepeatableEntry::make('payments')" in code,
     # Import prompt: the importer validates like the form and never rounds amounts.
     "import: ImportAction with an importer": "ImportAction::make" in code and "extends Importer" in code,
     "import: row limit set": "maxRows(" in code,
@@ -91,6 +92,11 @@ checks = {
     "payments: a collection under its receipt's serial, checked": bool(re.search(r"->unique\([^)]*Payment", code)),
     "payments: VAT withheld kept apart from income tax withheld": "vat_withheld" in app_code and "tax_withheld" in app_code,
     "payments: a duplicate serial from the unique index caught": "UniqueConstraintViolationException" in app_code,
+    # Collections prompt: what the SAWT adds up, and the ageing report's as-of date.
+    "payments: income payment and ATC kept for the SAWT": "income_payment" in app_code and "atc" in app_code.lower(),
+    # The base may go through a closure around expectedWithholding(), as the pattern's own $withheld does.
+    "payments: VAT withheld on the VATable sales alone": bool(re.search(r"(?i)(expectedWithholding|withheld)\([^;]*vatable_sales", app_code)),
+    "ageing: invoices dated after the as-of date left out": "ReceivablesAgeing" in app_code or bool(re.search(r"invoice_date'?\s*,\s*'<='", app_code)),
     "purchases: withholding worked out once on the supplier's invoice": "withholding_code" in app_code and "DocumentTotals::withholding(" in app_code,
     "printing: the shared, tagged PDF layout": "filament-storybook::documents.print" in app_code and "->tagged()" in app_code,
     "customer picker: searchable relationship": bool(re.search(r"relationship\('customer'(?:(?!make\().)*?->searchable\(", code, re.S)),
@@ -110,7 +116,7 @@ prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
         "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "customer", "printing": "print", "purchases": "purchase",
-        "chain": "deliver", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
+        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
