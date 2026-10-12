@@ -692,7 +692,7 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
         ->toContain('- `ListGadgets`: 4 buttons in the header; show at most three')
         ->toContain('- `ListGadgets`: 7 actions above the table; keep five at most')
-        ->toContain('- `ListGadgets`: a row menu holds only 1 action(s); show them inline')
+        ->toContain('- `ListGadgets`: a row menu holds only 2 action(s); show them inline')
         ->toContain('- `CreateGadget`: the section "Stock Keeping" can collapse but starts open')
         ->toContain('- `ListGadgets`: the icon-only action `print` has no tooltip')
         ->toContain('- `CreateGadget`: the field `serial` explains itself in a hint icon\'s tooltip')

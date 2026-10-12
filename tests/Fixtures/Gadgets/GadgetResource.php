@@ -77,7 +77,8 @@ class GadgetResource extends Resource
                 Action::make('archive')->requiresConfirmation(),
                 // Shown on no row, so it doesn't count towards the inline actions.
                 Action::make('neverShown')->visible(false),
-                \Filament\Actions\ActionGroup::make([Action::make('inspect')]),
+                // Its heading types the record, as apps write it; the audit has no record to give it.
+                \Filament\Actions\ActionGroup::make([Action::make('inspect'), Action::make('retire')->modalHeading(fn (Gadget $record): string => "Retire {$record->name}?")]),
             ])
             ->headerActions([
                 Action::make('report')->color('gray')->keyBindings(['r']),

@@ -508,7 +508,9 @@ class AuditPages extends Tool
 
         foreach ([...$headerActions, ...$tableActions] as $action) {
             $label = trim((string) $action->getLabel());
-            $verbs = $action->shouldOpenModal() ? [$label, trim($action->getModalSubmitActionLabel())] : [$label];
+            // A row action here has no record, and asking about its modal runs closures that may type one, such as
+            // `modalHeading(fn (Account $record) => …)`; a closure that can't run without its record is left unchecked.
+            $verbs = rescue(fn (): array => $action->shouldOpenModal() ? [$label, trim($action->getModalSubmitActionLabel())] : [$label], [$label], report: false);
 
             if ($vague = collect($verbs)->first(fn (string $verb): bool => (bool) preg_match('/^(ok|okay|yes|done|submit|confirm)$/i', $verb))) {
                 $warn("`{$action->getName()}` has a button labelled \"{$vague}\"; say what it does with a verb, such as \"Approve order\" (Carbon modal and forms).");
@@ -527,7 +529,7 @@ class AuditPages extends Tool
                     .' (Carbon common actions).');
             }
 
-            if ($action->isConfirmationRequired() && $action->getModalDescription() === __('filament-actions::modal.confirmation')) {
+            if (rescue(fn (): bool => $action->isConfirmationRequired() && $action->getModalDescription() === __('filament-actions::modal.confirmation'), false, report: false)) {
                 $warn("`{$action->getName()}` asks \"".__('filament-actions::modal.confirmation').'"; say the consequence in `modalDescription()`, such as "Its 3 payments are deleted too. This cannot be undone.", as `actions-delete` does, or drop the confirmation if the action is routine (Carbon dialogs).');
             }
         }
