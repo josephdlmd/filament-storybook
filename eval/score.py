@@ -56,7 +56,9 @@ checks = {
     "TIN: shared pattern reused (no mask, example in hint)": "For example, 123-456-789-000" in code and "mask(" not in code,
     # A column's or entry's placeholder() is the text for an empty value; only an input's is banned.
     "no placeholder() format examples": not re.search(r"TextInput::make\([^;]*?->placeholder\(", code, re.S),
-    "record form screen: one column, labels above": "->columns(1)" in code and "inlineLabel()" not in code,
+    # Forms are one column by house default; inlineLabel() is right on a document's totals (forms-document-totals), so only a
+    # field with an inline label counts against it.
+    "record form screen: one column, labels above": not re.search(r"(TextInput|Select|DatePicker|Textarea)::make\((?:(?!::make\().)*?->inlineLabel\(", code, re.S),
     # Filament's own "Created"/"Saved" toast meets the rule, so only forcing persistent() (an app-wide default already) fails.
     "notification: no forced persistent()": "->persistent()" not in code,
     # An app that archives instead of deleting has no delete to confirm.
@@ -65,7 +67,8 @@ checks = {
     # Purchase-order prompt: approvals, line items, a related list.
     "approval: Approve and Reject actions": "make('approve')" in code and "make('reject')" in code,
     "approval: Reject is gray, not danger": bool(re.search(r"make\('reject'\)(?:(?!make\().)*?->color\('gray'\)", code, re.S)),
-    "approval: shown only while awaiting a decision": bool(re.search(r"make\('approve'\)(?:(?!make\().)*?->(visible|hidden)\(", code, re.S)),
+    # Hidden by visible()/hidden(), or by authorize() with a policy that checks the status.
+    "approval: shown only while awaiting a decision": bool(re.search(r"make\('approve'\)(?:(?!make\().)*?->(visible|hidden|authorize)\(", code, re.S)),
     "line items: table repeater": "Repeater::make" in code and "->table([" in code,
     "line items: a row each, through relationship()": bool(re.search(r"Repeater::make\([^;]*?->relationship\(", code, re.S)),
     "related list: a relation manager": "extends RelationManager" in code,
@@ -94,9 +97,9 @@ checks = {
     "chain: deliveries copy the order's lines, quantities up to what is left": "maxValue(" in code and ("Fulfilment" in app_code or "remaining" in app_code),
     "chain: one invoice per delivery": bool(re.search(r"make\('createInvoice'\)|Create invoice", code)),
     "credit limit: an order over it goes for approval": "credit_limit" in app_code and bool(re.search(r"for.?approval", app_code, re.I)),
-    "contact: email field is email()": bool(re.search(r"make\('email'\)(?:(?!make\().)*?->email\(\)", code, re.S)),
-    "contact: phone field is tel(), stored as +63": bool(re.search(r"make\('phone'\)(?:(?!make\().)*?->tel\(\)", code, re.S)) and "+63" in app_code,
-    "contact: address in Philippine fields": "barangay" in code and "zip_code" in code,
+    "email: field is email()": bool(re.search(r"make\('\w*email\w*'\)(?:(?!make\().)*?->email\(\)", code, re.S)),
+    "phone: field is tel(), stored as +63": bool(re.search(r"make\('\w*phone\w*'\)(?:(?!make\().)*?->tel\(\)", code, re.S)) and "+63" in app_code,
+    "address: in Philippine fields": "barangay" in code and "zip_code" in code,
     "bulk: actions as toolbar buttons, not a menu": "BulkAction" in code and "BulkActionGroup::make" not in code,
     "archive: soft deletes with an Archived filter and Restore": "SoftDeletes" in app_code and "TrashedFilter" in code and "RestoreAction" in code,
 }
@@ -107,7 +110,7 @@ prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
         "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "customer", "printing": "print", "purchases": "purchase",
-        "chain": "deliver", "credit limit": "credit limit", "contact": "(email|phone|address)", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
+        "chain": "deliver", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
