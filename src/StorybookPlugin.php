@@ -157,7 +157,7 @@ class StorybookPlugin implements Plugin
     public static function applyHouseDefaults(): void
     {
         // A delete among other actions is low-emphasis danger (outlined); the confirm button stays solid danger (Carbon button).
-        foreach ([DeleteAction::class, ForceDeleteAction::class] as $action) {
+        foreach ([DeleteAction::class, ForceDeleteAction::class, DeleteBulkAction::class, ForceDeleteBulkAction::class] as $action) {
             $action::configureUsing(fn (Action $action) => $action->outlined());
         }
 
@@ -239,6 +239,15 @@ class StorybookPlugin implements Plugin
 
                 app('translator')->addLines(array_filter($lines, 'is_string'), 'en', 'filament-panels');
             }
+
+            // A row's checkbox says what it selects, in plain words; its checked state is announced already (W3C WAI-ARIA APG
+            // checkbox; WCAG 2.4.6). The house script puts the row's first value in place of the record's id ("Select SUP-0001").
+            app('translator')->load('filament-tables', 'table', 'en');
+            app('translator')->addLines([
+                'table.fields.bulk_select_page.label' => 'Select all on this page',
+                'table.fields.bulk_select_record.label' => 'Select :key',
+                'table.fields.bulk_select_group.label' => 'Select group :title',
+            ], 'en', 'filament-tables');
 
             // A failed log in says what happened and what to do (Carbon login: "Incorrect IBMid or password. Try again.").
             app('translator')->addLines(['auth/pages/login.messages.failed' => 'Incorrect email or password. Try again.'], 'en', 'filament-panels');

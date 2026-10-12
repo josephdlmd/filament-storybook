@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Livewire;
 
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -13,13 +14,16 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Gate;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use ReflectionClass;
 
 /**
  * Renders one story in its own Livewire component, so stories never share state:
@@ -39,6 +43,13 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 
     /** @var array<string, mixed>|null */
     public ?array $data = [];
+
+    public function boot(): void
+    {
+        // Sample rows have no policy: the catalogue lets every check on them pass, so a per-record check
+        // (`authorizeIndividualRecords('update')`) shows the action working rather than refused.
+        Gate::before(fn (mixed $user, string $ability, array $arguments): ?bool => ($arguments[0] ?? null) instanceof Model && (new ReflectionClass($arguments[0]))->isAnonymous() ? true : null);
+    }
 
     public function mount(): void
     {
@@ -80,6 +91,12 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         return $action instanceof EditAction ? '#' : null;
     }
 
+    /** A resource page checks a bulk delete against the resource's policy; sample rows have none. */
+    public function getDefaultActionIndividualRecordAuthorizationResponseResolver(Action $action): ?Closure
+    {
+        return fn (): Response => Response::allow();
+    }
+
     protected function record(): Model
     {
         return $this->model(Arr::first($this->instance()->records()) ?? []);
@@ -90,7 +107,21 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
     {
         $class = $this->instance()->model();
 
-        $model = ($class === null ? new class extends Model {} : new $class)->forceFill($attributes)->syncOriginal();
+        // A sample row has no table behind it: saving or deleting it does nothing, so an action shows how it ends (its notification).
+        $model = ($class === null ? new class extends Model
+        {
+            protected $guarded = [];
+
+            public function save(array $options = []): bool
+            {
+                return true;
+            }
+
+            public function delete(): bool
+            {
+                return true;
+            }
+        } : new $class)->forceFill($attributes)->syncOriginal();
 
         // A sample row with an id stands for a saved record, loaded from the database, as Filament's checks on the original id expect.
         $model->exists = array_key_exists($model->getKeyName(), $attributes);

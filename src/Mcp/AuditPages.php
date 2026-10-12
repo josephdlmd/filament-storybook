@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Mcp;
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DetachAction;
@@ -423,6 +424,12 @@ class AuditPages extends Tool
 
             if ($toolbar->count() > 5) {
                 $warn("{$toolbar->count()} actions above the table; keep five at most and put the rest in a menu (Carbon data table: \"Include up to five actions within the table toolbar\").");
+            }
+
+            foreach (collect($table->getToolbarActions())->filter(fn ($action): bool => $action instanceof BulkActionGroup) as $group) {
+                if (count($actions = $group->getFlatActions()) <= 5) {
+                    $warn('bulk actions are in a "Bulk actions" menu; with five or fewer, put them straight in `toolbarActions([...])`, so they show as buttons once a row is ticked, as `tables-bulk-actions` does (Carbon data table: "Once an item from the table is selected, the batch action bar appears at the top of the table").');
+                }
             }
 
             foreach (collect($table->getRecordActions())->filter(fn ($action): bool => $action instanceof ActionGroup) as $group) {

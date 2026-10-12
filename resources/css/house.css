@@ -162,6 +162,15 @@
 }
 
 /*
+ * "Deselect all" beside a table's selection count destroys nothing, so it takes "Select all"'s colour, not Filament's danger
+ * red (Carbon button: danger is "for actions that could have destructive effects").
+ */
+.fi-ta-selection-indicator .fi-link.fi-color-danger {
+    --text: var(--primary-600);
+    --dark-text: var(--primary-300);
+}
+
+/*
  * The Storybook page (a developer tool): its list of patterns is the menu button below 96rem, as Filament shows it on a
  * phone, so each story gets the width it would get in an app and a record page's columns appear as they would there.
  */

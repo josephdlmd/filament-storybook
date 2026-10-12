@@ -6,7 +6,7 @@
  * (Carbon code snippet: "reachable by Tab and copied with Space or Enter"), and a status message says it was copied.
  */
 /*
- * Row actions and fields edited in a table: every row's "Edit" or "Status" would otherwise have the same name for a
+ * Row actions, checkboxes and fields edited in a table: every row's "Edit" or "Status" would otherwise have the same name for a
  * screen reader. Each is named after its row's first value, "Edit C-0001" or "Status, C-0001", starting with the visible label (Carbon link: "Avoid using the same link text for different
  * destinations"; WCAG 2.4.4, 2.5.3). Done here rather than on each action, so Filament keeps its fast row rendering.
  */
@@ -46,6 +46,8 @@
                     action.setAttribute('aria-label', `${text(action)} ${name}`);
                 }
             });
+
+            row.querySelector('.fi-ta-record-checkbox')?.setAttribute('aria-label', `Select ${name}`);
 
             // A field edited in the table is named by its column on every row; add the row ("Status, C-0001").
             row.querySelectorAll(':is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle):is([aria-label]), :is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle) [aria-label]').forEach((field) => {

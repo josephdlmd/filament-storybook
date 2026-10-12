@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-approve-and-reject', 'actions-delete', 'actions-download-pdf', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -303,6 +303,10 @@ it('corrects Filament defaults that break a sourced rule, app-wide', function ()
         ->and($delete->isOutlined())->toBeTrue()
         ->and($delete->getModalSubmitAction()->getColor())->toBe('danger')
         ->and($delete->getModalSubmitAction()->isOutlined())->toBeFalse()
+        ->and(Filament\Actions\DeleteBulkAction::make()->isOutlined())->toBeTrue()
+        ->and(__('filament-tables::table.fields.bulk_select_record.label', ['key' => 7]))->toBe('Select 7')
+        ->and(__('filament-tables::table.fields.bulk_select_page.label'))->toBe('Select all on this page')
+        ->and(__('filament-tables::table.selection_indicator.actions.deselect_all.label'))->toBe('Deselect all')
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\TextInput::make('name')))->toBe('Enter name')
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\TextInput::make('tin')->label('TIN')))->toBe('Enter TIN')
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\Select::make('payment_terms')))->toBe('Select payment terms');
@@ -365,7 +369,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-record-picker, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-approve-and-reject, actions-delete, actions-download-pdf, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-quantity, forms-record-form, forms-record-picker, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -424,7 +428,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 59 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 60 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -520,7 +524,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 44 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 45 warnings')
         ->toContain('- `ListGadgets`: the action `report` runs on the key `r` alone')
         ->toContain('- `CreateGadget`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
@@ -537,6 +541,7 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the options of `colour` sit side by side')
         ->toContain('- `CreateGadget`: the field `description` is a rich-text or Markdown editor')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
+        ->toContain('- `ListGadgets`: bulk actions are in a "Bulk actions" menu')
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
         ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
@@ -611,7 +616,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 77 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 78 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')

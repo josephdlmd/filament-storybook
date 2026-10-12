@@ -80,7 +80,7 @@ class GadgetResource extends Resource
                 Action::make('labels')->color('gray'),
             ])
             ->toolbarActions([
-                DeleteBulkAction::make()->color('danger')->label('Remove selected'),
+                \Filament\Actions\BulkActionGroup::make([DeleteBulkAction::make()->color('danger')->label('Remove selected')]),
             ]);
     }
 
