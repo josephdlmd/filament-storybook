@@ -3,12 +3,16 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Stands in for the app's own customer model in the record picker pattern. Its sample rows are in `SampleDatabase`.
+ * Stands in for the app's own customer model in the record picker and archive patterns. Its sample rows are in
+ * `SampleDatabase`. A customer used on a posted document is archived, never deleted (`SoftDeletes`; `actions-archive`).
  */
 class Customer extends Model
 {
+    use SoftDeletes;
+
     protected $connection = 'storybook';
 
     protected $guarded = [];

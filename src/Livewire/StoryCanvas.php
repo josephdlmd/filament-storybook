@@ -46,9 +46,10 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 
     public function boot(): void
     {
-        // Sample rows have no policy: the catalogue lets every check on them pass, so a per-record check
-        // (`authorizeIndividualRecords('update')`) shows the action working rather than refused.
-        Gate::before(fn (mixed $user, string $ability, array $arguments): ?bool => ($arguments[0] ?? null) instanceof Model && (new ReflectionClass($arguments[0]))->isAnonymous() ? true : null);
+        // Sample rows have no policy: the catalogue lets every check on them, or on the story's example model, pass, so a
+        // permission check (`authorizeIndividualRecords('update')`, `authorize('delete')`) shows the action working.
+        Gate::before(fn (mixed $user, string $ability, array $arguments): ?bool => ($record = $arguments[0] ?? null) instanceof Model
+            && ((new ReflectionClass($record))->isAnonymous() || is_a($record, (string) $this->instance()->model())) ? true : null);
     }
 
     public function mount(): void

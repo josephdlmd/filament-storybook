@@ -122,10 +122,6 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: add a one-line docblock saying how this variant differs.";
             }
 
-            if (str_contains($story['snippet'], '->placeholder(')) {
-                $warnings[] = "{$key}: no placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).";
-            }
-
             if (preg_match_all("/->helperText\\('([^']*)'/", $story['snippet'], $hints)) {
                 foreach ($hints[1] as $hint) {
                     if (preg_match('/\\.(\\s|$)|\\b(e\\.g|i\\.e|etc)\\b/i', $hint)) {
@@ -158,6 +154,10 @@ class TestStories extends Tool
             // optional by nature, so the table's ->filters([...]) is left out.
             if (preg_match_all('/(?<![\\w\\\\])(?:TextInput|Textarea|Select|DatePicker|DateTimePicker|TimePicker|FileUpload|Radio|CheckboxList|ToggleButtons|TagsInput)::make\\(\'(\\w+)\'\\)((?:(?!::make\\().)*)/s', preg_replace('/^(\\s*)->filters\\(\\[.*?^\\1\\](?:, layout: [^\\n]*)?\\)/ms', '', $story['snippet']), $fields, PREG_SET_ORDER)) {
                 foreach ($fields as [, $name, $chain]) {
+                    if (str_contains($chain, '->placeholder(')) {
+                        $warnings[] = "{$key}: the field `{$name}` has a placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).";
+                    }
+
                     if (! preg_match('/->(required|readOnly|disabled)\\(|\\(optional\\)/', $chain)) {
                         $warnings[] = "{$key}: the field `{$name}` is neither required() nor labelled \"(optional)\"; label an optional field \"… (optional)\" and leave required ones unmarked (Carbon form: one convention throughout).";
                     }

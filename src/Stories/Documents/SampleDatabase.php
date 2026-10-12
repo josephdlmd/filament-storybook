@@ -27,6 +27,7 @@ class SampleDatabase
             $table->id();
             $table->string('code');
             $table->string('name');
+            $table->softDeletes();
         });
 
         $schema->create('sales_invoices', function (Blueprint $table): void {

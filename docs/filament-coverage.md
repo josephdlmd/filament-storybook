@@ -66,7 +66,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | Component | Status | Guidance |
 |---|---|---|
 | `SelectFilter`, `TernaryFilter` | Pattern | `tables-list-table` (open above the table with `FiltersLayout::AboveContent`, applied as they change, kept for the session; never the collapsible layout); house default ("All" as a yes-or-no filter's empty choice); test and audit (the collapsible layout) |
-| `TrashedFilter` | Pattern | `actions-delete.restorable` ("filtered by Deleted records") |
+| `TrashedFilter` | Pattern | `actions-archive` (labelled "Archived"); `actions-delete.restorable` |
 | `QueryBuilder` | Rule | applies on an explicit action; the closed filter shows the count and a clear option |
 | `Filter` (a filter with its own form) | Rule | the filter rules: open above the table, applied as they change, a way to clear them all; its fields follow the form patterns |
 
@@ -98,8 +98,8 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Action` | Pattern | many; button, dialog and label rules; house defaults |
 | `ActionGroup` | Rule | menu rules; house defaults (tooltip, chevron, offset); audit |
 | `CreateAction`, `EditAction`, `ViewAction` | Rule | label table; house defaults (titles, Close button) |
-| `DeleteAction`, `ForceDeleteAction` | Pattern | `actions-delete`; house defaults; audit |
-| `RestoreAction`, `ReplicateAction` | Rule | label table (Restore; Copy, a house default) |
+| `DeleteAction`, `ForceDeleteAction` | Pattern | `actions-delete`, `actions-archive` (force delete for unused records); house defaults; audit |
+| `RestoreAction`, `ReplicateAction` | Pattern, Rule | `actions-archive` (Restore); label table (Restore; Copy, a house default) |
 | `AttachAction`, `DetachAction`, `AssociateAction`, `DissociateAction` | Pattern | `records-related-records`; house defaults (Add, Remove) |
 | `BulkAction`, `BulkActionGroup`, `DeleteBulkAction`, `ForceDeleteBulkAction`, `RestoreBulkAction`, `DetachBulkAction`, `DissociateBulkAction` | Pattern | `tables-bulk-actions`; engineering rule (`authorizeIndividualRecords()`); house defaults (headings, outlined delete, checkbox names); audit (a `BulkActionGroup` menu) |
 | `ImportAction`, `ExportAction`, `ExportBulkAction` | Pattern | `tables-import-and-export`; house defaults |
