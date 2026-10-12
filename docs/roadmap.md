@@ -22,20 +22,20 @@ In this order (a proposal; the owner confirms). Generic flows come first: every 
 
 All the generic flows are covered (2026-10-12).
 
-The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Turning one document into the next (v0.55.0) is covered too. Next is stock movements, below.
+The document work is covered too (2026-10-12): emailing documents, the statement of account, and the four reports. Turning one document into the next (v0.55.0) and stock (v0.56.0) are covered too. Next is supplier statements, below.
 
 ## Later: everyday business screens
 
 After the documents, in this order. Shared patterns stay generic; anything that depends on one business's rules goes in that app's `app/Stories`, with the rules recorded as business standards.
 
-1. **Stock movements:** receipts against a purchase order (including partial receipts), issues, transfers, and adjustments with a reason; stock on hand per item and location; low-stock warnings. Shared. **Lot and expiry tracking**, and which lot is used first, is a business standard.
-2. **Supplier statements**; the customer statement of account and the receivables ageing report are covered. Shared screens; the ageing buckets are a business standard.
-3. **Credit-limit warnings or holds** when an order would go over a customer's limit. Shared; warning or hold is a business standard.
+1. **Supplier statements**; the customer statement of account and the receivables ageing report are covered. Shared screens; the ageing buckets are a business standard.
+2. **Credit-limit warnings or holds** when an order would go over a customer's limit. Shared; warning or hold is a business standard.
 
 Then, as an app needs them:
 
 - **Records:** returns and credit notes; approval history; a change history on each record; notes and attachments on a record; global search. Shared.
 - **Generic flows used sometimes** (Mobbin, 2026-10-11): saved views; undo after an action (not in a toast that closes by itself, WCAG 2.2.1); progress of a long background job; the list of active sessions; API tokens; notification preferences; a side panel that previews a record beside the list; keyboard shortcut help (single-key shortcuts can be turned off, WCAG 2.1.4); a setup checklist. Shared.
+- **Stock, when an app needs it:** more than one warehouse and transfers between them; lot and expiry tracking, and which lot is used first (business standards; the owner has neither for now).
 - **Money:** price lists and customer prices; collections and deposits (including post-dated cheques, if used). Shared screens, business rules.
 - **Accounting and tax:** chart of accounts; journal entries (debits equal credits); closing a period; tax reports and certificates. App-specific.
 - **Accounting-app features** (Mobbin shows them in Xero and QuickBooks; not shared patterns): bank reconciliation, recurring invoices, payment reminders, receipt capture, payment links, multi-currency. App-specific; build them when an app asks.

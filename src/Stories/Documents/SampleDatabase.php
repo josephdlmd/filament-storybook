@@ -45,6 +45,26 @@ class SampleDatabase
             $table->decimal('balance_due', 15, 2)->default(0);
         });
 
+        $schema->create('items', function (Blueprint $table): void {
+            $table->id();
+            $table->string('code');
+            $table->string('name');
+            $table->string('unit');
+            $table->decimal('on_hand', 15, 3)->default(0);
+            $table->decimal('average_cost', 15, 4)->default(0);
+            $table->decimal('reorder_level', 15, 3)->nullable();
+        });
+
+        $schema->create('stock_movements', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('item_id');
+            $table->string('document');
+            $table->date('moved_on');
+            $table->decimal('quantity', 15, 3);
+            $table->decimal('unit_cost', 15, 4);
+            $table->decimal('on_hand', 15, 3);
+        });
+
         $schema->create('purchase_orders', function (Blueprint $table): void {
             $table->id();
             $table->string('number')->unique();
@@ -96,6 +116,18 @@ class SampleDatabase
             ['number' => '000901', 'status' => 'posted', ...$invoice(1, '2026-06-01', '2026-07-01', '4464.29', '535.71', '0.00', '5000.00', '5000.00')],
             ['number' => '000902', 'status' => 'posted', ...$invoice(1, '2026-08-20', '2026-09-19', '795.09', '95.41', '0.00', '890.50', '890.50')],
             ['number' => '000903', 'status' => 'posted', ...$invoice(3, '2026-09-25', '2026-10-25', '10000.00', '1200.00', '0.00', '11200.00', '11200.00')],
+        ]);
+
+        DB::connection('storybook')->table('items')->insert([
+            ['code' => 'I-0001', 'name' => 'Nitrile examination gloves, medium', 'unit' => 'boxes', 'on_hand' => '140', 'average_cost' => '212.5000', 'reorder_level' => '50'],
+            ['code' => 'I-0002', 'name' => 'Insulin pens, 3 mL', 'unit' => 'packs', 'on_hand' => '8', 'average_cost' => '1105.0000', 'reorder_level' => '10'],
+            ['code' => 'I-0003', 'name' => 'Isopropyl alcohol 70%, 500 mL', 'unit' => 'bottles', 'on_hand' => '36', 'average_cost' => '58.2500', 'reorder_level' => '24'],
+        ]);
+
+        DB::connection('storybook')->table('stock_movements')->insert([
+            ['item_id' => 1, 'document' => 'Receiving report RR-000006', 'moved_on' => '2026-09-20', 'quantity' => '100', 'unit_cost' => '210.0000', 'on_hand' => '100'],
+            ['item_id' => 1, 'document' => 'Delivery DR-000030', 'moved_on' => '2026-09-28', 'quantity' => '-40', 'unit_cost' => '210.0000', 'on_hand' => '60'],
+            ['item_id' => 1, 'document' => 'Receiving report RR-000007', 'moved_on' => '2026-10-05', 'quantity' => '80', 'unit_cost' => '214.3750', 'on_hand' => '140'],
         ]);
 
         DB::connection('storybook')->table('purchase_orders')->insert([

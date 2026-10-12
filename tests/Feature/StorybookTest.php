@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -468,7 +468,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-approve-and-reject, actions-archive, actions-create-next-document, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -527,7 +527,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 81 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 85 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -1172,6 +1172,39 @@ it('creates a delivery of what is left on an order, refusing more', function ():
         ->callMountedAction()
         ->assertHasNoActionErrors()
         ->assertNotified('Delivery created for order SO-000012');
+});
+
+it('keeps stock at weighted average cost and never below zero', function (): void {
+    $Stock = Josephdlmd\FilamentStorybook\Stories\Documents\Stock::class;
+    $gloves = fn () => Josephdlmd\FilamentStorybook\Stories\Documents\Item::where('code', 'I-0001')->sole();
+    $db = Illuminate\Support\Facades\DB::connection($gloves()->getConnectionName());
+
+    expect(fn () => $Stock::issue($gloves(), '1', 'Delivery DR-000040'))->toThrow(RuntimeException::class, 'inside the transaction');
+
+    // 140 at ₱212.50 and 60 at ₱220.00: (29,750 + 13,200) ÷ 200 = ₱214.75.
+    $db->transaction(fn () => $Stock::receive($gloves(), '60', '220.0000', 'Receiving report RR-000008'));
+    expect([$gloves()->on_hand, $gloves()->average_cost])->toBe(['200.000', '214.7500']);
+
+    // Issues and adjustments go out at the average, which they don't move.
+    $db->transaction(fn () => $Stock::issue($gloves(), '150.5', 'Delivery DR-000041'));
+    expect([$gloves()->on_hand, $gloves()->average_cost])->toBe(['49.500', '214.7500'])
+        ->and($Stock::isLow($gloves()))->toBeTrue()
+        ->and($gloves()->stockMovements()->latest('id')->first()->only('quantity', 'unit_cost', 'on_hand'))->toBe(['quantity' => '-150.500', 'unit_cost' => '214.7500', 'on_hand' => '49.500']);
+
+    expect(fn () => $db->transaction(fn () => $Stock::adjust($gloves(), '-50', 'Adjustment ADJ-000004')))
+        ->toThrow(RuntimeException::class, 'Only 49.500 boxes of Nitrile examination gloves, medium on hand');
+    expect($gloves()->on_hand)->toBe('49.500');
+});
+
+it('sends a stock adjustment for approval with a reason, never a change of 0', function (): void {
+    $action = Filament\Actions\Testing\TestAction::make('adjustStock')->schemaComponent('story', 'form');
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\AdjustStockStories::class, 'story' => 'default'])
+        ->callAction($action, ['change' => '0'])
+        ->assertHasActionErrors(['change' => 'not_in', 'reason' => 'required'])
+        ->callAction($action, ['change' => '-2', 'reason' => 'damaged'])
+        ->assertHasNoActionErrors()
+        ->assertNotified('Adjustment of Insulin pens, 3 mL sent for approval');
 });
 
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
