@@ -1119,6 +1119,43 @@ it('emails a document as its PDF from the company address, and tells the sender 
         ]);
 });
 
+it('claims customer withholding only once its 2307 is in, a quarter at a time', function (): void {
+    $CustomerWithholding = Josephdlmd\FilamentStorybook\Stories\Reports\CustomerWithholding::class;
+    $sawt = fn (int $year, int $quarter): array => $CustomerWithholding::sawt($year, $quarter)->orderBy('customer')->get()
+        ->map(fn ($row): array => [$row->tin, $row->customer, $row->tax_atc, number_format((float) $row->income_payment, 2, '.', ''), number_format((float) $row->tax_withheld, 2, '.', ''), number_format((float) $row->vat_withheld, 2, '.', '')])->all();
+
+    // Still waiting, oldest first: Abra's October payment and Cebu's November one.
+    expect($CustomerWithholding::awaiting()->pluck('number')->all())->toBe(['004532', '004516'])
+        // October to December: only Cebu's, whose 2307 arrived; the void payment and the ones still waiting are left out.
+        ->and($sawt(2026, 4))->toBe([['987-654-321-000', 'Cebu Diagnostics Laboratory', 'WC158', '3003.31', '30.03', '150.17']])
+        ->and($sawt(2026, 3))->toBe([['234-567-890-000', 'Abra Medical Supply', 'WC158', '4464.00', '44.64', '0.00']])
+        ->and($sawt(2026, 1))->toBe([]);
+
+    $this->travelTo('2026-10-12');
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\CustomerWithholdingStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        ->assertSee(['Cebu Diagnostics Laboratory', '₱150.17'])
+        ->assertDontSee('Abra Medical Supply')
+        ->filterTable('quarter', ['year' => '2026', 'quarter' => '3'])
+        ->assertSee(['Abra Medical Supply', '₱44.64'])
+        ->assertDontSee('Cebu Diagnostics Laboratory');
+});
+
+it('marks a customer\'s 2307 received on a date no later than today', function (): void {
+    $this->travelTo('2026-10-12');
+    $action = Filament\Actions\Testing\TestAction::make('markForm2307Received')->schemaComponent('story', 'form');
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\Form2307ReceivedStories::class, 'story' => 'default'])
+        ->callAction($action, ['received_2307_on' => null])
+        ->assertHasActionErrors(['received_2307_on' => 'required'])
+        ->callAction($action, ['received_2307_on' => '2026-10-13'])
+        ->assertHasActionErrors(['received_2307_on' => 'before_or_equal'])
+        ->callAction($action, ['received_2307_on' => '2026-10-12'])
+        ->assertHasNoActionErrors()
+        ->assertNotified('2307 for receipt 004516 marked received');
+});
+
 it('totals a report over every row its filters keep, and prints it with the filters as its details', function (): void {
     Spatie\LaravelPdf\Facades\Pdf::fake();
 

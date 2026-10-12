@@ -28,6 +28,7 @@ class SampleDatabase
             $table->string('code');
             $table->string('name');
             $table->decimal('credit_limit', 15, 2)->nullable();
+            $table->string('tin')->nullable();
             $table->softDeletes();
         });
 
@@ -107,6 +108,10 @@ class SampleDatabase
             $table->decimal('tax_withheld', 15, 2)->default(0);
             $table->decimal('vat_withheld', 15, 2)->default(0);
             $table->string('reference')->nullable();
+            // As on the customer's 2307: the VAT-exclusive amount withheld on, the income tax's ATC, and when it arrived.
+            $table->decimal('income_payment', 15, 2)->default(0);
+            $table->string('tax_atc')->nullable();
+            $table->date('received_2307_on')->nullable();
         });
 
         DB::connection('storybook')->table('customers')->insert([
@@ -170,8 +175,17 @@ class SampleDatabase
 
         // Invoice 001232 has a live payment; 001234 has only a void one.
         DB::connection('storybook')->table('payments')->insert([
-            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted', 'paid_on' => '2026-11-08', 'amount' => '6298.69', 'tax_withheld' => '27.31', 'reference' => 'Check 0047731'],
-            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void', 'paid_on' => '2026-11-09', 'amount' => '3363.71', 'tax_withheld' => '0.00', 'reference' => 'Cash'],
+            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted', 'paid_on' => '2026-11-08', 'amount' => '6298.69', 'tax_withheld' => '27.31', 'vat_withheld' => '0.00', 'reference' => 'Check 0047731', 'income_payment' => '2731.00', 'tax_atc' => 'WC158', 'received_2307_on' => null],
+            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void', 'paid_on' => '2026-11-09', 'amount' => '3363.71', 'tax_withheld' => '0.00', 'vat_withheld' => '0.00', 'reference' => 'Cash', 'income_payment' => '0.00', 'tax_atc' => null, 'received_2307_on' => null],
+            // Customer withholding for the SAWT: Abra's 2307 for July and Cebu's for October are in; Abra's for October isn't yet.
+            // Invoice 001234 keeps only its void payment, for the void tests.
+            ['sales_invoice_id' => 5, 'number' => '004530', 'status' => 'posted', 'paid_on' => '2026-07-15', 'amount' => '4955.36', 'tax_withheld' => '44.64', 'vat_withheld' => '0.00', 'reference' => 'Check 0045120', 'income_payment' => '4464.00', 'tax_atc' => 'WC158', 'received_2307_on' => '2026-08-10'],
+            ['sales_invoice_id' => 7, 'number' => '004531', 'status' => 'posted', 'paid_on' => '2026-10-02', 'amount' => '3183.51', 'tax_withheld' => '30.03', 'vat_withheld' => '150.17', 'reference' => 'Check 0071214', 'income_payment' => '3003.31', 'tax_atc' => 'WC158', 'received_2307_on' => '2026-10-20'],
+            ['sales_invoice_id' => 6, 'number' => '004532', 'status' => 'posted', 'paid_on' => '2026-10-09', 'amount' => '882.55', 'tax_withheld' => '7.95', 'vat_withheld' => '0.00', 'reference' => 'Check 0045198', 'income_payment' => '795.09', 'tax_atc' => 'WC158', 'received_2307_on' => null],
         ]);
+
+        foreach (['C-0001' => '234-567-890-000', 'C-0002' => '345-678-901-000', 'C-0003' => '987-654-321-000'] as $code => $tin) {
+            DB::connection('storybook')->table('customers')->where('code', $code)->update(['tin' => $tin]);
+        }
     }
 }
