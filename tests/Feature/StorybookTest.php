@@ -527,7 +527,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 67 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 68 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 

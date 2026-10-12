@@ -5,9 +5,14 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\CreateAction;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Forms\Components\DatePicker;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class ListTableStories extends Stories
@@ -25,9 +30,9 @@ class ListTableStories extends Stories
     public function records(): array
     {
         return [
-            1 => ['code' => 'SUP-0001', 'name' => 'Abra Medical Supply', 'credit_limit' => 250000, 'status' => 'Active', 'email' => 'orders@abramedical.ph'],
-            2 => ['code' => 'SUP-0002', 'name' => 'Benguet Trading', 'credit_limit' => 0, 'status' => 'On hold', 'email' => 'sales@benguettrading.ph'],
-            3 => ['code' => 'SUP-0003', 'name' => 'Cebu Office Depot', 'credit_limit' => 1250000.5, 'status' => 'Active', 'email' => 'hello@cebuofficedepot.ph'],
+            1 => ['code' => 'SUP-0001', 'name' => 'Abra Medical Supply', 'credit_limit' => 250000, 'status' => 'Active', 'email' => 'orders@abramedical.ph', 'created_at' => '2026-08-03'],
+            2 => ['code' => 'SUP-0002', 'name' => 'Benguet Trading', 'credit_limit' => 0, 'status' => 'On hold', 'email' => 'sales@benguettrading.ph', 'created_at' => '2026-09-14'],
+            3 => ['code' => 'SUP-0003', 'name' => 'Cebu Office Depot', 'credit_limit' => 1250000.5, 'status' => 'Active', 'email' => 'hello@cebuofficedepot.ph', 'created_at' => '2026-10-01'],
         ];
     }
 
@@ -76,5 +81,51 @@ class ListTableStories extends Stories
                 CreateAction::make()
                     ->outlined(),
             ]);
+    }
+    /**
+     * A date-range filter: From and To side by side in one filter, either left empty, each shown as its own indicator.
+     * No presets such as "Last 7 days": no qualifying source sets them.
+     */
+    public function dateRange(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('code')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Added on')
+                    ->date()
+                    ->sortable(),
+            ])
+            ->searchPlaceholder('Search by code or name')
+            ->filters([
+                Filter::make('created_at')
+                    // Two dates need two of the filter grid's columns, or they are cut off.
+                    ->columnSpan(2)
+                    ->schema([
+                        Fieldset::make('Added on')
+                            ->columns(2)
+                            ->schema([
+                                DatePicker::make('from')
+                                    ->maxWidth('xs'),
+                                DatePicker::make('until')
+                                    ->label('To')
+                                    ->maxWidth('xs'),
+                            ]),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '>=', $date))
+                        ->when($data['until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('created_at', '<=', $date)))
+                    ->indicateUsing(fn (array $data): array => array_filter([
+                        'from' => filled($data['from'] ?? null) ? 'Added from '.Carbon::parse($data['from'])->isoFormat('LL') : null,
+                        'until' => filled($data['until'] ?? null) ? 'Added to '.Carbon::parse($data['until'])->isoFormat('LL') : null,
+                    ])),
+            ], layout: FiltersLayout::AboveContent)
+            ->deferFilters(false)
+            ->persistFiltersInSession();
     }
 }

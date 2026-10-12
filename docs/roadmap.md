@@ -10,7 +10,7 @@ Density (v0.29.0 to v0.50.0): `compact()` sets Carbon's sizes and spacing where 
 
 The menu (v0.28.0): two levels at most, groups in sentence case, words that stay on screen; checked by `storybook-audit`. No source sets the order of groups or their icons.
 
-Generic screens: list tables (search, filters, money, status, import and export, bulk actions), record forms (every field pattern, contact details and percentages, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications, dashboards and the settings page. Account and security: Filament's profile and two-factor screens, reworded and checked against NIST by the house defaults (no passkeys in Filament yet). Inviting users by email, with a 7-day link they set their password from. The notifications panel. Hiding table columns, with Reset (no drag-only reordering).
+Generic screens: list tables (search, filters, money, status, import and export, bulk actions), record forms (every field pattern, contact details and percentages, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications, dashboards and the settings page. Account and security: Filament's profile and two-factor screens, reworded and checked against NIST by the house defaults (no passkeys in Filament yet). Inviting users by email, with a 7-day link they set their password from. The notifications panel. Hiding table columns, with Reset (no drag-only reordering). A date-range filter (no presets: no source).
 
 Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing documents as PDFs in one shared layout (spatie/laravel-pdf, chosen by the owner), and a copy-from view for the hand-written collection receipts. The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
 
@@ -18,8 +18,7 @@ Transactional documents (v0.25.0): document totals with VAT per class, the lifec
 
 In this order (a proposal; the owner confirms). Generic flows come first: every internal tool needs them, and they need no business facts. The list comes from Mobbin (2026-10-11), which confirms that real apps have a screen but never justifies a rule; each pattern still needs its basis under the rules policy.
 
-1. A date-range filter on a list, with presets such as "Last 7 days"
-2. Archiving instead of deleting, with an archived list and restore (needs a source for when to archive)
+1. Archiving instead of deleting, with an archived list and restore (needs a source for when to archive)
 
 Then the document work, which waits for the owner's business facts:
 
