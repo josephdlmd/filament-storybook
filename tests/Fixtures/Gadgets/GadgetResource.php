@@ -75,6 +75,8 @@ class GadgetResource extends Resource
                 Action::make('ship')->label('Submit'),
                 Action::make('returnGadget')->label('Return Gadget'),
                 Action::make('archive')->requiresConfirmation(),
+                // Shown on no row, so it doesn't count towards the inline actions.
+                Action::make('neverShown')->visible(false),
                 \Filament\Actions\ActionGroup::make([Action::make('inspect')]),
             ])
             ->headerActions([

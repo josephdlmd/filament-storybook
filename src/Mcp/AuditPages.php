@@ -46,6 +46,7 @@ use Filament\Widgets\WidgetConfiguration;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -442,10 +443,18 @@ class AuditPages extends Tool
                 }
             }
 
+            // Counted on each row, as the user sees them: actions shown only on some rows (Send again for an invited user,
+            // Edit for an active one) don't add up. With no rows, the actions that show without a record.
             $inline = collect($table->getRecordActions())->filter(fn ($action): bool => $action instanceof Action);
+            $records = rescue(fn (): mixed => $table->getRecords(), [], report: false);
+            $rows = collect($records instanceof Paginator ? $records->items() : $records)->take(25);
+            $shown = $rows->isEmpty()
+                ? $inline->filter(fn (Action $action): bool => rescue(fn (): bool => (clone $action)->isVisible(), true, report: false))->count()
+                // A copy of each action takes the row's record, so the page's own actions are left as they were.
+                : $rows->max(fn ($record): int => $inline->filter(fn (Action $action): bool => rescue(fn (): bool => (clone $action)->record($record)->isVisible(), true, report: false))->count());
 
-            if ($inline->count() > 2) {
-                $warn("{$inline->count()} row actions are inline; keep at most two and put the rest in an `ActionGroup` (Carbon data table, NN/g data tables).");
+            if ($shown > 2) {
+                $warn("{$shown} row actions are inline; keep at most two and put the rest in an `ActionGroup` (Carbon data table, NN/g data tables).");
             }
 
             if (count($table->getFilters()) > 1 && in_array($table->getFiltersLayout(), [FiltersLayout::Dropdown, FiltersLayout::Modal, FiltersLayout::AboveContentCollapsible], true)) {
