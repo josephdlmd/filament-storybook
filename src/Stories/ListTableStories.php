@@ -31,7 +31,7 @@ class ListTableStories extends Stories
     {
         return [
             1 => ['code' => 'SUP-0001', 'name' => 'Abra Medical Supply', 'credit_limit' => 250000, 'status' => 'Active', 'email' => 'orders@abramedical.ph', 'created_at' => '2026-08-03'],
-            2 => ['code' => 'SUP-0002', 'name' => 'Benguet Trading', 'credit_limit' => 0, 'status' => 'On hold', 'email' => 'sales@benguettrading.ph', 'created_at' => '2026-09-14'],
+            2 => ['code' => 'SUP-0002', 'name' => 'Benguet Trading', 'credit_limit' => null, 'status' => 'On hold', 'email' => 'sales@benguettrading.ph', 'created_at' => '2026-09-14'],
             3 => ['code' => 'SUP-0003', 'name' => 'Cebu Office Depot', 'credit_limit' => 1250000.5, 'status' => 'Active', 'email' => 'hello@cebuofficedepot.ph', 'created_at' => '2026-10-01'],
         ];
     }
@@ -49,6 +49,7 @@ class ListTableStories extends Stories
                 // The identifier and name always show; the others can be hidden from the column manager, and Reset brings them back.
                 TextColumn::make('credit_limit')
                     ->money('PHP')
+                    ->placeholder('No limit')
                     ->alignEnd()
                     ->sortable()
                     ->toggleable(),
@@ -66,8 +67,10 @@ class ListTableStories extends Stories
             ->filters([
                 SelectFilter::make('status')
                     ->options(['Active' => 'Active', 'On hold' => 'On hold']),
-                TernaryFilter::make('has_credit_limit')
-                    ->label('Has a credit limit'),
+                // No limit is null, as `CreditLimit` reads it; nullable() asks whether one is set.
+                TernaryFilter::make('credit_limit')
+                    ->label('Has a credit limit')
+                    ->nullable(),
             ], layout: FiltersLayout::AboveContent)
             // Filters apply as they change; add an Apply button (deferFilters()) only when the results are slow (Carbon filtering).
             ->deferFilters(false)

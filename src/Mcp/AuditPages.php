@@ -251,7 +251,6 @@ class AuditPages extends Tool
         return is_array($options) && ($legend['display'] ?? true) !== false && ! array_key_exists('onClick', $legend);
     }
 
-    /** The innermost error, which names the actual mistake, with the line to fix. */
     /**
      * The page's other states, each checked like the page itself: each header action's modal open, and a create form
      * submitted empty. Opening a modal runs nothing; the form is submitted only when it is known to fail, and anything
@@ -319,6 +318,7 @@ class AuditPages extends Tool
         }
     }
 
+    /** The innermost error, which names the actual mistake, with the line to fix. */
     protected static function failure(Throwable $e): string
     {
         while ($e->getPrevious() !== null) {

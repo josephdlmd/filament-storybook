@@ -29,7 +29,7 @@ class CollectionsReportStories extends Stories
 
     public function description(): string
     {
-        return 'The payments received in a date range, by the serial of the receipt each was written on: the cash or check received, the income tax and VAT the customer withheld, and the total each settled, with a totals row. A voided payment is left out. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
+        return 'The payments received in a date range, by the serial of the receipt each was written on: the cash or check received, the income tax and VAT the customer withheld, with a totals row. A voided payment is left out. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
     }
 
     public function examples(): array

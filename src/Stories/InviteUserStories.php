@@ -22,7 +22,7 @@ class InviteUserStories extends Stories
 
     public function description(): string
     {
-        return 'Adding a user by email: the admin gives their name, email address and roles, and they get an email with a link to set their own password, so no one else ever knows it. The link works for 7 days and once; sending it again makes a new link and stops the old one. "Invite user" takes the place of the Users page\'s New button (`default`), for whoever has the permission to manage users. On the list (`list`), a user who hasn\'t set a password yet shows Invited (info) or, after 7 days, Expired (warning, since it needs the admin to act), with "Send again" and "Withdraw invitation", which deletes the invited user after a danger confirmation. Copy `UserInvitation` (the email) and `AcceptInvitation` (the page where they set their password, which is Filament\'s reset-password page) into the app; the users table needs `password` nullable and an `invited_at` timestamp. Basis: NIST SP 800-63B-4 (Aug 2025: passwords are chosen by the subscriber); the house rules on status badges, confirmations and toasts; the 7 days and who may invite are the owner\'s business standards (2026-10-12).';
+        return 'Adding a user by email: the admin gives their name, email address and roles, and they get an email with a link to set their own password, so no one else ever knows it. The link works for 7 days and once; sending it again makes a new link and stops the old one. "Invite user" takes the place of the Users page\'s New button (`default`), for whoever has the permission to manage users: each button asks the users policy with `authorize()` (create, update, delete), since a plain action checks nothing. On the list (`list`), a user who hasn\'t set a password yet shows Invited (info) or, after 7 days, Expired (warning, since it needs the admin to act), with "Send again" and "Withdraw invitation", which deletes the invited user after a danger confirmation. Copy `UserInvitation` (the email) and `AcceptInvitation` (the page where they set their password, which is Filament\'s reset-password page) into the app; the users table needs `password` nullable and an `invited_at` timestamp. Basis: NIST SP 800-63B-4 (Aug 2025: passwords are chosen by the subscriber); the house rules on status badges, confirmations and toasts; the 7 days and who may invite are the owner\'s business standards (2026-10-12).';
     }
 
     public function examples(): array
@@ -43,6 +43,8 @@ class InviteUserStories extends Stories
     {
         return Action::make('invite')
             ->label('Invite user')
+            // Only someone the users policy lets create users; anyone else could invite an admin.
+            ->authorize('create')
             ->modalDescription('They get an email with a link to set their own password. The link works for 7 days.')
             ->schema([
                 TextInput::make('name')
@@ -99,6 +101,7 @@ class InviteUserStories extends Stories
             ->recordActions([
                 Action::make('sendAgain')
                     ->label('Send again')
+                    ->authorize('update')
                     ->visible(fn (?Model $record): bool => $record?->status !== 'Active')
                     ->action(function (Model $record): void {
                         // On a resource: $record->forceFill(['invited_at' => now()])->save(); $record->notify(new UserInvitation);
@@ -111,6 +114,7 @@ class InviteUserStories extends Stories
                     ->label('Withdraw invitation')
                     ->color('danger')
                     ->outlined()
+                    ->authorize('delete')
                     ->visible(fn (?Model $record): bool => $record?->status !== 'Active')
                     ->requiresConfirmation()
                     ->modalHeading(fn (?Model $record): string => "Withdraw invitation to {$record?->name}?")

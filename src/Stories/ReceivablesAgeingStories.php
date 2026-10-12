@@ -30,7 +30,7 @@ class ReceivablesAgeingStories extends Stories
 
     public function description(): string
     {
-        return 'What each customer owes as of a date, in the ageing buckets by days past the due date (Current, 1–30, 31–60, 61–90, over 90), and the total, with a totals row. It is as of today until the user sets another date. `ReceivablesAgeing` adds the buckets to the customers\' query, so the database adds them up; a customer\'s statement of account (`actions-download-pdf.statementOfAccount`) breaks down one row. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (ageing buckets, 2026-10-11; reports, 2026-10-12); USWDS table (right-align numbers).';
+        return 'What each customer owes as of a date, in the ageing buckets by days past the due date (Current, 1–30, 31–60, 61–90, over 90), and the total, with a totals row. It is as of today until the user sets another date; invoices dated after it are left out, and the balances are today\'s. `ReceivablesAgeing` adds the buckets to the customers\' query, so the database adds them up; a customer\'s statement of account (`actions-download-pdf.statementOfAccount`) breaks down one row. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (ageing buckets, 2026-10-11; reports, 2026-10-12); USWDS table (right-align numbers).';
     }
 
     public function examples(): array

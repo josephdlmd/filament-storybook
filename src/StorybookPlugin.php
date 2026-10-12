@@ -350,8 +350,9 @@ class StorybookPlugin implements Plugin
             $change = ['setUpAppAuthentication' => 'turned on', 'disableAppAuthentication' => 'turned off'][$action->getName()] ?? null;
 
             if ($change) {
-                // A user model without Laravel's Notifiable trait can't be emailed; the change still goes through.
-                $action->after(fn () => method_exists($user = auth()->user(), 'notify') ? $user->notify(new SignInMethodChanged('two-factor authentication with an authenticator app', $change)) : null);
+                // A user model without Laravel's Notifiable trait can't be emailed; the change still goes through. So does a mail
+                // server that is down: the error is logged, not shown as if the change had failed.
+                $action->after(fn () => method_exists($user = auth()->user(), 'notify') ? rescue(fn () => $user->notify(new SignInMethodChanged('two-factor authentication with an authenticator app', $change))) : null);
             }
         });
 

@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
+use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
@@ -40,11 +41,15 @@ class AdjustStockStories extends Stories
                     ->label('Change in quantity')
                     ->helperText('For example, -3 for three fewer')
                     ->inputMode('decimal')
-                    ->rules(['numeric', 'decimal:0,3', 'not_in:0'])
+                    // A zero written any way ("0.0", "-0") is still no change; not_in:0 compares the text, so it would let those through.
+                    ->rules(['numeric', 'decimal:0,3', fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                        if (is_numeric($value) && (float) $value == 0) {
+                            $fail('Enter a change other than 0');
+                        }
+                    }])
                     ->maxWidth('xs')
                     ->required()
                     ->validationMessages([
-                        'not_in' => 'Enter a change other than 0',
                         'decimal' => 'Enter the change with at most 3 decimal places, such as -2.5',
                     ]),
                 Radio::make('reason')

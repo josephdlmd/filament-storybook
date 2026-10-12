@@ -64,10 +64,10 @@ class DocumentTotals
         return $code === null ? '0.00' : static::round(bcmul(bcsub($total, $vat, 2), bcdiv((string) $code->rate, '100', 4), 6));
     }
 
-    /** How far a supplier's printed VAT is from 12/112 of its printed total, as a positive amount, to 4 decimals. */
-    public static function vatGap(string $total, string $vat): string
+    /** How far a supplier's printed VAT is from 12/112 of the VATable part of its total, as a positive amount, to 4 decimals. */
+    public static function vatGap(string $vatableTotal, string $vat): string
     {
-        return ltrim(bcsub($vat, bcdiv(bcmul($total, '12', 4), '112', 4), 4), '-');
+        return ltrim(bcsub($vat, bcdiv(bcmul($vatableTotal, '12', 4), '112', 4), 4), '-');
     }
 
     /**
@@ -86,16 +86,24 @@ class DocumentTotals
     }
 
     /**
-     * What a customer is expected to withhold from a payment of `$amount` against an invoice: the rate on the
-     * VAT-exclusive share of it. A proposal only; the user records what the customer's BIR Form 2307 shows.
+     * What a customer is expected to withhold from a payment of `$amount` against an invoice: the rate on the share of it
+     * that `$base` is of the invoice's total. Income tax is on the VAT-exclusive amount (total less VAT); VAT is on the
+     * VATable sales alone, since exempt and zero-rated sales carry no VAT. A proposal only; the user records what the
+     * customer's BIR Form 2307 shows.
      */
-    public static function expectedWithholding(string $amount, string $total, string $vat, string $rate): string
+    public static function expectedWithholding(string $amount, string $total, string $base, string $rate): string
     {
         if (bccomp($total, '0', 2) === 0) {
             return '0.00';
         }
 
-        return static::round(bcdiv(bcmul(bcmul($amount, bcsub($total, $vat, 2), 4), $rate, 6), $total, 10));
+        return static::round(bcdiv(bcmul(bcmul($amount, $base, 4), $rate, 6), $total, 10));
+    }
+
+    /** The income a payment settles, VAT-exclusive: what its income tax is withheld on, as the 2307 and the SAWT show it. */
+    public static function incomePayment(string $settled, string $total, string $vat): string
+    {
+        return static::expectedWithholding($settled, $total, bcsub($total, $vat, 2), '1');
     }
 
     /** An amount as it is written on a check or a receipt: "Six thousand two hundred sixty-six pesos and 41/100". */

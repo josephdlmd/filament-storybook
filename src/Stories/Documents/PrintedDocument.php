@@ -96,6 +96,14 @@ class PrintedDocument
     /** The ageing buckets of a statement and the ageing report, by days past the due date (owner's business standard). */
     public const AGEING = ['Current', '1–30 days', '31–60 days', '61–90 days', 'Over 90 days'];
 
+    /** Whole days past the due date, as of a date or today; null when it isn't past due, which includes the due date itself. */
+    public static function daysPastDue(mixed $due, ?Carbon $asOf = null): ?int
+    {
+        $days = $due === null ? 0 : (int) Carbon::parse($due)->diffInDays($asOf ?? today(), false);
+
+        return $days > 0 ? $days : null;
+    }
+
     public static function ageingBucket(int $daysPastDue): string
     {
         return match (true) {
@@ -153,15 +161,15 @@ class PrintedDocument
 
         foreach ($documents as $document) {
             $due = Carbon::parse($document->due_date);
-            $days = max(0, (int) $due->diffInDays($asOf, false));
-            $bucket = static::ageingBucket($days);
+            $days = static::daysPastDue($due, $asOf);
+            $bucket = static::ageingBucket($days ?? 0);
             $buckets[$bucket] = bcadd($buckets[$bucket], (string) $document->balance_due, 2);
 
             $lines[] = [
                 'number' => $document->number,
                 'date' => Carbon::parse($document->{$dateColumn})->translatedFormat($format),
                 'due' => $due->translatedFormat($format),
-                'days' => $days ?: null,
+                'days' => $days,
                 'balance' => $document->balance_due,
             ];
         }

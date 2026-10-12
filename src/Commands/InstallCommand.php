@@ -86,9 +86,8 @@ class InstallCommand extends Command
             return $source;
         }
 
-        $source = (string) preg_replace('/^(\s*)(->id\([^)]*\))$/m', "$1$2\n$1->plugin(StorybookPlugin::make())", $source, 1);
-
-        return (string) preg_replace('/^(namespace [^;]+;\n\n)/m', "$1use Josephdlmd\\FilamentStorybook\\StorybookPlugin;\n", $source, 1);
+        // The full class name, so the line works without an import that a second edit could miss.
+        return (string) preg_replace('/^(\s*)(->id\([^)]*\))$/m', "$1$2\n$1->plugin(\\Josephdlmd\\FilamentStorybook\\StorybookPlugin::make())", $source, 1);
     }
 
     public static function addBoostPackage(string $json): string

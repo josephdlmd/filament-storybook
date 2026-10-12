@@ -14,7 +14,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
@@ -132,7 +131,7 @@ class PurchasesReportStories extends Stories
                     ->sortable(),
                 TextColumn::make('days_past_due')
                     ->label('Days past due')
-                    ->state(fn (?Model $record): ?int => $record?->due_date && Carbon::parse($record->due_date)->isPast() ? (int) Carbon::parse($record->due_date)->diffInDays(today()) : null)
+                    ->state(fn (?Model $record): ?int => PrintedDocument::daysPastDue($record?->due_date))
                     ->alignEnd(),
                 TextColumn::make('balance_due')
                     ->label('Balance')
@@ -153,9 +152,10 @@ class PurchasesReportStories extends Stories
                             'number' => ['label' => 'Order'],
                             'supplier' => ['label' => 'Supplier'],
                             'due_date' => ['label' => 'Due date', 'format' => 'date'],
+                            'days_past_due' => ['label' => 'Days past due', 'format' => 'quantity'],
                             'balance_due' => ['label' => 'Balance', 'format' => 'money'],
                         ],
-                        $livewire->getFilteredSortedTableQuery()->get(),
+                        $livewire->getFilteredSortedTableQuery()->get()->each(fn (Model $order) => $order->setAttribute('days_past_due', PrintedDocument::daysPastDue($order->due_date))),
                     ))),
                 ExportAction::make()
                     ->exporter(PayablesReportExporter::class)

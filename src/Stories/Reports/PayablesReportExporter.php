@@ -3,9 +3,10 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Filament\Actions\Exports\ExportColumn;
+use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
 
-/** What is owed to suppliers as a CSV or Excel file: every order with a balance, its due date and the balance. */
+/** What is owed to suppliers as a CSV or Excel file: every order with a balance, its due date, the days past it and the balance. */
 class PayablesReportExporter extends ReportExporter
 {
     protected static ?string $model = PurchaseOrder::class;
@@ -20,6 +21,9 @@ class PayablesReportExporter extends ReportExporter
             ExportColumn::make('supplier'),
             ExportColumn::make('due_date')
                 ->label('Due date'),
+            ExportColumn::make('days_past_due')
+                ->label('Days past due')
+                ->state(fn (PurchaseOrder $record): ?int => PrintedDocument::daysPastDue($record->due_date)),
             ExportColumn::make('balance_due')
                 ->label('Balance'),
         ];

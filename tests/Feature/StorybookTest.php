@@ -128,7 +128,7 @@ it('records a supplier\'s invoice only once it is confirmed as a proper VAT invo
         ->assertHasActionErrors(['is_vat_invoice' => 'accepted']);
 });
 
-it('warns, without blocking, when the printed VAT is more than ₱0.05 from 12/112 of the total', function (string $vat, bool $warned): void {
+it('warns, without blocking, when the printed VAT is more than ₱0.05 from 12/112 of the VATable total', function (string $vat, bool $warned): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentTotalsStories::class, 'story' => 'supplierInvoice'])
         ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
         ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => $vat, 'is_vat_invoice' => true]);
@@ -389,6 +389,16 @@ it('asks for a 15-character password that has not appeared in a breach, and says
         ->and($errors('a long enough passphrase'))->toBe([])
         ->and($errors($leaked))->toBe(['Choose a different password: this one has appeared in a data breach'])
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::minimumPasswordLength())->toBe(15);
+});
+
+it('keeps two-factor turned on when the email about it can\'t be sent', function (): void {
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp' => ['transport' => 'smtp', 'host' => '127.0.0.1', 'port' => 1, 'timeout' => 1]]);
+    $this->actingAs(User::forceCreate(['name' => 'Ben', 'email' => 'ben@example.com', 'password' => 'secret']));
+
+    // A mail server that is down throws from notify(); the hook logs it, so the change isn't shown as failed.
+    Filament\Actions\Action::make('setUpAppAuthentication')->callAfter();
+
+    expect(auth()->check())->toBeTrue();
 });
 
 it('words two-factor setup by the house rules and emails the owner when it is turned on or off', function (): void {
@@ -823,8 +833,7 @@ it('installs into an app that meets the standard, and changing nothing on a seco
     $installed = InstallCommand::addPlugin($provider);
 
     expect($installed)
-        ->toContain("            ->id('admin')\n            ->plugin(StorybookPlugin::make())\n            ->path('admin');")
-        ->toContain("use Josephdlmd\\FilamentStorybook\\StorybookPlugin;")
+        ->toContain("            ->id('admin')\n            ->plugin(\\Josephdlmd\\FilamentStorybook\\StorybookPlugin::make())\n            ->path('admin');")
         ->and(InstallCommand::addPlugin($installed))->toBe($installed);
 
     $boost = InstallCommand::addBoostPackage('{"agents": ["claude_code"], "packages": ["filament/filament"]}');
@@ -979,7 +988,9 @@ it('withholds from a supplier\'s invoice once, the rate on its total less VAT, a
         ->and($totals::withholding('100.50', '0.00', $code('WC158')))->toBe('1.01')
         ->and($totals::withholding('5298.00', '567.64', null))->toBe('0.00')
         ->and($totals::inWords('6266.41'))->toBe('Six thousand two hundred sixty-six pesos and 41/100')
-        ->and($totals::inWords('1'))->toBe('One peso and 00/100');
+        ->and($totals::inWords('1'))->toBe('One peso and 00/100')
+        // ₱6,326.00 with ₱2,900.00 exempt: the VAT is 12/112 of the other ₱3,426.00 alone.
+        ->and($totals::vatGap(bcsub('6326.00', '2900.00', 2), '367.07'))->toBe('0.0014');
 });
 
 it('records a supplier\'s invoice as printed, withholding at the supplier\'s code once', function (): void {
@@ -1019,9 +1030,9 @@ it('numbers posted documents in one series per prefix, with no gaps', function (
 
 it('checks a payment against the balance due, with the tax withheld', function (array $data, ?string $error): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
-        ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), 'number' => '004518', ...$data]);
+        ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), 'number' => '004518', 'tax_atc' => 'WC158', ...$data]);
 
-    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors([array_key_first($data) === 'number' ? 'number' : 'amount' => $error]);
+    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors([in_array(array_key_first($data), ['number', 'tax_atc'], true) ? array_key_first($data) : 'amount' => $error]);
 })->with([
     'a receipt serial already recorded' => [['number' => '004516', 'amount' => '1000'], 'Enter the serial of the receipt you wrote; receipt 004516 is already recorded'],
     'part of the balance' => [['amount' => '50000', 'tax_withheld' => '500', 'vat_withheld' => '2500'], null],
@@ -1029,7 +1040,18 @@ it('checks a payment against the balance due, with the tax withheld', function (
     'only the taxes, the cash paid earlier' => [['amount' => '0', 'tax_withheld' => '1000', 'vat_withheld' => '5000'], null],
     'more than the balance' => [['amount' => '106000.00', 'tax_withheld' => '1000.00', 'vat_withheld' => '5000.01'], 'Amount received and taxes withheld together must be ₱112,000.00 or less, the balance due'],
     'nothing' => [['amount' => '0', 'tax_withheld' => '', 'vat_withheld' => ''], 'Enter the amount received, the tax withheld, or both'],
+    'income tax withheld with no ATC' => [['tax_atc' => null, 'amount' => '50000', 'tax_withheld' => '500', 'vat_withheld' => '2500'], 'Select the ATC of the income tax withheld, as on the customer\'s 2307'],
 ]);
+
+it('keeps the income payment and ATC with each payment, for the SAWT', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
+        ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), 'number' => '004519', 'amount' => '53000.00', 'tax_withheld' => '500.00', 'vat_withheld' => '2500.00', 'tax_atc' => 'WC158'])
+        ->assertHasNoActionErrors();
+
+    // Half the invoice settled: half its ₱100,000 VAT-exclusive amount.
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\Payment::query()->where('number', '004519')->first(['income_payment', 'tax_atc'])->toArray())
+        ->toEqual(['income_payment' => '50000.00', 'tax_atc' => 'WC158']);
+});
 
 it('picks a customer by code or name, showing both', function (): void {
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordPickerStories::class, 'story' => 'default'])
@@ -1041,12 +1063,14 @@ it('picks a customer by code or name, showing both', function (): void {
         ->and($select->getSearchResults('iloilo'))->toBe([5 => 'C-0005 Iloilo Dental Group']);
 });
 
-it('proposes what a government office withholds: 1% income tax and 5% VAT on the amount less VAT, and the cash expected', function (): void {
+it('proposes what a government office withholds: 1% income tax on the amount less VAT and 5% VAT on the VATable sales, and the cash expected', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
         ->mountAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'))
         ->assertSchemaStateSet(['amount' => '106000.00', 'tax_withheld' => '1000.00', 'vat_withheld' => '5000.00'], 'mountedActionSchema0');
 
-    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('2363.71', '3363.71', '360.40', '0.01'))->toBe('21.10');
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('2363.71', '3363.71', '3003.31', '0.01'))->toBe('21.10')
+        // ₱3,426 VATable (₱3,058.93 before VAT) and ₱2,900 exempt: VAT is withheld on the VATable sales alone.
+        ->and(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('6326.00', '6326.00', '3058.93', '0.05'))->toBe('152.95');
 });
 
 it('sets what a customer withholds by type, with no income tax on a government purchase of ₱10,000 or less', function (?string $type, string $total, array $rates): void {
@@ -1229,23 +1253,37 @@ it('downloads every report as a PDF of the rows its filters keep', function (str
     'collections' => [Josephdlmd\FilamentStorybook\Stories\CollectionsReportStories::class, 'default', 'Collections report', ['004516', '₱6,298.69', 'All dates']],
     'ageing' => [Josephdlmd\FilamentStorybook\Stories\ReceivablesAgeingStories::class, 'default', 'Receivables ageing', ['As of', 'Abra Medical Supply', 'Total due']],
     'purchases' => [Josephdlmd\FilamentStorybook\Stories\PurchasesReportStories::class, 'default', 'Purchases report', ['PO-000043', '₱14,000.00']],
-    'payables' => [Josephdlmd\FilamentStorybook\Stories\PurchasesReportStories::class, 'payables', 'Payables', ['PO-000042', '₱12,298.00']],
+    'payables' => [Josephdlmd\FilamentStorybook\Stories\PurchasesReportStories::class, 'payables', 'Payables', ['PO-000042', 'Days past due', '₱12,298.00']],
 ]);
 
+it('counts days past due from the day after the due date, in the report and on the statement alike', function (): void {
+    $days = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::daysPastDue(...);
+    $asOf = Illuminate\Support\Carbon::parse('2026-10-14');
+
+    expect($days('2026-10-15', $asOf))->toBeNull()
+        ->and($days('2026-10-14', $asOf))->toBeNull()
+        ->and($days('2026-10-13', $asOf))->toBe(1)
+        ->and($days(null, $asOf))->toBeNull();
+});
+
 it('ages each customer\'s open balance by days past due, as of a date', function (): void {
-    $this->travelTo('2026-10-12');
+    $this->travelTo('2026-10-14');
     $abra = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0001')->sole();
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\ReceivablesAgeingStories::class, 'story' => 'default'])
         ->call('loadTable')
-        // Abra: ₱5,000 is 103 days past due and ₱890.50 is 23; Bicol and Cebu aren't due yet.
+        // Abra: ₱5,000 is 105 days past due and ₱890.50 is 25; Bicol and Cebu aren't due yet.
         ->assertTableColumnStateSet('over_90', '5000.00', $abra)
         ->assertTableColumnStateSet('days_1_30', '890.50', $abra)
         ->assertSee(['₱14,563.71', '₱20,454.21'])
         // By Dec 1 nothing is current any more; the total due is the same.
         ->filterTable('as_of', ['as_of' => '2026-12-01'])
         ->assertDontSee('₱14,563.71')
-        ->assertSee(['₱3,363.71', '₱11,200.00', '₱20,454.21']);
+        ->assertSee(['₱3,363.71', '₱11,200.00', '₱20,454.21'])
+        // On Sep 1, Cebu's invoice of Sep 25 wasn't issued yet.
+        ->filterTable('as_of', ['as_of' => '2026-09-01'])
+        ->assertDontSee('₱11,200.00')
+        ->assertTableColumnStateSet('days_61_90', '5000.00', $abra);
 });
 
 it('copies the lines of one document into the next, with their prices and only what is left', function (): void {
@@ -1308,7 +1346,9 @@ it('sends a stock adjustment for approval with a reason, never a change of 0', f
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\AdjustStockStories::class, 'story' => 'default'])
         ->callAction($action, ['change' => '0'])
-        ->assertHasActionErrors(['change' => 'not_in', 'reason' => 'required'])
+        ->assertHasActionErrors(['change' => 'Enter a change other than 0', 'reason' => 'required'])
+        ->callAction($action, ['change' => '-0.000', 'reason' => 'damaged'])
+        ->assertHasActionErrors(['change' => 'Enter a change other than 0'])
         ->callAction($action, ['change' => '-2', 'reason' => 'damaged'])
         ->assertHasNoActionErrors()
         ->assertNotified('Adjustment of Insulin pens, 3 mL sent for approval');
