@@ -170,10 +170,13 @@
 }
 
 /*
- * "Deselect all" beside a table's selection count destroys nothing, so it takes "Select all"'s colour, not Filament's danger
- * red (Carbon button: danger is "for actions that could have destructive effects").
+ * "Deselect all" beside a table's selection count, and Reset on the filters and the column manager, destroy nothing, so
+ * they take the primary colour, not Filament's danger red (Carbon button: danger is "for actions that could have
+ * destructive effects").
  */
-.fi-ta-selection-indicator .fi-link.fi-color-danger {
+.fi-ta-selection-indicator .fi-link.fi-color-danger,
+.fi-ta-filters-header .fi-link.fi-color-danger,
+.fi-ta-col-manager-header .fi-link.fi-color-danger {
     --text: var(--primary-600);
     --dark-text: var(--primary-300);
 }

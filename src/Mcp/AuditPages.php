@@ -426,6 +426,10 @@ class AuditPages extends Tool
                 $warn("{$toolbar->count()} actions above the table; keep five at most and put the rest in a menu (Carbon data table: \"Include up to five actions within the table toolbar\").");
             }
 
+            if ($table->hasReorderableColumns()) {
+                $warn('its columns reorder only by dragging in the column manager; drop `reorderableColumns()`, and let users hide columns instead, as `tables-list-table` does (WCAG 2.5.7).');
+            }
+
             foreach (collect($table->getToolbarActions())->filter(fn ($action): bool => $action instanceof BulkActionGroup) as $group) {
                 if (count($actions = $group->getFlatActions()) <= 5) {
                     $warn('bulk actions are in a "Bulk actions" menu; with five or fewer, put them straight in `toolbarActions([...])`, so they show as buttons once a row is ticked, as `tables-bulk-actions` does (Carbon data table: "Once an item from the table is selected, the batch action bar appears at the top of the table").');

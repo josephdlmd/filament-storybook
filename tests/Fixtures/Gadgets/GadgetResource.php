@@ -83,7 +83,8 @@ class GadgetResource extends Resource
             ])
             ->toolbarActions([
                 \Filament\Actions\BulkActionGroup::make([DeleteBulkAction::make()->color('danger')->label('Remove selected')]),
-            ]);
+            ])
+            ->reorderableColumns();
     }
 
     public static function getRelations(): array

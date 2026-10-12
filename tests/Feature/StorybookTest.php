@@ -623,7 +623,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 47 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 48 warnings')
         ->toContain('- `ListGadgets`: the action `report` runs on the key `r` alone')
         ->toContain('- `CreateGadget`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
@@ -641,6 +641,7 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the field `description` is a rich-text or Markdown editor')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
         ->toContain('- `ListGadgets`: bulk actions are in a "Bulk actions" menu')
+        ->toContain('- `ListGadgets`: its columns reorder only by dragging')
         ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
         ->toContain('- `ListGadgets`: the empty list gives no next step')
         ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
@@ -717,7 +718,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 82 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 83 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
