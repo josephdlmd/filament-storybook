@@ -42,7 +42,7 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
 - When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit. No change planned for now (owner, 2026-10-12).
-- From the CPA: the exact ATCs and rates for rent, contractors and professional fees, and whether RR 24-2025 changes WC158 and WC160
+- From the CPA: whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160
 
 ## How
 
