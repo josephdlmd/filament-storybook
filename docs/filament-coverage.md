@@ -121,7 +121,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | Component | Status | Guidance |
 |---|---|---|
 | `Notification` (toast) | Pattern | `feedback-notifications`; house defaults (errors persist) |
-| Database notifications | Rule | not sent twice while unread; long work ends with one |
+| Database notifications | Rule | not sent twice while unread; long work ends with one; the panel (house defaults: empty wording, full-width items) |
 
 ## Deprecated, base and internal classes
 

@@ -123,8 +123,8 @@
     padding-block: 1rem;
 }
 
-/* Toasts: 288px wide (Carbon notification). */
-.fi-no-notification {
+/* Toasts: 288px wide (Carbon notification). Not the notifications panel, whose items fill its width. */
+.fi-no-notification:not(.fi-modal .fi-no-notification) {
     max-width: 18rem;
 }
 

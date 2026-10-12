@@ -354,6 +354,7 @@ it('words two-factor setup by the house rules and emails the owner when it is tu
         ->and(__('filament-panels::auth/multi-factor/app/provider.login_form.code.messages.invalid'))->toBe('Enter the code your authenticator app shows now')
         ->and(__('filament-panels::auth/multi-factor/app/actions/disable.modal.heading'))->toBe('Turn off authenticator app')
         ->and(__('filament-panels::auth/multi-factor/app/actions/set-up.label'))->toBe('Set up')
+        ->and(__('filament-notifications::database.modal.empty.description'))->toBe('Messages about work that finished and records that need you appear here.')
         ->and(__('filament-panels::auth/pages/login.multi_factor.subheading'))->toBe('To continue logging in, you need to verify your identity.');
 });
 

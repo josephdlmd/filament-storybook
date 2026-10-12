@@ -311,6 +311,10 @@ class StorybookPlugin implements Plugin
                 app('translator')->addLines($prefix($group, $lines), 'en', 'filament-panels');
             }
 
+            // The empty notifications panel says what will appear in it, not "Please check again later" (Carbon empty states).
+            app('translator')->load('filament-notifications', 'database', 'en');
+            app('translator')->addLines(['database.modal.empty.description' => 'Messages about work that finished and records that need you appear here.'], 'en', 'filament-notifications');
+
             // A failed log in says what happened and what to do (Carbon login: "Incorrect IBMid or password. Try again.").
             app('translator')->addLines(['auth/pages/login.messages.failed' => 'Incorrect email or password. Try again.'], 'en', 'filament-panels');
 
