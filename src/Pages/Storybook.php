@@ -100,9 +100,9 @@ class Storybook extends Page
                         ? Callout::make('Not a story')->description('Declare a Filament component, column or action as the return type.')->warning()
                         : Livewire::make(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story['name']])
                             ->key("{$manifest['id']}.{$story['name']}"),
-                    // shortcut: plain <pre> because CodeEntry needs phiki/phiki; switch if apps install it.
+                    // shortcut: plain <pre> because CodeEntry needs phiki/phiki; switch if apps install it. It scrolls, so the keyboard can reach it.
                     // currentColor tints keep the box readable in light and dark mode without a stylesheet.
-                    Html::make(new HtmlString('<pre style="overflow-x: auto; font-size: 0.875rem; padding: 0.75rem 1rem; border-radius: 0.5rem; background: color-mix(in oklab, currentColor 4%, transparent); border: 1px solid color-mix(in oklab, currentColor 12%, transparent);"><code>'.e($story['snippet']).'</code></pre>')),
+                    Html::make(new HtmlString('<pre tabindex="0" style="overflow-x: auto; font-size: 0.875rem; padding: 0.75rem 1rem; border-radius: 0.5rem; background: color-mix(in oklab, currentColor 4%, transparent); border: 1px solid color-mix(in oklab, currentColor 12%, transparent);"><code>'.e($story['snippet']).'</code></pre>')),
                 ]), $manifest['stories']),
         ]);
     }

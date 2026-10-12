@@ -177,6 +177,17 @@
 }
 
 /*
+ * A section's description: Filament's gray-500 is about 4.4:1 on a gray section header; WCAG 1.4.3 asks 4.5:1.
+ */
+.fi-section-header-description {
+    color: var(--gray-600);
+}
+
+.dark .fi-section-header-description {
+    color: var(--gray-400);
+}
+
+/*
  * A link in a gray section (Filament's secondary sections, such as two-factor on the profile page) takes the next darker
  * shade: Filament picks a shade that passes against white, and shade 500 can fall below 4.5:1 on gray (WCAG 1.4.3).
  */

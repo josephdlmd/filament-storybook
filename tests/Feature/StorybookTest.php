@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-delete', 'actions-download-pdf', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -468,7 +468,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-delete, actions-download-pdf, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -527,7 +527,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 85 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 90 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -1231,6 +1231,29 @@ it('downloads a supplier\'s statement from their open purchase orders', function
 
     // Benguet's PO-000041 is paid, so only PO-000042 is open.
     Spatie\LaravelPdf\Facades\Pdf::assertSee(['Supplier statement', 'Supplier', 'Benguet Trading', 'PO-000042', '₱5,298.00', 'Total due']);
+});
+
+it('counts unpaid invoices, uninvoiced orders and this order toward a customer\'s credit limit', function (): void {
+    $CreditLimit = Josephdlmd\FilamentStorybook\Stories\Documents\CreditLimit::class;
+    $abra = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0001')->sole();
+    $bicol = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::where('code', 'C-0002')->sole();
+
+    // Unpaid invoices ₱5,890.50 and order SO-000011 not yet invoiced, ₱200,000.00, against a ₱250,000.00 limit.
+    expect($CreditLimit::exposure($abra, '56509.50'))->toBe('262400.00')
+        ->and($CreditLimit::over($abra, '56509.50'))->toBe('12400.00')
+        ->and($CreditLimit::over($abra, '44109.50'))->toBeNull()
+        ->and($CreditLimit::reason($abra, '12400.00'))->toBe("₱12,400.00 over Abra Medical Supply's ₱250,000.00 credit limit")
+        // No limit set: never held.
+        ->and($CreditLimit::over($bicol, '9999999.00'))->toBeNull();
+});
+
+it('holds an order over the credit limit: says by how much and sends it for approval', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\CreditLimitStories::class, 'story' => 'default'])
+        ->assertSee('This order would take Abra Medical Supply ₱12,400.00 over its ₱250,000.00 credit limit', false);
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\CreditLimitStories::class, 'story' => 'sendForApproval'])
+        ->callAction(Filament\Actions\Testing\TestAction::make('sendForApproval')->schemaComponent('story', 'form'))
+        ->assertNotified('Order sent for approval');
 });
 
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
