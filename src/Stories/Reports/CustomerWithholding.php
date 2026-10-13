@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 
 /**
@@ -27,7 +28,7 @@ class CustomerWithholding
         $rows = Payment::query()
             ->join('sales_invoices', 'sales_invoices.id', '=', 'payments.sales_invoice_id')
             ->join('customers', 'customers.id', '=', 'sales_invoices.customer_id')
-            ->where('payments.status', 'posted')
+            ->where('payments.status', DocumentStatus::Posted)
             ->whereNotNull('payments.received_2307_on')
             ->whereBetween('payments.paid_on', [$from->toDateString(), $from->copy()->addMonths(3)->subDay()->toDateString()])
             ->where(fn (Builder $query): Builder => $query->where('payments.tax_withheld', '>', 0)->orWhere('payments.vat_withheld', '>', 0))
@@ -45,7 +46,7 @@ class CustomerWithholding
     public static function awaiting(): Builder
     {
         return Payment::query()
-            ->where('status', 'posted')
+            ->where('status', DocumentStatus::Posted)
             ->whereNull('received_2307_on')
             ->where(fn (Builder $query): Builder => $query->where('tax_withheld', '>', 0)->orWhere('vat_withheld', '>', 0))
             ->orderBy('paid_on');

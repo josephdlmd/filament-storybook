@@ -15,6 +15,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
 use Josephdlmd\FilamentStorybook\Stories\Reports\PayablesReportExporter;
@@ -42,7 +43,7 @@ class PurchasesReportStories extends Stories
     public function default(Table $table): Table
     {
         return $table
-            ->query(PurchaseOrder::query()->where('status', 'posted'))
+            ->query(PurchaseOrder::query()->where('status', DocumentStatus::Posted))
             ->columns([
                 TextColumn::make('number')
                     ->label('Order')
@@ -121,7 +122,7 @@ class PurchasesReportStories extends Stories
     public function payables(Table $table): Table
     {
         return $table
-            ->query(PurchaseOrder::query()->where('status', 'posted')->where('balance_due', '>', 0))
+            ->query(PurchaseOrder::query()->where('status', DocumentStatus::Posted)->where('balance_due', '>', 0))
             ->columns([
                 TextColumn::make('number')
                     ->label('Order')

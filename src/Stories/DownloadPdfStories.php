@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Schemas\Components\View;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -29,7 +30,7 @@ class DownloadPdfStories extends Stories
     public function records(): array
     {
         return [1 => [
-            'status' => 'posted',
+            'status' => DocumentStatus::Posted,
             'number' => '001232',
             'invoice_date' => '2026-10-11',
             'terms' => '30 days',
@@ -54,7 +55,7 @@ class DownloadPdfStories extends Stories
         return Action::make('downloadPdf')
             ->label('Download PDF')
             ->color('gray')
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted)
             ->action(fn (Model $record): StreamedResponse => PrintedDocument::download(PrintedDocument::salesInvoice($record)));
     }
 

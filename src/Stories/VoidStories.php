@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class VoidStories extends Stories
 {
@@ -27,7 +28,7 @@ class VoidStories extends Stories
 
     public function records(): array
     {
-        return [1 => ['id' => 3, 'number' => '001234', 'status' => 'posted']];
+        return [1 => ['id' => 3, 'number' => '001234', 'status' => DocumentStatus::Posted]];
     }
 
     /** Void a posted invoice, giving the reason; while it has payments that aren't void, the dialog says to void those first. */
@@ -37,7 +38,7 @@ class VoidStories extends Stories
             ->label('Void invoice')
             ->color('danger')
             ->outlined()
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted)
             ->modalHeading(fn (?Model $record): string => $record?->hasLivePayments() ? "Invoice {$record->number} has payments" : "Void invoice {$record?->number}?")
             ->modalDescription(fn (?Model $record): string => $record?->hasLivePayments()
                 ? 'Void its payments first, from its list of payments. Then you can void the invoice.'
@@ -58,7 +59,7 @@ class VoidStories extends Stories
                     $action->halt();
                 }
 
-                // On a resource, in the same transaction: $record->update(['status' => InvoiceStatus::Void, 'void_reason' => $data['reason'], 'voided_by' => auth()->id(), 'voided_at' => now()]);
+                // On a resource, in the same transaction: $record->update(['status' => DocumentStatus::Void, 'void_reason' => $data['reason'], 'voided_by' => auth()->id(), 'voided_at' => now()]);
                 $action->success();
             });
     }

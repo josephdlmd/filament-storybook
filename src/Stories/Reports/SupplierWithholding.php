@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 /**
  * The tax we withheld from suppliers in a quarter, one row per supplier and ATC, with the income payments of each month
@@ -65,7 +66,7 @@ class SupplierWithholding
             ->selectRaw('sum(case when invoice_recorded_on between ? and ? then total - vat else 0 end) as month_2', $month(1))
             ->selectRaw('sum(case when invoice_recorded_on between ? and ? then total - vat else 0 end) as month_3', $month(2))
             ->selectRaw('sum(total - vat) as income_payment, sum(tax_withheld) as tax_withheld')
-            ->where('status', 'posted')
+            ->where('status', DocumentStatus::Posted)
             ->whereNotNull('withholding_code')
             ->whereBetween('invoice_recorded_on', [$month(0)[0], $month(2)[1]])
             ->groupBy('supplier', 'supplier_tin', 'supplier_address', 'withholding_code');

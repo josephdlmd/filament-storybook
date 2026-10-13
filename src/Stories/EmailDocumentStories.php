@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\EmailDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 
@@ -31,7 +32,7 @@ class EmailDocumentStories extends Stories
     public function records(): array
     {
         return [1 => [
-            'status' => 'posted',
+            'status' => DocumentStatus::Posted,
             'number' => '001232',
             'customer' => ['name' => 'Cebu Diagnostics Laboratory', 'billing_email' => 'accounts@cebudiagnostics.ph'],
         ]];
@@ -42,7 +43,7 @@ class EmailDocumentStories extends Stories
         return Action::make('email')
             ->label('Email')
             ->color('gray')
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted)
             ->modalHeading(fn (?Model $record): string => "Email sales invoice {$record?->number}")
             ->modalDescription(fn (): string => 'Sent with its PDF attached, from '.(config('company.email') ?? 'the company\'s address in Settings').'.')
             ->fillForm(fn (?Model $record): array => ['to' => data_get($record, 'customer.billing_email')])

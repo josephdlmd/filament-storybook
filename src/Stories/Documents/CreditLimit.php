@@ -18,8 +18,8 @@ class CreditLimit
     {
         $sum = fn (iterable $amounts): string => collect($amounts)->reduce(fn (string $sum, mixed $amount): string => bcadd($sum, (string) $amount, 2), '0.00');
 
-        $unpaid = $sum($customer->salesInvoices()->where('status', 'posted')->pluck('balance_due'));
-        $uninvoiced = $sum($customer->salesOrders()->where('status', 'posted')->get()->map(fn (Model $order): string => bcsub((string) $order->total, (string) $order->invoiced_total, 2)));
+        $unpaid = $sum($customer->salesInvoices()->where('status', DocumentStatus::Posted)->pluck('balance_due'));
+        $uninvoiced = $sum($customer->salesOrders()->where('status', DocumentStatus::Posted)->get()->map(fn (Model $order): string => bcsub((string) $order->total, (string) $order->invoiced_total, 2)));
 
         return bcadd(bcadd($unpaid, $uninvoiced, 2), $orderTotal, 2);
     }

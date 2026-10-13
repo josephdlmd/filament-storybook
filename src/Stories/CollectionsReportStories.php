@@ -14,6 +14,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Reports\CollectionsReportExporter;
@@ -40,7 +41,7 @@ class CollectionsReportStories extends Stories
     public function default(Table $table): Table
     {
         return $table
-            ->query(Payment::query()->where('status', 'posted')->with('salesInvoice.customer'))
+            ->query(Payment::query()->where('status', DocumentStatus::Posted)->with('salesInvoice.customer'))
             ->columns([
                 TextColumn::make('number')
                     ->label('Receipt')

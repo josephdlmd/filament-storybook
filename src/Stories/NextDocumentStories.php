@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Fulfilment;
 
 class NextDocumentStories extends Stories
@@ -34,7 +35,7 @@ class NextDocumentStories extends Stories
     public function records(): array
     {
         return [
-            1 => ['status' => 'posted', 'number' => 'SO-000012', 'delivery_status' => 'Partly delivered', 'invoice_id' => null, 'lines' => [
+            1 => ['status' => DocumentStatus::Posted, 'number' => 'SO-000012', 'delivery_status' => 'Partly delivered', 'invoice_id' => null, 'lines' => [
                 ['id' => 1, 'description' => 'Nitrile examination gloves, medium, box of 100', 'vat_class' => 'vatable', 'quantity' => '100', 'delivered' => '40', 'unit_price' => '285.50'],
                 ['id' => 2, 'description' => 'Insulin pens, 3 mL, pack of 5', 'vat_class' => 'exempt', 'quantity' => '20', 'delivered' => '20', 'unit_price' => '1450.00'],
                 ['id' => 3, 'description' => 'Isopropyl alcohol 70%, 500 mL', 'vat_class' => 'vatable', 'quantity' => '12.5', 'delivered' => '0', 'unit_price' => '89.2857'],
@@ -49,7 +50,7 @@ class NextDocumentStories extends Stories
     {
         return Action::make('createDelivery')
             ->label('Create delivery')
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted' && Fulfilment::status($record->lines ?? []) !== 'Delivered')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted && Fulfilment::status($record->lines ?? []) !== 'Delivered')
             ->slideOver()
             ->modalHeading(fn (?Model $record): string => "Create delivery for order {$record?->number}")
             ->modalDescription('Each quantity starts at what is left to deliver. Lower it to deliver less now, or enter 0 to leave the line for later.')
@@ -95,7 +96,7 @@ class NextDocumentStories extends Stories
             ->action(function (Model $record, array $data): void {
                 // On a resource, in DB::transaction(): lock the order's lines, take the open ones in the same order, and refuse any
                 // quantity over what is left now; then $quantities = $open->pluck('id')->combine(collect($data['lines'])->pluck('quantity'));
-                // $delivery = $record->deliveries()->create(['status' => 'draft', 'lines' => Fulfilment::nextLines($open, $quantities->all())]);
+                // $delivery = $record->deliveries()->create(['status' => DocumentStatus::Draft, 'lines' => Fulfilment::nextLines($open, $quantities->all())]);
                 // and open it: $action->redirect(DeliveryResource::getUrl('edit', ['record' => $delivery])), with Action $action in this closure.
                 Notification::make()
                     ->success()
@@ -109,9 +110,9 @@ class NextDocumentStories extends Stories
     {
         return Action::make('createOrder')
             ->label('Create order')
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted)
             ->action(function (Model $record): void {
-                // On a resource: $order = SalesOrder::create([... the quotation's customer and terms, 'status' => 'draft',
+                // On a resource: $order = SalesOrder::create([... the quotation's customer and terms, 'status' => DocumentStatus::Draft,
                 // 'lines' => Fulfilment::nextLines($record->lines, $record->lines->pluck('quantity', 'id')->all())]);
                 // then open it: $action->redirect(SalesOrderResource::getUrl('edit', ['record' => $order])), with Action $action in this closure.
                 Notification::make()
@@ -126,9 +127,9 @@ class NextDocumentStories extends Stories
     {
         return Action::make('createInvoice')
             ->label('Create invoice')
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted' && blank($record?->invoice_id))
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted && blank($record?->invoice_id))
             ->action(function (Model $record): void {
-                // On a resource: $invoice = SalesInvoice::create([..., 'status' => 'draft', 'lines' => Fulfilment::nextLines($record->lines,
+                // On a resource: $invoice = SalesInvoice::create([..., 'status' => DocumentStatus::Draft, 'lines' => Fulfilment::nextLines($record->lines,
                 // $record->lines->pluck('quantity', 'id')->all())]); $record->update(['invoice_id' => $invoice->id]); then open the invoice.
                 Notification::make()
                     ->success()

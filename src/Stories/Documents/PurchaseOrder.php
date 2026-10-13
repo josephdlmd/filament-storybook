@@ -12,6 +12,8 @@ class PurchaseOrder extends Model
 
     protected $guarded = [];
 
+    protected $casts = ['status' => DocumentStatus::class];
+
     public $timestamps = false;
 
     protected static function booted(): void

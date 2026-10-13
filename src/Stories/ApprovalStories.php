@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class ApprovalStories extends Stories
 {
@@ -22,7 +23,7 @@ class ApprovalStories extends Stories
     public function records(): array
     {
         // The number Approve gives the order; the canvas has no number series to take it from.
-        return [1 => ['number' => 'PO-000042', 'status' => 'for_approval']];
+        return [1 => ['number' => 'PO-000042', 'status' => DocumentStatus::ForApproval]];
     }
 
     /** Approve: the primary button, which posts the order, so it confirms in a danger dialog, then a toast naming the outcome. */
@@ -30,7 +31,7 @@ class ApprovalStories extends Stories
     {
         return Action::make('approve')
             ->label('Approve')
-            ->visible(fn (?Model $record): bool => $record?->status === 'for_approval')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval)
             ->requiresConfirmation()
             ->modalHeading('Approve order?')
             ->modalDescription('It gets the next purchase order number and can no longer be changed or deleted. To correct it later, void it and issue a new one.')
@@ -49,7 +50,7 @@ class ApprovalStories extends Stories
         return Action::make('reject')
             ->label('Reject')
             ->color('gray')
-            ->visible(fn (?Model $record): bool => $record?->status === 'for_approval')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval)
             ->modalHeading('Reject order?')
             ->modalDescription('It goes back to draft, with your reason, for the person who raised it.')
             ->schema([

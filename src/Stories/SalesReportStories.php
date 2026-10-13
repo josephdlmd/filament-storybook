@@ -16,6 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Customer;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
 use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
@@ -42,7 +43,7 @@ class SalesReportStories extends Stories
     public function default(Table $table): Table
     {
         return $table
-            ->query(SalesInvoice::query()->where('status', 'posted'))
+            ->query(SalesInvoice::query()->where('status', DocumentStatus::Posted))
             ->columns([
                 TextColumn::make('number')
                     ->label('Invoice')

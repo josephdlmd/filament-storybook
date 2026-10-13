@@ -5,6 +5,7 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Actions\Action;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -41,7 +42,7 @@ class SupplierStatementStories extends Stories
                 // On a resource: $record->purchaseOrders()->where(...); the example orders name their supplier.
                 PurchaseOrder::query()
                     ->where('supplier', $record->name)
-                    ->where('status', 'posted')
+                    ->where('status', DocumentStatus::Posted)
                     ->where('balance_due', '>', 0)
                     ->orderBy('due_date')
                     ->get(),

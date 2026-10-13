@@ -13,6 +13,8 @@ class SalesInvoice extends Model
 
     protected $guarded = [];
 
+    protected $casts = ['status' => DocumentStatus::class];
+
     public $timestamps = false;
 
     protected static function booted(): void
@@ -35,6 +37,6 @@ class SalesInvoice extends Model
     /** Whether a payment against it is not void; it can't be voided until none is. Asked fresh each time, never from a count loaded with the page. */
     public function hasLivePayments(): bool
     {
-        return $this->payments()->where('status', '!=', 'void')->exists();
+        return $this->payments()->where('status', '!=', DocumentStatus::Void)->exists();
     }
 }

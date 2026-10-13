@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class RecordLockedStories extends Stories
 {
@@ -28,7 +29,7 @@ class RecordLockedStories extends Stories
     public function records(): array
     {
         return [1 => [
-            'status' => 'for_approval',
+            'status' => DocumentStatus::ForApproval,
             'supplier' => 'Abra Medical Supply',
             'order_date' => '2026-10-02',
             'payment_terms' => 'net_30',
@@ -50,13 +51,13 @@ class RecordLockedStories extends Stories
                         ->searchable()
                         ->required()
                         ->maxWidth('md')
-                        ->hidden(fn (?Model $record): bool => $record?->status === 'for_approval'),
+                        ->hidden(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval),
                     TextEntry::make('supplier')
-                        ->visible(fn (?Model $record): bool => $record?->status === 'for_approval'),
+                        ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval),
                     DatePicker::make('order_date')
                         ->required()
                         ->maxWidth('xs')
-                        ->readOnly(fn (?Model $record): bool => $record?->status === 'for_approval'),
+                        ->readOnly(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval),
                     Radio::make('payment_terms')
                         ->options([
                             'cod' => 'Cash on delivery',
@@ -64,10 +65,10 @@ class RecordLockedStories extends Stories
                             'net_60' => '60 days',
                         ])
                         ->required()
-                        ->hidden(fn (?Model $record): bool => $record?->status === 'for_approval'),
+                        ->hidden(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval),
                     TextEntry::make('payment_terms')
                         ->formatStateUsing(fn (string $state): string => ['cod' => 'Cash on delivery', 'net_30' => '30 days', 'net_60' => '60 days'][$state])
-                        ->visible(fn (?Model $record): bool => $record?->status === 'for_approval'),
+                        ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval),
                     TextInput::make('total')
                         ->numeric()
                         ->prefix('₱')
@@ -77,9 +78,9 @@ class RecordLockedStories extends Stories
                         ->required()
                         ->maxWidth('xs')
                         ->validationMessages(['decimal' => 'Enter the total with at most 2 decimal places, such as 3649.21'])
-                        ->readOnly(fn (?Model $record): bool => $record?->status === 'for_approval'),
+                        ->readOnly(fn (?Model $record): bool => $record?->status === DocumentStatus::ForApproval),
                 ])
-                    ->saved(fn (?Model $record): bool => $record?->status !== 'for_approval'),
+                    ->saved(fn (?Model $record): bool => $record?->status !== DocumentStatus::ForApproval),
                 Textarea::make('notes')
                     ->label('Notes (optional)')
                     ->rows(3),

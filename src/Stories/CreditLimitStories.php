@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Number;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\CreditLimit;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesOrder;
 
 class CreditLimitStories extends Stories
@@ -37,7 +38,7 @@ class CreditLimitStories extends Stories
     {
         // Abra's limit is ₱250,000.00 and ₱205,890.50 is taken, so this ₱56,509.50 order is ₱12,400.00 over. The reason is what
         // sending it for approval saves.
-        return [1 => ['id' => 3, 'number' => null, 'status' => 'draft', 'customer_id' => 1, 'total' => '56509.50', 'approval_reason' => "₱12,400.00 over Abra Medical Supply's ₱250,000.00 credit limit"]];
+        return [1 => ['id' => 3, 'number' => null, 'status' => DocumentStatus::Draft, 'customer_id' => 1, 'total' => '56509.50', 'approval_reason' => "₱12,400.00 over Abra Medical Supply's ₱250,000.00 credit limit"]];
     }
 
     /** Above the buttons of a draft order over the limit, from when the page loads. */
@@ -47,7 +48,7 @@ class CreditLimitStories extends Stories
             ->description(fn (?Model $record): ?string => $record?->customer && ($over = CreditLimit::over($record->customer, (string) $record->total))
                 ? "This order would take {$record->customer->name} ".Number::currency((float) $over, 'PHP').' over its '.Number::currency((float) $record->customer->credit_limit, 'PHP').' credit limit, so it needs approval before it is posted.'
                 : null)
-            ->visible(fn (?Model $record): bool => $record?->status === 'draft' && $record->customer && CreditLimit::over($record->customer, (string) $record->total) !== null)
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Draft && $record->customer && CreditLimit::over($record->customer, (string) $record->total) !== null)
             ->warning();
     }
 
@@ -56,7 +57,7 @@ class CreditLimitStories extends Stories
     {
         return Action::make('sendForApproval')
             ->label('Send for approval')
-            ->visible(fn (?Model $record): bool => $record?->status === 'draft' && $record->customer && CreditLimit::over($record->customer, (string) $record->total) !== null)
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Draft && $record->customer && CreditLimit::over($record->customer, (string) $record->total) !== null)
             ->successNotificationTitle('Order sent for approval')
             ->action(function (Model $record, Action $action): void {
                 // On a resource: $record->update(['status' => DocumentStatus::ForApproval,

@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
 
 /**
@@ -27,7 +28,7 @@ class ReceivablesAgeing
     {
         $model = $customers->getModel();
         $day = fn (int $daysAgo): string => $asOf->copy()->subDays($daysAgo)->toDateString();
-        $issued = fn (Builder $invoices): Builder => $invoices->where('status', 'posted')->where('balance_due', '>', 0)->where('invoice_date', '<=', $asOf->toDateString());
+        $issued = fn (Builder $invoices): Builder => $invoices->where('status', DocumentStatus::Posted)->where('balance_due', '>', 0)->where('invoice_date', '<=', $asOf->toDateString());
         $open = fn (): Builder => $issued(SalesInvoice::query()
             ->selectRaw('coalesce(sum(balance_due), 0)')
             ->whereColumn('customer_id', $model->getQualifiedKeyName()));

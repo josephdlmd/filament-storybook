@@ -10,6 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Stock;
 
 class AdjustStockStories extends Stories
@@ -68,7 +69,7 @@ class AdjustStockStories extends Stories
             ->modalSubmitActionLabel('Send for approval')
             ->action(function (Model $record, array $data): void {
                 // On a resource: StockAdjustment::create(['item_id' => $record->id, 'change' => $data['change'], 'reason' => $data['reason'],
-                // 'note' => $data['note'], 'status' => 'for_approval']); approving it posts it in DB::transaction(): Stock::adjust($item,
+                // 'note' => $data['note'], 'status' => DocumentStatus::ForApproval]); approving it posts it in DB::transaction(): Stock::adjust($item,
                 // $adjustment->change, "Adjustment {$adjustment->number}"), which refuses taking the item below zero.
                 Notification::make()
                     ->success()

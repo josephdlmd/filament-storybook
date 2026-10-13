@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class Form2307ReceivedStories extends Stories
 {
@@ -21,7 +22,7 @@ class Form2307ReceivedStories extends Stories
 
     public function records(): array
     {
-        return [1 => ['number' => '004516', 'status' => 'posted', 'tax_withheld' => '27.31', 'vat_withheld' => '0.00', 'received_2307_on' => null]];
+        return [1 => ['number' => '004516', 'status' => DocumentStatus::Posted, 'tax_withheld' => '27.31', 'vat_withheld' => '0.00', 'received_2307_on' => null]];
     }
 
     public function default(): Action
@@ -29,7 +30,7 @@ class Form2307ReceivedStories extends Stories
         return Action::make('markForm2307Received')
             ->label('Mark 2307 received')
             ->color('gray')
-            ->visible(fn (?Model $record): bool => $record?->status === 'posted' && blank($record?->received_2307_on)
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Posted && blank($record?->received_2307_on)
                 && (bccomp((string) $record->tax_withheld, '0', 2) === 1 || bccomp((string) $record->vat_withheld, '0', 2) === 1))
             ->modalHeading(fn (?Model $record): string => "Mark 2307 received for receipt {$record?->number}")
             ->modalDescription('Its withholding can then be claimed on the return for the quarter it was paid in.')

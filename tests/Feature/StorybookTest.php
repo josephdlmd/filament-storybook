@@ -1568,3 +1568,9 @@ it('ignores spaces pasted before or after an amount', function (): void {
     // numeric() hands the model a number, as before.
     expect($canvas->instance()->form->getState())->toBe(['amount' => 1250.5]);
 });
+
+it('lists every document status, each from the enum', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'story' => 'status'])
+        ->call('loadTable')
+        ->assertSeeInOrder(['Draft', 'For approval', 'Posted', 'Void']);
+});

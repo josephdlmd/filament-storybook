@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class DocumentLifecycleStories extends Stories
 {
@@ -36,11 +37,12 @@ class DocumentLifecycleStories extends Stories
     public function records(): array
     {
         return [
-            // A draft has no number until it is posted. The canvas has no number series, so this draft carries the one `withSeries` gives it.
-            1 => ['id' => 4, 'number' => 'PO-000042', 'status' => 'draft'],
-            2 => ['number' => null, 'status' => 'for_approval'],
-            3 => ['number' => '001232', 'status' => 'posted'],
-            4 => ['number' => '001231', 'status' => 'void'],
+            // Keyed by the sample invoices' ids. A draft has no number until it is posted. The canvas has no number series, so
+            // this draft carries the one `withSeries` gives it.
+            4 => ['id' => 4, 'number' => 'PO-000042', 'status' => DocumentStatus::Draft],
+            5 => ['number' => null, 'status' => DocumentStatus::ForApproval],
+            2 => ['number' => '001232', 'status' => DocumentStatus::Posted],
+            1 => ['number' => '001231', 'status' => DocumentStatus::Void],
         ];
     }
 
@@ -49,7 +51,7 @@ class DocumentLifecycleStories extends Stories
     {
         return Action::make('post')
             ->label('Post invoice')
-            ->visible(fn (?Model $record): bool => $record?->status === 'draft')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Draft)
             ->modalHeading('Post invoice?')
             ->modalDescription('It is recorded under the number of the form you wrote and can no longer be changed or deleted. To correct it later, void it and issue a new one.')
             ->schema([
@@ -68,8 +70,8 @@ class DocumentLifecycleStories extends Stories
             ->failureNotificationTitle(fn (array $data): string => "Invoice {$data['number']} not posted")
             ->action(function (Model $record, array $data, Action $action): void {
                 try {
-                    // On a resource, inside DB::transaction(), with InvoiceStatus::Posted and a posted_at date.
-                    $record->update(['number' => $data['number'], 'status' => 'posted']);
+                    // On a resource, inside DB::transaction(), with DocumentStatus::Posted and a posted_at date.
+                    $record->update(['number' => $data['number'], 'status' => DocumentStatus::Posted]);
                 } catch (UniqueConstraintViolationException) {
                     // The unique index on sales_invoices.number caught a serial another user posted after this form was checked.
                     $action->failureNotificationBody("Invoice {$data['number']} was just posted by someone else. Check the serial on the form you wrote.");
@@ -86,7 +88,7 @@ class DocumentLifecycleStories extends Stories
     {
         return Action::make('post')
             ->label('Post order')
-            ->visible(fn (?Model $record): bool => $record?->status === 'draft')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Draft)
             ->requiresConfirmation()
             ->modalHeading('Post order?')
             ->modalDescription('It gets the next purchase order number and can no longer be changed or deleted. To correct it later, void it and issue a new one.')
@@ -104,7 +106,7 @@ class DocumentLifecycleStories extends Stories
     {
         return Action::make('sendForApproval')
             ->label('Send for approval')
-            ->visible(fn (?Model $record): bool => $record?->status === 'draft')
+            ->visible(fn (?Model $record): bool => $record?->status === DocumentStatus::Draft)
             ->successNotificationTitle('Order sent for approval')
             ->action(function (Model $record, Action $action): void {
                 // On a resource: $record->update(['status' => DocumentStatus::ForApproval, 'rejection_reason' => null]);
@@ -112,17 +114,10 @@ class DocumentLifecycleStories extends Stories
             });
     }
 
-    /** The status in a list: the word and its colour. In an app, both come from `DocumentStatus` (`tables-status-badge`). */
+    /** The status in a list: the word and its colour, both from `DocumentStatus` (`tables-status-badge`). */
     public function status(): TextColumn
     {
         return TextColumn::make('status')
-            ->badge()
-            ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
-            ->color(fn (string $state): string => match ($state) {
-                'for_approval' => 'info',
-                'posted' => 'success',
-                'void' => 'danger',
-                default => 'gray',
-            });
+            ->badge();
     }
 }
