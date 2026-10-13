@@ -38,17 +38,30 @@
 }
 
 /*
- * Fields show their edges at 3:1 and their placeholders at 4.5:1 (WCAG 1.4.11, 1.4.3; Carbon text input draws a field's
- * edge in border-strong, 3.3:1). Filament draws an input's, a checkbox's and a radio's edge at gray-950/10, 1.5:1 on
- * white and 1.2:1 in dark mode, so an empty field or an unchosen radio barely shows, and its placeholders in gray-400,
- * 2.6:1. Focus, errors, disabled fields (exempt) and read-only fields (below) keep their own edges.
+ * Fields show where they are at 3:1 and their placeholders at 4.5:1 (WCAG 1.4.11, 1.4.3). As Carbon text input draws
+ * them, a field keeps Filament's faint box and gets a bottom line in a gray that reaches 3:1 on white, gray-50 and a
+ * page a little grayer, which shows the field without a heavy outline; an empty checkbox or radio, shown only by its
+ * edge, gets that gray all round. Filament draws them all at gray-950/10, 1.5:1 on white and 1.2:1 in dark mode, and
+ * placeholders in gray-400, 2.6:1. Focus, errors, disabled fields (exempt) and read-only fields (below) keep their own.
  */
-.fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])),
-:is(input[type='checkbox'].fi-checkbox-input, input[type='radio'].fi-radio-input):not(:checked, :focus, :disabled, .fi-invalid) {
-    --tw-ring-color: color-mix(in oklch, var(--gray-400) 50%, var(--gray-500));
+.fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])) {
+    background-image: linear-gradient(to top, color-mix(in oklch, var(--gray-400) 65%, var(--gray-500)) 1px, transparent 1px);
 }
 
-.dark .fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])),
+/* Without Filament's drop shadow, which doubled the bottom line into a raised edge; Carbon's fields have none. */
+.fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])),
+:is(input[type='checkbox'].fi-checkbox-input, input[type='radio'].fi-radio-input) {
+    --tw-shadow: 0 0 #0000;
+}
+
+.dark .fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])) {
+    background-image: linear-gradient(to top, var(--gray-500) 1px, transparent 1px);
+}
+
+:is(input[type='checkbox'].fi-checkbox-input, input[type='radio'].fi-radio-input):not(:checked, :focus, :disabled, .fi-invalid) {
+    --tw-ring-color: color-mix(in oklch, var(--gray-400) 65%, var(--gray-500));
+}
+
 .dark :is(input[type='checkbox'].fi-checkbox-input, input[type='radio'].fi-radio-input):not(:checked, :focus, :disabled, .fi-invalid) {
     --tw-ring-color: var(--gray-500);
 }
