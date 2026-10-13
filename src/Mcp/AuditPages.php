@@ -555,6 +555,13 @@ class AuditPages extends Tool
             $warn('its form lays fields out in several columns; keep one column and put only fields that belong together side by side, in a `Fieldset` or `Grid`, as `forms-date.range` does (Carbon forms: "Carbon generally recommends single-column forms").');
         }
 
+        // Read-only entries may sit beside their labels (a document's totals, forms-document-totals); a field the user fills in never does.
+        $inline = collect($fields)->filter(fn ($field): bool => (bool) rescue(fn (): ?bool => $field->hasInlineLabel(), false, report: false));
+
+        if ($inline->isNotEmpty()) {
+            $warn('its fields have their labels beside them (`'.$inline->map->getName()->take(3)->implode('`, `').'`'.($inline->count() > 3 ? ', …' : '').'); put labels above their fields, without `inlineLabel()` (Carbon forms: "Top-aligned labels are Carbon\'s default").');
+        }
+
         foreach ($fields as $field) {
             $name = $field->getName();
 

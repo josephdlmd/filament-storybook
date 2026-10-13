@@ -17,7 +17,7 @@ Dates in brackets are the "updated" dates the pages showed when checked. On 2026
 
 ## Forms
 
-- **Labels are visible and above their fields; no `hiddenLabel()`.** In a line-item table the column header is the visible label (see Line items). Carbon forms (Aug 2026): "Top-aligned labels are Carbon's default" and "Every text input should have a descriptive and visible label". *Audit.*
+- **Labels are visible and above their fields; no `hiddenLabel()` and no `inlineLabel()` on a field the user fills in** (read-only entries, such as a document's totals, may sit beside theirs). In a line-item table the column header is the visible label (see Line items). Carbon forms (Aug 2026): "Top-aligned labels are Carbon's default" and "Every text input should have a descriptive and visible label". *Audit.*
 - **No `placeholder()`; an example goes in `helperText()` as "For example, …".** USWDS text input (Aug 2026: "Avoid placeholder text"); GOV.UK text input (Jun 2026: no placeholder "for hints or examples"); hints worded "For example, …" in GOV.UK's dates and National Insurance number patterns and USWDS input mask. *Audit, test.*
 - **Helper text is one short line without a full stop, only where the label isn't enough, and has no links.** Carbon forms (Aug 2026): "Only use helper text when truly necessary" and it "should not run longer than the input area"; GOV.UK text input (Jun 2026): "a single short sentence, without any full stops", and no links in hint text. *Audit.*
 - **Each input is about as wide as its answer.** Carbon forms (Aug 2026): "The field widths should reflect the intended length of the content"; USWDS text input (Aug 2026). *Pattern `forms-money-input`.*
