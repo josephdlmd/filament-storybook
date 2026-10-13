@@ -246,6 +246,8 @@ it('loads the house CSS and script the patterns depend on, on every panel page',
         ->toContain('Copied to clipboard')
         ->toContain('.fi-ta-actions :is(a, button):not([aria-label])')
         ->toContain(':is(.fi-ta-text-input, .fi-ta-select, .fi-ta-checkbox, .fi-ta-toggle)')
+        // Top navigation's groups are list items of its list, not dropdowns loose in it (WCAG 1.3.1).
+        ->toContain(".fi-topbar-nav-groups > :not(li, [role=\"listitem\"])")
         // Focus returns to the button a modal came from, or the same action on the row in its place (WCAG 2.4.3).
         ->toContain("action.textContent.trim() === last.label")
         // Chart axes take the theme's text colour in light and dark mode (WCAG 1.4.3).

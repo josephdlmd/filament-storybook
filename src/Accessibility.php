@@ -51,7 +51,8 @@ class Accessibility
         try {
             $result = Process::path(base_path())->timeout(120)
                 ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
-                ->input((string) json_encode(['css' => $css, 'stories' => [
+                // And the house script, so what it fixes in the page (names, roles) is checked as the browser gets it.
+                ->input((string) json_encode(['css' => $css, 'js' => [__DIR__.'/../resources/js/house.js'], 'stories' => [
                     ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html], array_keys($rendered), $rendered),
                     ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html, 'page' => true], array_keys($pages), $pages),
                 ]]))

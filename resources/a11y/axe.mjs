@@ -1,5 +1,6 @@
 // Runs axe-core on each story's rendered HTML, with the panel's CSS inlined, in headless Chromium, then checks it at
-// 320px wide. Reads {css: [paths], stories: [{key, html, page?}]} on stdin; writes {key: [violation]} on stdout.
+// 320px wide. Reads {css: [paths], js?: [paths], stories: [{key, html, page?}]} on stdin; writes {key: [violation]} on
+// stdout. The js (the house script) runs on each page before axe, as it does in the browser.
 // playwright-core and axe-core resolve from the app first, then from this package (for its own tests).
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -19,6 +20,7 @@ const playwright = await import(load('playwright-core'));
 const { chromium } = playwright.default ?? playwright;
 const axe = readFileSync(load('axe-core/axe.min.js'), 'utf8');
 const css = [...new Set(input.css)].map((path) => readFileSync(path, 'utf8')).join('\n');
+const js = [...new Set(input.js ?? [])].map((path) => readFileSync(path, 'utf8')).join('\n');
 
 const browser = await chromium.launch({ executablePath: process.env.STORYBOOK_CHROMIUM || undefined });
 const page = await browser.newPage();
@@ -58,6 +60,10 @@ for (const story of input.stories) {
             modal.classList.add('fi-modal-open');
             [modal, ...modal.querySelectorAll('[x-cloak]:is(.fi-modal-close-overlay, .fi-modal-window-ctn, .fi-modal-window)')].forEach((element) => element.removeAttribute('x-cloak'));
         }));
+    }
+
+    if (js) {
+        await page.addScriptTag({ content: js });
     }
 
     await page.addScriptTag({ content: axe });

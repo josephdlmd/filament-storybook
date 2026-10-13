@@ -66,6 +66,11 @@
             errors.length ? field.setAttribute('aria-invalid', 'true') : field.removeAttribute('aria-invalid');
         });
 
+        // Top navigation puts each group's dropdown straight inside the menu's list, with its trigger a list item outside any
+        // list (WCAG 1.3.1; axe list and listitem). The dropdown stands as the list item and the trigger's item as none.
+        document.querySelectorAll('.fi-topbar-nav-groups > :not(li, [role="listitem"])').forEach((group) => group.setAttribute('role', 'listitem'));
+        document.querySelectorAll('.fi-topbar-nav-groups > [role="listitem"] li.fi-topbar-item:not([role="none"])').forEach((item) => item.setAttribute('role', 'none'));
+
         document.querySelectorAll('.fi-ta-row').forEach((row) => {
             const cell = [...row.querySelectorAll(':scope > td:not(.fi-ta-selection-cell)')].find((td) => ! td.querySelector('.fi-ta-actions') && text(td) !== '');
             const name = cell ? text(cell).slice(0, 60) : '';
@@ -119,7 +124,8 @@
     });
 
     new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
-    document.addEventListener('DOMContentLoaded', enhance);
+    // The accessibility check adds this script after the page has loaded, so it runs at once there.
+    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', enhance) : enhance();
 })();
 
 /*
