@@ -3,7 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -60,12 +60,10 @@ class InviteUserStories extends Stories
                     ->maxWidth('md')
                     // On a resource: ->unique(User::class), with 'unique' => 'A user with this email address already exists'.
                     ->required(),
-                Select::make('roles')
+                // Several from five or fewer: a checkbox list (forms-choice). On a resource: ->relationship('roles', 'name').
+                CheckboxList::make('roles')
                     ->label('Roles (optional)')
-                    // On a resource: ->relationship('roles', 'name')->preload().
-                    ->options(['admin' => 'Admin', 'accounting' => 'Accounting', 'sales' => 'Sales'])
-                    ->multiple()
-                    ->maxWidth('md'),
+                    ->options(['accounting' => 'Accounting', 'admin' => 'Admin', 'sales' => 'Sales']),
             ])
             ->action(function (array $data): void {
                 // On a resource: $user = User::forceCreate([...Arr::only($data, ['name', 'email']), 'password' => null, 'invited_at' => now()]);

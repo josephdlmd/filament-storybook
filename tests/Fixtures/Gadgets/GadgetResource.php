@@ -55,8 +55,8 @@ class GadgetResource extends Resource
             FileUpload::make('manual')->label('Manual'),
             // `part` is built right; `quantity` hides its label under a header that reads differently; `note` has no column.
             Repeater::make('parts')
-                ->table([TableColumn::make('Part'), TableColumn::make('Qty')])
-                ->schema([TextInput::make('part')->required(), TextInput::make('quantity')->hiddenLabel(), TextInput::make('note')]),
+                ->table([TableColumn::make('Part'), TableColumn::make('Qty'), TableColumn::make('Grade')])
+                ->schema([TextInput::make('part')->required(), TextInput::make('quantity')->hiddenLabel(), Select::make('grade')->options(['a' => 'A', 'b' => 'B'])->required(), TextInput::make('note')]),
         ]);
     }
 
