@@ -1245,6 +1245,19 @@ it('totals a report over every row its filters keep, and prints it with the filt
     Spatie\LaravelPdf\Facades\Pdf::assertSee(['Sales report', 'Period', 'From Oct 1, 2026', '001232', 'Oct 11, 2026', '₱9,689.71']);
 });
 
+it('shows a report\'s From and To dates as separate indicators, so each clears on its own', function (string $stories, string $filter): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => $stories, 'story' => 'default'])
+        ->call('loadTable')
+        ->filterTable($filter, ['from' => '2026-10-01', 'until' => '2026-10-31']);
+
+    expect(collect($canvas->instance()->getTable()->getFilter($filter)->getIndicators())->map->getLabel()->all())
+        ->toBe(['from' => 'From Oct 1, 2026', 'until' => 'Up to Oct 31, 2026']);
+})->with([
+    'sales' => [Josephdlmd\FilamentStorybook\Stories\SalesReportStories::class, 'invoice_date'],
+    'purchases' => [Josephdlmd\FilamentStorybook\Stories\PurchasesReportStories::class, 'order_date'],
+    'collections' => [Josephdlmd\FilamentStorybook\Stories\CollectionsReportStories::class, 'paid_on'],
+]);
+
 it('downloads every report as a PDF of the rows its filters keep', function (string $stories, string $story, string $title, array $sees): void {
     Spatie\LaravelPdf\Facades\Pdf::fake();
 
@@ -1487,4 +1500,11 @@ it('reads the theme from Vite\'s dev server while `npm run dev` runs, then delet
 
         return $theme !== null && ! file_exists($theme);
     });
+});
+
+it('signs stock moving in, and keeps the number format', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\StockStories::class, 'story' => 'movements'])
+        ->call('loadTable')
+        ->assertSeeInOrder(['+100', '-40', '+80'])
+        ->assertDontSee('+100.000');
 });

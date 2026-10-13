@@ -30,7 +30,6 @@ class PercentageStories extends Stories
             ->suffix('%')
             // A "%" typed into the field is dropped, for checking and for saving.
             ->stripCharacters(['%', ' '])
-            ->dehydrateStateUsing(fn (string|float|null $state): ?string => filled($state) ? str_replace(['%', ' '], '', (string) $state) : null)
             ->rules(['numeric', 'min:0', 'max:100', 'decimal:0,2'])
             ->helperText('For example, 12.5')
             ->maxWidth('xs')

@@ -58,7 +58,6 @@ class ContactStories extends Stories
             ->required()
             ->validationMessages([
                 'required' => 'Enter a phone number',
-                'regex' => 'Enter a phone number, like 0917 123 4567 or (02) 8123 4567',
             ]);
     }
 

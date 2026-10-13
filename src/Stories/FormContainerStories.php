@@ -29,7 +29,15 @@ class FormContainerStories extends Stories
 
     public function records(): array
     {
-        return [1 => ['name' => 'Cebu Diagnostics Laboratory']];
+        return [1 => [
+            'name' => 'Cebu Diagnostics Laboratory',
+            'credit_limit' => '250000.00',
+            'contact_name' => 'Maria Santos',
+            'contact_phone' => '+63 917 123 4567',
+            'address' => '12 Osmeña Boulevard',
+            'city' => 'Cebu City',
+            'province' => 'cebu',
+        ]];
     }
 
     /** Fewer than five inputs, done now and then: a modal. */
@@ -37,6 +45,8 @@ class FormContainerStories extends Stories
     {
         return Action::make('changeCreditLimit')
             ->label('Change credit limit')
+            // A custom action starts empty; EditAction is the only one that fills itself from the record.
+            ->fillForm(fn (?Model $record): array => $record?->only(['credit_limit']) ?? [])
             ->schema([
                 TextInput::make('credit_limit')
                     ->numeric()
@@ -61,6 +71,7 @@ class FormContainerStories extends Stories
         return Action::make('editDelivery')
             ->label('Edit delivery details')
             ->slideOver()
+            ->fillForm(fn (?Model $record): array => $record?->only(['contact_name', 'contact_phone', 'address', 'city', 'province', 'instructions']) ?? [])
             ->schema([
                 TextInput::make('contact_name')
                     ->required()

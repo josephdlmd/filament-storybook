@@ -113,7 +113,8 @@ class StockStories extends Stories
                 TextColumn::make('quantity')
                     ->label('In or out')
                     ->numeric(maxDecimalPlaces: 3)
-                    ->formatStateUsing(fn (string $state): string => (bccomp($state, '0', 3) === 1 ? '+' : '').rtrim(rtrim($state, '0'), '.'))
+                    // A prefix, since formatStateUsing() would replace numeric()'s thousands separators.
+                    ->prefix(fn (string $state): ?string => bccomp($state, '0', 3) === 1 ? '+' : null)
                     ->alignEnd(),
                 TextColumn::make('unit_cost')
                     ->label('Unit cost')

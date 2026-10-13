@@ -88,7 +88,10 @@ class CollectionsReportStories extends Stories
                     ->query(fn (Builder $query, array $data): Builder => $query
                         ->when($data['from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('paid_on', '>=', $date))
                         ->when($data['until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('paid_on', '<=', $date)))
-                    ->indicateUsing(fn (array $data): ?string => filled($data['from'] ?? null) || filled($data['until'] ?? null) ? PrintedDocument::period($data['from'] ?? null, $data['until'] ?? null) : null),
+                    ->indicateUsing(fn (array $data): array => array_filter([
+                        'from' => filled($data['from'] ?? null) ? PrintedDocument::period($data['from'], null) : null,
+                        'until' => filled($data['until'] ?? null) ? PrintedDocument::period(null, $data['until']) : null,
+                    ])),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)
             ->persistFiltersInSession()
