@@ -18,6 +18,9 @@ class SupplierExporter extends Exporter
             ExportColumn::make('tin')
                 ->label('TIN'),
             ExportColumn::make('credit_limit'),
+            // A related record's value, by dot notation: the same code the import reads.
+            ExportColumn::make('withholdingCode.code')
+                ->label('ATC'),
         ];
     }
 

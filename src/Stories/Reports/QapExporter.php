@@ -13,6 +13,8 @@ class QapExporter extends ReportExporter
 {
     protected static ?string $model = PurchaseOrder::class;
 
+    protected static string $title = 'QAP';
+
     protected static string $rows = 'payee';
 
     public static function getColumns(): array

@@ -16,10 +16,11 @@ class CustomerWithholding
     /**
      * The quarter's withholding whose 2307 has arrived, by the payment date, one row per customer TIN and ATC, with the
      * income tax and the VAT withheld apart. Read from a subquery, so the totals row and the export add up whole rows.
+     * Given a table's query (a filter's `baseQuery()`), it changes that query in place.
      *
      * @return Builder<Payment>
      */
-    public static function sawt(int $year, int $quarter): Builder
+    public static function sawt(int $year, int $quarter, ?Builder $payments = null): Builder
     {
         $from = Carbon::create($year, $quarter * 3 - 2, 1);
 
@@ -33,7 +34,7 @@ class CustomerWithholding
             ->groupBy('customers.tin', 'customers.name', 'payments.tax_atc')
             ->selectRaw('min(payments.id) as id, customers.tin, customers.name as customer, payments.tax_atc, sum(payments.income_payment) as income_payment, sum(payments.tax_withheld) as tax_withheld, sum(payments.vat_withheld) as vat_withheld');
 
-        return Payment::query()->fromSub($rows, 'payments');
+        return ($payments ?? Payment::query())->fromSub($rows, 'payments');
     }
 
     /**

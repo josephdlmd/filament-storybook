@@ -13,6 +13,8 @@ class SawtExporter extends ReportExporter
 {
     protected static ?string $model = Payment::class;
 
+    protected static string $title = 'SAWT';
+
     public static function getColumns(): array
     {
         return [

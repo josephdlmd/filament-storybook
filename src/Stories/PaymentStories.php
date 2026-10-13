@@ -16,6 +16,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Number;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
+use Josephdlmd\FilamentStorybook\Stories\Documents\PaymentStatus;
 
 class PaymentStories extends Stories
 {
@@ -30,6 +31,11 @@ class PaymentStories extends Stories
     }
 
     // Not imported, so the snippet's imports stay what a resource needs.
+    public function examples(): array
+    {
+        return [PaymentStatus::class];
+    }
+
     public function model(): ?string
     {
         return Documents\SalesInvoice::class;
@@ -38,10 +44,10 @@ class PaymentStories extends Stories
     public function records(): array
     {
         return [
-            1 => ['id' => 1, 'status' => 'posted', 'number' => '001232', 'total' => '112000.00', 'vat' => '12000.00', 'vatable_sales' => '100000.00', 'balance_due' => '112000.00', 'customer_withholding' => 'government', 'payment_status' => 'unpaid', 'supplier' => 'Benguet Trading', 'tax_withheld' => '47.30'],
-            2 => ['status' => 'posted', 'number' => '001233', 'total' => '3363.71', 'vat' => '360.40', 'vatable_sales' => '3003.31', 'balance_due' => '2363.71', 'customer_withholding' => 'top_withholding_agent', 'payment_status' => 'partly_paid'],
-            3 => ['status' => 'posted', 'number' => '001229', 'total' => '5600.00', 'balance_due' => '0.00', 'payment_status' => 'paid'],
-            4 => ['status' => 'posted', 'number' => '001214', 'total' => '890.50', 'balance_due' => '890.50', 'payment_status' => 'overdue'],
+            1 => ['id' => 1, 'status' => 'posted', 'number' => '001232', 'total' => '112000.00', 'vat' => '12000.00', 'vatable_sales' => '100000.00', 'balance_due' => '112000.00', 'customer_withholding' => 'government', 'payment_status' => PaymentStatus::Unpaid, 'supplier' => 'Benguet Trading', 'tax_withheld' => '47.30'],
+            2 => ['status' => 'posted', 'number' => '001233', 'total' => '3363.71', 'vat' => '360.40', 'vatable_sales' => '3003.31', 'balance_due' => '2363.71', 'customer_withholding' => 'top_withholding_agent', 'payment_status' => PaymentStatus::PartlyPaid],
+            3 => ['status' => 'posted', 'number' => '001229', 'total' => '5600.00', 'balance_due' => '0.00', 'payment_status' => PaymentStatus::Paid],
+            4 => ['status' => 'posted', 'number' => '001214', 'total' => '890.50', 'balance_due' => '890.50', 'payment_status' => PaymentStatus::Overdue],
         ];
     }
 
@@ -219,17 +225,10 @@ class PaymentStories extends Stories
             });
     }
 
-    /** How much of a document is paid, in a list: the word and its colour. */
+    /** How much of a document is paid, in a list: the word and its colour, from `PaymentStatus`. */
     public function paymentStatus(): TextColumn
     {
         return TextColumn::make('payment_status')
-            ->badge()
-            ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
-            ->color(fn (string $state): string => match ($state) {
-                'partly_paid' => 'info',
-                'paid' => 'success',
-                'overdue' => 'danger',
-                default => 'gray',
-            });
+            ->badge();
     }
 }

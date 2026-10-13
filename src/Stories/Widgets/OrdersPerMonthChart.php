@@ -3,10 +3,14 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Carbon;
 
 class OrdersPerMonthChart extends ChartWidget
 {
+    // Reads the dashboard's filter (`Dashboard`) as $this->pageFilters, and redraws when it changes.
+    use InteractsWithPageFilters;
+
     protected ?string $heading = 'Approved orders per month';
 
     protected ?string $description = 'September had the most this year.';
@@ -24,11 +28,15 @@ class OrdersPerMonthChart extends ChartWidget
         // On a dashboard, count approved orders per month with a query, and list every month in the range: 0 where there
         // were none, null where the count is unknown, never a month left out (Carbon axes: "Never change axis ticks
         // increments to accommodate data availability"). Month names follow the app's locale.
-        $months = collect(['2026-05-01', '2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01'])->map(fn (string $month): string => Carbon::parse($month)->translatedFormat('F'));
+        // The dashboard's From and To narrow the months, as a whereBetween() on the query would.
+        $from = filled($this->pageFilters['from'] ?? null) ? Carbon::parse($this->pageFilters['from'])->startOfMonth() : null;
+        $until = filled($this->pageFilters['until'] ?? null) ? Carbon::parse($this->pageFilters['until']) : null;
+        $orders = collect(['2026-05-01' => 42, '2026-06-01' => 38, '2026-07-01' => 51, '2026-08-01' => 47, '2026-09-01' => 63])
+            ->filter(fn (int $count, string $month): bool => (! $from || $from->lte($month)) && (! $until || $until->gte($month)));
 
         return [
-            'datasets' => [['label' => 'Approved orders', 'data' => [42, 38, 51, 47, 63]]],
-            'labels' => $months->all(),
+            'datasets' => [['label' => 'Approved orders', 'data' => $orders->values()->all()]],
+            'labels' => $orders->keys()->map(fn (string $month): string => Carbon::parse($month)->translatedFormat('F'))->all(),
         ];
     }
 

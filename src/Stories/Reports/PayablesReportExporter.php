@@ -11,6 +11,8 @@ class PayablesReportExporter extends ReportExporter
 {
     protected static ?string $model = PurchaseOrder::class;
 
+    protected static string $title = 'Payables';
+
     protected static string $rows = 'order';
 
     public static function getColumns(): array

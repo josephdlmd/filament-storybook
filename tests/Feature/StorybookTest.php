@@ -23,6 +23,7 @@ use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Laravel\Mcp\Request;
 use Livewire\Livewire;
+use Filament\Actions\Testing\TestAction;
 
 beforeEach(function (): void {
     $this->actingAs(User::create(['name' => 'Tester', 'email' => 'tester@example.com', 'password' => 'secret']));
@@ -200,12 +201,21 @@ it('shows a pattern for agents with imports, snippets and a preview link', funct
 it('gives agents the real signatures of the methods a pattern uses', function (): void {
     $api = collect(app(StoryRegistry::class)->manifest(app(StatusBadgeStories::class))['api'])->pluck('signature', 'method');
 
-    expect($api->keys()->all())->toBe(['TextColumn::make', 'TextColumn::badge', 'TextColumn::formatStateUsing', 'TextColumn::color'])
+    expect($api->keys()->all())->toBe(['TextColumn::make', 'TextColumn::badge'])
         ->and($api['TextColumn::badge'])->toBe('badge(Closure|bool $condition = true): static');
 
     expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-status-badge']))->content())
         ->toContain("## API")
-        ->toContain('TextColumn::badge(Closure|bool $condition = true): static');
+        ->toContain('TextColumn::badge(Closure|bool $condition = true): static')
+        ->toContain('enum DocumentStatus: string implements HasColor, HasLabel');
+});
+
+it('takes a status badge\'s word and colour from the status enum', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => StatusBadgeStories::class, 'story' => 'default'])->call('loadTable');
+    $column = $canvas->instance()->getTable()->getColumn('status');
+
+    expect(collect($canvas->instance()->getTable()->getRecords())->map(fn ($record): array => [$column->record($record)->formatState($column->getState()), $column->getColor($column->getState())])->values()->all())
+        ->toBe([['Draft', 'gray'], ['For approval', 'info'], ['Posted', 'success'], ['Void', 'danger']]);
 });
 
 it('credits each method in a screen story to the class it is called on', function (): void {
@@ -335,6 +345,8 @@ it('leaves form errors to the app, keeps amounts as text and marks optional fiel
         ->and($modal->getExtraModalWindowAttributes())->toHaveKey('novalidate')
         ->and($amount->getType())->toBe('text')
         ->and($amount->getInputMode())->toBe('decimal')
+        ->and($amount->isTrimmed())->toBeTrue()
+        ->and(Filament\Forms\Components\TextInput::make('password')->password()->isTrimmed())->toBeFalse()
         ->and(Filament\Forms\Components\TextInput::make('email')->email()->getType())->toBe('email')
         ->and(Filament\Forms\Components\TextInput::make('name')->required()->isMarkedAsRequired())->toBeFalse()
         ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
@@ -546,10 +558,11 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
         $table->string('name');
         $table->string('tin')->unique();
         $table->decimal('credit_limit', 15, 2)->nullable();
+        $table->string('atc')->nullable();
         $table->timestamps();
     });
 
-    $import = new Josephdlmd\FilamentStorybook\Stories\Imports\SupplierImporter(new Filament\Actions\Imports\Models\Import, ['name' => 'name', 'tin' => 'tin', 'credit_limit' => 'credit_limit'], []);
+    $import = new Josephdlmd\FilamentStorybook\Stories\Imports\SupplierImporter(new Filament\Actions\Imports\Models\Import, ['name' => 'name', 'tin' => 'tin', 'credit_limit' => 'credit_limit', 'withholdingCode' => 'atc'], []);
 
     $import(['name' => 'Abra Medical Supply', 'tin' => '123 456 789 000', 'credit_limit' => '250000.50']);
     // The same TIN, typed another way, updates that supplier.
@@ -565,7 +578,14 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
         ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '123456789000X', 'credit_limit' => '1']))
         ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the TIN as 12 digits, such as 123-456-789-000')
         ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '987-654-321-000', 'credit_limit' => '1.234']))
-        ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the credit limit with at most 2 decimal places');
+        ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the credit limit with at most 2 decimal places')
+        // A related record by its code: found however it is typed, and refused with the house wording when unknown.
+        ->and(fn () => $import(['name' => 'Benguet Trading', 'tin' => '987-654-321-000', 'atc' => 'WC999']))
+        ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter an ATC we withhold, such as WC158, or leave it empty');
+
+    $import(['name' => 'Benguet Trading', 'tin' => '987-654-321-000', 'atc' => ' wc158 ']);
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Imports\Supplier::query()->where('tin', '987-654-321-000')->value('atc'))->toBe('WC158');
 
     expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-import-and-export']))->content())
         ->toContain('## SupplierImporter')
@@ -1507,4 +1527,44 @@ it('signs stock moving in, and keeps the number format', function (): void {
         ->call('loadTable')
         ->assertSeeInOrder(['+100', '-40', '+80'])
         ->assertDontSee('+100.000');
+});
+
+it('archives, restores and deletes many records, deleting only those never used', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\ArchiveStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        ->assertActionVisible(TestAction::make('archive')->table()->bulk())
+        ->assertActionVisible(TestAction::make('forceDelete')->table()->bulk())
+        ->assertActionHidden(TestAction::make('restore')->table()->bulk())
+        ->selectTableRecords([1, 2])
+        ->callAction(TestAction::make('archive')->table()->bulk())
+        ->assertNotified('Archived')
+        ->selectTableRecords([1, 2])
+        ->callAction(TestAction::make('forceDelete')->table()->bulk())
+        ->assertNotified('Deleted 1 of 2');
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\Customer::withTrashed()->whereIn('id', [1, 2])->pluck('code')->all())->toBe(['C-0001']);
+});
+
+it('narrows the chart to the dashboard filter\'s months', function (): void {
+    $chart = Livewire::test(Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class, ['pageFilters' => ['from' => '2026-06-15', 'until' => '2026-08-31']]);
+
+    expect($chart->instance()->getChartAssistiveContent())->toBe('Approved orders per month: June 38, July 51, August 47.');
+});
+
+it('names a report\'s export after the report and the day, as its PDF is', function (string $exporter, string $name): void {
+    $export = new Filament\Actions\Exports\Models\Export;
+    $export->created_at = Illuminate\Support\Carbon::parse('2026-10-13 09:00');
+
+    expect((new $exporter($export, [], []))->getFileName($export))->toBe($name);
+})->with([
+    'sales' => [Josephdlmd\FilamentStorybook\Stories\Reports\SalesReportExporter::class, 'Sales report Oct 13, 2026'],
+    'QAP' => [Josephdlmd\FilamentStorybook\Stories\Reports\QapExporter::class, 'QAP Oct 13, 2026'],
+    'SAWT' => [Josephdlmd\FilamentStorybook\Stories\Reports\SawtExporter::class, 'SAWT Oct 13, 2026'],
+]);
+
+it('ignores spaces pasted before or after an amount', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\MoneyInputStories::class, 'story' => 'default'])->set('data.amount', ' 1250.50 ');
+
+    // numeric() hands the model a number, as before.
+    expect($canvas->instance()->form->getState())->toBe(['amount' => 1250.5]);
 });

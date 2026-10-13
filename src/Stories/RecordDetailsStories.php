@@ -6,6 +6,8 @@ use Filament\Actions\EditAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Stories\Documents\PaymentStatus;
 
 class RecordDetailsStories extends Stories
 {
@@ -19,12 +21,17 @@ class RecordDetailsStories extends Stories
         return 'A record\'s facts as a list of labels and values, in the summary column of its View page (`records-view-page`): a section headed "Details", with Edit in its header, and one read-only `TextEntry` per fact, label above value. Values use the field patterns\' formats: the status as a badge (`tables-status-badge`), money with `->money(\'PHP\')`, the TIN as stored (`forms-tin`), dates in the app\'s locale. On a resource page, `EditAction` opens the Edit page, or the resource form in a modal when there is no Edit page, and Filament hides it when the policy refuses `update`. No qualifying source sets how a missing value shows, so an empty value shows nothing. Values are text, not disabled fields, so they keep full contrast and can be selected and copied. Basis: Carbon structured list (terms and definitions, read-only) and read-only states (static information is text); WCAG 1.3.1 and 1.4.3.';
     }
 
+    public function examples(): array
+    {
+        return [DocumentStatus::class, PaymentStatus::class];
+    }
+
     public function records(): array
     {
         return [1 => [
             'number' => 'PO-000042',
-            'status' => 'posted',
-            'payment_status' => 'partly_paid',
+            'status' => DocumentStatus::Posted,
+            'payment_status' => PaymentStatus::PartlyPaid,
             'supplier' => 'Abra Medical Supply',
             'supplier_tin' => '123-456-789-000',
             'order_date' => '2026-10-02',
@@ -43,23 +50,9 @@ class RecordDetailsStories extends Stories
             ])
             ->schema([
                 TextEntry::make('status')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
-                    ->color(fn (string $state): string => match ($state) {
-                        'for_approval' => 'info',
-                        'posted' => 'success',
-                        'void' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->badge(),
                 TextEntry::make('payment_status')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
-                    ->color(fn (string $state): string => match ($state) {
-                        'partly_paid' => 'info',
-                        'paid' => 'success',
-                        'overdue' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->badge(),
                 TextEntry::make('supplier'),
                 TextEntry::make('supplier_tin')
                     ->label('Supplier TIN'),

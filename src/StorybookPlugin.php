@@ -365,6 +365,10 @@ class StorybookPlugin implements Plugin
         // what is typed (Carbon number input: avoid it "for continuous variables such as prices"; GOV.UK text input).
         TextInput::configureUsing(fn (TextInput $input) => $input->type(fn (TextInput $input): ?string => $input->isNumeric() ? 'text' : null));
 
+        // Spaces before or after an answer are ignored, as Livewire skips Laravel's TrimStrings: a pasted " 1250.50" would fail
+        // the amount's check (GOV.UK validation: ignore unwanted characters "before or after an answer"). Passwords stay as typed.
+        TextInput::configureUsing(fn (TextInput $input) => $input->trim(fn (TextInput $input): bool => ! $input->isPassword()));
+
         // Fields about the user say what they hold, so the browser can fill them in (WCAG 1.3.5): Filament's log in gives the
         // email "on", and its sign-up and profile pages give the name and email nothing. Only on those pages: a customer's
         // email elsewhere is not the user's. Extra attributes win over Filament's own value.

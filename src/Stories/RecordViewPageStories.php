@@ -11,6 +11,8 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Stories\Documents\PaymentStatus;
 
 class RecordViewPageStories extends Stories
 {
@@ -24,12 +26,17 @@ class RecordViewPageStories extends Stories
         return 'The View page of every record, pasted into the resource\'s `infolist()`: the content in three quarters and the record\'s facts in one quarter (`records-details`), one of the splits Carbon\'s grid allows, stacked with the content first when the page is narrower than 56rem (a container query, so the open sidebar counts). The main column holds what the record is made of (its lines, as read-only tables), then its related lists, on the page rather than in tabs. Filament shows several relation managers as tabs below the whole layout, so embed each in the main column, keeping its permission check: `Livewire::make(PaymentsRelationManager::class, fn (PurchaseOrder $record): array => [\'ownerRecord\' => $record, \'pageClass\' => ViewPurchaseOrder::class])->key(\'payments\')->visible(fn (PurchaseOrder $record): bool => PaymentsRelationManager::canViewForRecord($record, ViewPurchaseOrder::class))`, and have the page\'s `getRelationManagers()` return `[]`. The page\'s next step, such as Approve while an order waits for approval or Record payment once it is posted, is its one primary header action. The summary is not sticky. Values are read-only text, never Filament\'s default disabled form. Basis: Carbon 2x grid (full width for complex product interfaces; 16 columns divided by two and by four, not thirds), structured list, tabs (no frequently used or critical content in tabs) and read-only states (static information is text, not read-only or disabled fields); NN/g tabs 2024; WCAG 1.3.2, 1.4.3 and 1.4.10.';
     }
 
+    public function examples(): array
+    {
+        return [DocumentStatus::class, PaymentStatus::class];
+    }
+
     public function records(): array
     {
         return [1 => [
             'number' => 'PO-000042',
-            'status' => 'posted',
-            'payment_status' => 'partly_paid',
+            'status' => DocumentStatus::Posted,
+            'payment_status' => PaymentStatus::PartlyPaid,
             'supplier' => 'Abra Medical Supply',
             'supplier_tin' => '123-456-789-000',
             'order_date' => '2026-10-02',
@@ -97,23 +104,9 @@ class RecordViewPageStories extends Stories
                             ])
                             ->schema([
                                 TextEntry::make('status')
-                                    ->badge()
-                                    ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
-                                    ->color(fn (string $state): string => match ($state) {
-                                        'for_approval' => 'info',
-                                        'posted' => 'success',
-                                        'void' => 'danger',
-                                        default => 'gray',
-                                    }),
+                                    ->badge(),
                                 TextEntry::make('payment_status')
-                                    ->badge()
-                                    ->formatStateUsing(fn (string $state): string => str($state)->replace('_', ' ')->ucfirst())
-                                    ->color(fn (string $state): string => match ($state) {
-                                        'partly_paid' => 'info',
-                                        'paid' => 'success',
-                                        'overdue' => 'danger',
-                                        default => 'gray',
-                                    }),
+                                    ->badge(),
                                 TextEntry::make('supplier'),
                                 TextEntry::make('supplier_tin')
                                     ->label('Supplier TIN'),

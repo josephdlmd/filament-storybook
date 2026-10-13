@@ -94,7 +94,7 @@ class DocumentLifecycleStories extends Stories
             ->modalSubmitActionLabel('Post order')
             ->successNotificationTitle(fn (?Model $record): string => "Order {$record?->number} posted")
             ->action(function (Model $record, Action $action): void {
-                // On a resource: DB::transaction(fn () => $record->update(['number' => DocumentNumber::next('PO'), 'status' => OrderStatus::Posted, 'posted_at' => now()]));
+                // On a resource: DB::transaction(fn () => $record->update(['number' => DocumentNumber::next('PO'), 'status' => DocumentStatus::Posted, 'posted_at' => now()]));
                 $action->success();
             });
     }
@@ -107,12 +107,12 @@ class DocumentLifecycleStories extends Stories
             ->visible(fn (?Model $record): bool => $record?->status === 'draft')
             ->successNotificationTitle('Order sent for approval')
             ->action(function (Model $record, Action $action): void {
-                // On a resource: $record->update(['status' => OrderStatus::ForApproval, 'rejection_reason' => null]);
+                // On a resource: $record->update(['status' => DocumentStatus::ForApproval, 'rejection_reason' => null]);
                 $action->success();
             });
     }
 
-    /** The status in a list: the word and its colour. Put both on the status enum in an app (`HasLabel`, `HasColor`). */
+    /** The status in a list: the word and its colour. In an app, both come from `DocumentStatus` (`tables-status-badge`). */
     public function status(): TextColumn
     {
         return TextColumn::make('status')

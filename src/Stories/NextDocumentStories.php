@@ -96,7 +96,7 @@ class NextDocumentStories extends Stories
                 // On a resource, in DB::transaction(): lock the order's lines, take the open ones in the same order, and refuse any
                 // quantity over what is left now; then $quantities = $open->pluck('id')->combine(collect($data['lines'])->pluck('quantity'));
                 // $delivery = $record->deliveries()->create(['status' => 'draft', 'lines' => Fulfilment::nextLines($open, $quantities->all())]);
-                // and open it: $this->redirect(DeliveryResource::getUrl('edit', ['record' => $delivery])).
+                // and open it: $action->redirect(DeliveryResource::getUrl('edit', ['record' => $delivery])), with Action $action in this closure.
                 Notification::make()
                     ->success()
                     ->title("Delivery created for order {$record->number}")
@@ -113,7 +113,7 @@ class NextDocumentStories extends Stories
             ->action(function (Model $record): void {
                 // On a resource: $order = SalesOrder::create([... the quotation's customer and terms, 'status' => 'draft',
                 // 'lines' => Fulfilment::nextLines($record->lines, $record->lines->pluck('quantity', 'id')->all())]);
-                // then open it: $this->redirect(SalesOrderResource::getUrl('edit', ['record' => $order])).
+                // then open it: $action->redirect(SalesOrderResource::getUrl('edit', ['record' => $order])), with Action $action in this closure.
                 Notification::make()
                     ->success()
                     ->title('Order created')

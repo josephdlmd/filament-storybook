@@ -38,7 +38,7 @@ class ApprovalStories extends Stories
             ->modalSubmitActionLabel('Approve')
             ->successNotificationTitle(fn (?Model $record): string => "Order {$record?->number} approved")
             ->action(function (Model $record, Action $action): void {
-                // On a resource: DB::transaction(fn () => $record->update(['number' => DocumentNumber::next('PO'), 'status' => OrderStatus::Posted, 'posted_at' => now()]));
+                // On a resource: DB::transaction(fn () => $record->update(['number' => DocumentNumber::next('PO'), 'status' => DocumentStatus::Posted, 'posted_at' => now()]));
                 $action->success();
             });
     }
@@ -59,7 +59,7 @@ class ApprovalStories extends Stories
             ])
             ->successNotificationTitle('Order rejected')
             ->action(function (Model $record, array $data, Action $action): void {
-                // On a resource: $record->update(['status' => OrderStatus::Draft, 'rejection_reason' => $data['reason']]);
+                // On a resource: $record->update(['status' => DocumentStatus::Draft, 'rejection_reason' => $data['reason']]);
                 $action->success();
             });
     }

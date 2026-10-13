@@ -41,9 +41,7 @@ class ReceivablesAgeingStories extends Stories
     public function default(Table $table): Table
     {
         return $table
-            // As of the filter's date, or today. The buckets are columns of the query, so the totals row adds them; a filter
-            // can only add conditions, so the query reads the date itself.
-            ->query(fn (HasTable $livewire): Builder => ReceivablesAgeing::addBuckets(Customer::query(), Carbon::parse($livewire->getTableFilterState('as_of')['as_of'] ?? today())))
+            ->query(Customer::query())
             ->columns([
                 TextColumn::make('name')
                     ->label('Customer')
@@ -63,6 +61,9 @@ class ReceivablesAgeingStories extends Stories
                             ->helperText('Today when left empty')
                             ->maxWidth('xs'),
                     ])
+                    // As of the filter's date, or today. The buckets are columns of the query, so the totals row adds them;
+                    // baseQuery() adds them even with the filter empty.
+                    ->baseQuery(fn (Builder $query, array $data) => ReceivablesAgeing::addBuckets($query, Carbon::parse($data['as_of'] ?? null ?: today())))
                     ->indicateUsing(fn (array $data): ?string => filled($data['as_of'] ?? null) ? 'As of '.Carbon::parse($data['as_of'])->isoFormat('LL') : null),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)

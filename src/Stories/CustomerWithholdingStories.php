@@ -13,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Reports\CustomerWithholding;
 use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
@@ -38,15 +39,11 @@ class CustomerWithholdingStories extends Stories
 
     public function default(Table $table): Table
     {
-        // As of the filter's quarter, or this one. A filter can only add conditions, and the rows are grouped in a subquery,
-        // so the table's query reads the quarter itself.
-        $quarter = fn (HasTable $livewire): array => [
-            (int) ($livewire->getTableFilterState('quarter')['year'] ?? null ?: now()->year),
-            (int) ($livewire->getTableFilterState('quarter')['quarter'] ?? null ?: now()->quarter),
-        ];
+        // The filter's quarter, or this one.
+        $quarter = fn (array $data): array => [(int) ($data['year'] ?? null ?: now()->year), (int) ($data['quarter'] ?? null ?: now()->quarter)];
 
         return $table
-            ->query(fn (HasTable $livewire): Builder => CustomerWithholding::sawt(...$quarter($livewire)))
+            ->query(Payment::query())
             ->columns([
                 TextColumn::make('tin')
                     ->label('TIN')
@@ -86,6 +83,9 @@ class CustomerWithholdingStories extends Stories
                             ->placeholder('This quarter'),
                     ])
                     ->columns(2)
+                    // The rows are grouped in a subquery for the quarter: baseQuery() sets it, even with the filter empty, before
+                    // the search adds its conditions, so the rows, the totals row and the export agree.
+                    ->baseQuery(fn (Builder $query, array $data) => CustomerWithholding::sawt(...$quarter($data), payments: $query))
                     ->indicateUsing(fn (array $data): ?string => filled($data['year'] ?? null) || filled($data['quarter'] ?? null)
                         ? 'Q'.($data['quarter'] ?? null ?: now()->quarter).' '.($data['year'] ?? null ?: now()->year)
                         : null),
@@ -97,7 +97,7 @@ class CustomerWithholdingStories extends Stories
                     ->color('gray')
                     ->action(fn (HasTable $livewire): StreamedResponse => PrintedDocument::download(PrintedDocument::report(
                         'Tax withheld by customers',
-                        ['Quarter' => 'Q'.$quarter($livewire)[1].' '.$quarter($livewire)[0]],
+                        ['Quarter' => 'Q'.$quarter($livewire->getTableFilterState('quarter') ?? [])[1].' '.$quarter($livewire->getTableFilterState('quarter') ?? [])[0]],
                         [
                             'tin' => ['label' => 'TIN'],
                             'customer' => ['label' => 'Customer'],

@@ -59,7 +59,7 @@ class CreditLimitStories extends Stories
             ->visible(fn (?Model $record): bool => $record?->status === 'draft' && $record->customer && CreditLimit::over($record->customer, (string) $record->total) !== null)
             ->successNotificationTitle('Order sent for approval')
             ->action(function (Model $record, Action $action): void {
-                // On a resource: $record->update(['status' => OrderStatus::ForApproval,
+                // On a resource: $record->update(['status' => DocumentStatus::ForApproval,
                 // 'approval_reason' => CreditLimit::reason($record->customer, CreditLimit::over($record->customer, (string) $record->total))]);
                 $action->success();
             });
@@ -68,7 +68,7 @@ class CreditLimitStories extends Stories
     /** On a held order's View page, beside its For approval status: the reason saved when it was sent. */
     public function approvalReason(): TextEntry
     {
-        // On a resource: ->visible(fn (?SalesOrder $record): bool => $record?->status === OrderStatus::ForApproval).
+        // On a resource: ->visible(fn (?SalesOrder $record): bool => $record?->status === DocumentStatus::ForApproval).
         return TextEntry::make('approval_reason')
             ->label('Needs approval because');
     }

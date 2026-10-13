@@ -10,6 +10,8 @@ class ReceivablesAgeingExporter extends ReportExporter
 {
     protected static ?string $model = Customer::class;
 
+    protected static string $title = 'Receivables ageing';
+
     protected static string $rows = 'customer';
 
     public static function getColumns(): array

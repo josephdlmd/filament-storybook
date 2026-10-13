@@ -10,6 +10,8 @@ class CollectionsReportExporter extends ReportExporter
 {
     protected static ?string $model = Payment::class;
 
+    protected static string $title = 'Collections report';
+
     protected static string $rows = 'payment';
 
     public static function getColumns(): array

@@ -10,6 +10,8 @@ class PurchasesReportExporter extends ReportExporter
 {
     protected static ?string $model = PurchaseOrder::class;
 
+    protected static string $title = 'Purchases report';
+
     protected static string $rows = 'order';
 
     public static function getColumns(): array

@@ -14,6 +14,8 @@ class SalesReportExporter extends ReportExporter
 {
     protected static ?string $model = SalesInvoice::class;
 
+    protected static string $title = 'Sales report';
+
     protected static string $rows = 'invoice';
 
     public static function getColumns(): array

@@ -44,7 +44,7 @@ class SupplierWithholdingStories extends Stories
         $quarter = fn (HasTable $livewire): string => $livewire->getTableFilterState('quarter')['quarter'] ?? SupplierWithholding::lastQuarter();
 
         return $table
-            ->query(fn (HasTable $livewire): Builder => SupplierWithholding::quarterQuery(PurchaseOrder::query(), $quarter($livewire)))
+            ->query(PurchaseOrder::query())
             ->columns([
                 TextColumn::make('supplier')
                     ->searchable(),
@@ -72,6 +72,8 @@ class SupplierWithholdingStories extends Stories
                             ->selectablePlaceholder(false)
                             ->maxWidth('xs'),
                     ])
+                    // The rows are grouped in a subquery for the quarter: baseQuery() sets it, even with the filter empty.
+                    ->baseQuery(fn (Builder $query, array $data) => SupplierWithholding::quarterQuery($query, $data['quarter'] ?? null ?: SupplierWithholding::lastQuarter()))
                     ->indicateUsing(fn (array $data): ?string => SupplierWithholding::quarters()[$data['quarter'] ?? ''] ?? null),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)

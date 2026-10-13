@@ -6,6 +6,8 @@ use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
+use Illuminate\Validation\Rule;
+use Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode;
 
 class SupplierImporter extends Importer
 {
@@ -30,6 +32,14 @@ class SupplierImporter extends Importer
             ImportColumn::make('credit_limit')
                 ->rules(['nullable', 'numeric', 'decimal:0,2', 'min:0'])
                 ->example('250000.00'),
+            // A related record, by the value people know it by (an id for most relationships would be a name or code). The
+            // rule runs first and stops there (bail), so an unknown code gets the message below, not Filament's "is invalid".
+            ImportColumn::make('withholdingCode')
+                ->label('ATC')
+                ->relationship()
+                ->castStateUsing(fn (?string $state): ?string => filled($state) ? strtoupper(trim($state)) : null)
+                ->rules(['bail', 'nullable', Rule::exists(WithholdingCode::class, 'code')->where('withheld_by', 'us')])
+                ->example('WC158'),
         ];
     }
 
@@ -43,6 +53,7 @@ class SupplierImporter extends Importer
             'credit_limit.numeric' => 'Enter the credit limit as a number, such as 250000.50',
             'credit_limit.decimal' => 'Enter the credit limit with at most 2 decimal places, such as 250000.50',
             'credit_limit.min' => 'Enter a credit limit of 0 or more',
+            'withholdingCode.exists' => 'Enter an ATC we withhold, such as WC158, or leave it empty',
         ];
     }
 
