@@ -598,6 +598,13 @@ class AuditPages extends Tool
                 $warn("the options of `{$name}` sit side by side; stack them, without `inline()` (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\").");
             }
 
+            // Fixed options only: a relationship's count is how many records exist so far, and a record list grows (forms-record-picker).
+            if ($field instanceof Select && ! $field->hasRelationship() && filled($options = rescue(fn (): array => $field->getOptions(), [], report: false)) && count($options) <= 5) {
+                $warn($field->isMultiple()
+                    ? "the select `{$name}` offers ".count($options).' options to pick several from; show them as a `CheckboxList`, as `forms-choice` does (Carbon forms: a select list for more than five options).'
+                    : "the select `{$name}` offers ".count($options).' options; show them as stacked radios, as `forms-choice` does (Carbon forms: "When you have more than five options to present to the user, use a select list").');
+            }
+
             if ($field->isLabelHidden()) {
                 $warn("the field `{$name}` hides its label; keep it visible, above the field (Carbon forms).");
             }

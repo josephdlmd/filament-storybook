@@ -48,6 +48,8 @@ class GadgetResource extends Resource
             Toggle::make('is_active')->label('Active'),
             \Filament\Forms\Components\RichEditor::make('description')->label('Description (optional)'),
             \Filament\Forms\Components\Radio::make('colour')->label('Colour (optional)')->options(['red' => 'Red', 'blue' => 'Blue'])->inline(),
+            Select::make('size')->label('Size')->options(['s' => 'Small', 'm' => 'Medium', 'l' => 'Large'])->required(),
+            Select::make('features')->label('Features (optional)')->options(['usb' => 'USB', 'wifi' => 'Wi-Fi'])->multiple(),
             Select::make('owner_id')->label('Owner')->relationship('owner', 'name'),
             DatePicker::make('released_on')->label('Released On')->native(false),
             FileUpload::make('manual')->label('Manual'),
