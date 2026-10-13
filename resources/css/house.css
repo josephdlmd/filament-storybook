@@ -119,13 +119,18 @@
 /*
  * Navigation. A List page's tabs start on the left (Carbon content switcher: "should never be centered"). Breadcrumbs
  * leave out the current page, and disappear when only one item would be left (Carbon breadcrumb: "the current page is
- * not listed"); Filament ends every trail with List, Create, Edit or View.
+ * not listed"); Filament ends every trail with List, Create, Edit or View. On a View page the record's crumb is the
+ * current page too, so it goes as well and the trail leads up to the list.
  */
 .fi-tabs:not(.fi-contained, .fi-vertical) {
     margin-inline: 0;
 }
 
 .fi-breadcrumbs li:last-child {
+    display: none;
+}
+
+.fi-resource-view-record-page .fi-breadcrumbs li:nth-last-child(2) {
     display: none;
 }
 

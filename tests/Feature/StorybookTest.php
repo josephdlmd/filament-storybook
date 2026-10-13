@@ -298,10 +298,11 @@ it('starts confirmations on the left and narrows the menu under compact(), as in
 
 it('keeps the compact and house selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
     preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css').file_get_contents(__DIR__.'/../../resources/css/compact.css').file_get_contents(__DIR__.'/../../resources/css/house.css'), $classes);
-    $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css');
+    // A page's own class (fi-resource-view-record-page) is set in PHP and styled by no theme rule.
+    $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css').file_get_contents(__DIR__.'/../../vendor/filament/filament/src/Resources/Pages/ViewRecord.php');
 
     foreach (array_unique($classes[1]) as $class) {
-        expect(preg_match('/\.'.preg_quote($class, '/').'(?![\w-])/', $theme))->toBe(1, "Filament no longer styles .{$class}");
+        expect(preg_match('/[.\']'.preg_quote($class, '/').'(?![\w-])/', $theme))->toBe(1, "Filament no longer styles .{$class}");
     }
 });
 
