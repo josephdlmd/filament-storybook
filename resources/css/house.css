@@ -38,6 +38,32 @@
 }
 
 /*
+ * Fields show their edges at 3:1 and their placeholders at 4.5:1 (WCAG 1.4.11, 1.4.3; Carbon text input draws a field's
+ * edge in border-strong, 3.3:1). Filament draws an input's, a checkbox's and a radio's edge at gray-950/10, 1.5:1 on
+ * white and 1.2:1 in dark mode, so an empty field or an unchosen radio barely shows, and its placeholders in gray-400,
+ * 2.6:1. Focus, errors, disabled fields (exempt) and read-only fields (below) keep their own edges.
+ */
+.fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])),
+:is(input[type='checkbox'].fi-checkbox-input, input[type='radio'].fi-radio-input):not(:checked, :focus, :disabled, .fi-invalid) {
+    --tw-ring-color: color-mix(in oklch, var(--gray-400) 50%, var(--gray-500));
+}
+
+.dark .fi-input-wrp:not(.fi-disabled, .fi-invalid, :focus-within, :has(:is(input, textarea)[readonly])),
+.dark :is(input[type='checkbox'].fi-checkbox-input, input[type='radio'].fi-radio-input):not(:checked, :focus, :disabled, .fi-invalid) {
+    --tw-ring-color: var(--gray-500);
+}
+
+.fi-input-wrp:not(.fi-disabled) :is(input.fi-input, textarea)::placeholder,
+.fi-input-wrp:not(.fi-disabled) .fi-select-input .fi-select-input-placeholder {
+    color: var(--gray-500);
+}
+
+.dark .fi-input-wrp:not(.fi-disabled) :is(input.fi-input, textarea)::placeholder,
+.dark .fi-input-wrp:not(.fi-disabled) .fi-select-input .fi-select-input-placeholder {
+    color: var(--gray-400);
+}
+
+/*
  * Read-only fields look read-only: no field background and a fainter border, while the text keeps its full contrast
  * and the field stays focusable (Carbon read-only states). Filament's readOnly() changes nothing, so a locked field
  * would look editable.
