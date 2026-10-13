@@ -108,6 +108,11 @@ checks = {
     "address: in Philippine fields": "barangay" in code and "zip_code" in code,
     "bulk: actions as toolbar buttons, not a menu": "BulkAction" in code and "BulkActionGroup::make" not in code,
     "archive: soft deletes with an Archived filter and Restore": "SoftDeletes" in app_code and "TrashedFilter" in code and "RestoreAction" in code,
+    # v0.66: a status's word and colour on its enum; a related record imported by a value people know; a dashboard filter.
+    "status: word and colour on the enum": bool(re.search(r"implements[^{]*HasColor", app_code)),
+    "import: a related record through relationship()": bool(re.search(r"ImportColumn::make\([^;]*?->relationship\(", code, re.S)),
+    "bulk archive: archive many at once": bool(re.search(r"BulkAction::make\('archive", code)) or ("DeleteBulkAction" in code and "SoftDeletes" in app_code),
+    "date range: one dashboard filter every widget reads": "HasFiltersForm" in code and "InteractsWithPageFilters" in code,
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")
@@ -116,7 +121,7 @@ prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
         "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "customer", "printing": "print", "purchases": "purchase",
-        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)"}
+        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
