@@ -706,6 +706,7 @@ it('audits the real resource screens against the house rules', function (): void
     expect($report)
         ->toStartWith('# 2 pages rendered, 0 failing, 52 warnings')
         ->toContain('- `CreateGadget`: the select `size` offers 3 options; show them as stacked radios')
+        ->not->toContain('the select `warehouse_id`')
         ->toContain('- `CreateGadget`: the select `features` offers 2 options to pick several from; show them as a `CheckboxList`')
         ->toContain('- `ListGadgets`: the action "Print Gadget Labels" is in Title Case')
         ->not->toContain('"Report For May 2026"')

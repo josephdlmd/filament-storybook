@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -601,8 +602,9 @@ class AuditPages extends Tool
             }
 
             // Fixed options only: a relationship's count is how many records exist so far, and a record list grows (forms-record-picker).
+            // Options from a closure are taken to be such a list too (a query of accounts), never a fixed set written out.
             // A select in a repeater's row stays one, since radios don't fit a table cell (forms-line-items).
-            if ($field instanceof Select && ! $field->hasRelationship() && ! static::inRepeater($field) && filled($options = rescue(fn (): array => $field->getOptions(), [], report: false)) && count($options) <= 5) {
+            if ($field instanceof Select && ! $field->hasRelationship() && ! (fn (): bool => $this->options instanceof Closure)->call($field) && ! static::inRepeater($field) && filled($options = rescue(fn (): array => $field->getOptions(), [], report: false)) && count($options) <= 5) {
                 $warn($field->isMultiple()
                     ? "the select `{$name}` offers ".count($options).' options to pick several from; show them as a `CheckboxList`, as `forms-choice` does (Carbon forms: a select list for more than five options).'
                     : "the select `{$name}` offers ".count($options).' options; show them as stacked radios, as `forms-choice` does (Carbon forms: "When you have more than five options to present to the user, use a select list").');

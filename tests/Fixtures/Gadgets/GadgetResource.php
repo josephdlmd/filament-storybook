@@ -52,6 +52,8 @@ class GadgetResource extends Resource
             Select::make('size')->label('Size')->options(['s' => 'Small', 'm' => 'Medium', 'l' => 'Large'])->required(),
             Select::make('features')->label('Features (optional)')->options(['usb' => 'USB', 'wifi' => 'Wi-Fi'])->multiple(),
             Select::make('owner_id')->label('Owner')->relationship('owner', 'name'),
+            // A query's records, however few for now: a record list, not radios.
+            Select::make('warehouse_id')->label('Warehouse')->options(fn (): array => [1 => 'Main', 2 => 'Annex'])->required(),
             DatePicker::make('released_on')->label('Released On')->native(false),
             FileUpload::make('manual')->label('Manual'),
             // `part` is built right; `quantity` hides its label under a header that reads differently; `note` has no column.
