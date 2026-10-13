@@ -19,6 +19,7 @@ use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Radio;
@@ -655,6 +656,13 @@ class AuditPages extends Tool
                             : "the column \"{$header}\" in `{$name}` heads the field labelled \"{$cell->getLabel()}\"; make the header the field's label, word for word, as `forms-line-items` does (WCAG 2.5.3).");
                     }
                 }
+            }
+
+            // Spatie Media Library keeps the original name itself; an image shown as a picture needs none.
+            if ($field instanceof FileUpload && ! is_a($field, 'Filament\\Forms\\Components\\SpatieMediaLibraryFileUpload') && ! $field->isAvatar()
+                && ! (filled($types = $field->getAcceptedFileTypes()) && collect($types)->every(fn (string $type): bool => str_starts_with($type, 'image/')))
+                && blank($field->getFileNamesStatePath(isAbsolute: false))) {
+                $warn("the upload `{$name}` shows a file by the random name it is stored under; keep the name it was uploaded with, `storeFileNamesIn()`, as `forms-file-upload` does (Carbon file uploader).");
             }
 
             if ($field instanceof BaseFileUpload && (blank($field->getAcceptedFileTypes()) || $field->getMaxSize() === null)) {

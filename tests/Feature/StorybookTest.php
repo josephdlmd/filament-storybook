@@ -704,7 +704,8 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 53 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 54 warnings')
+        ->toContain('- `CreateGadget`: the upload `manual` shows a file by the random name it is stored under')
         ->toContain('- `CreateGadget`: its fields have their labels beside them (`released_on`); put labels above their fields')
         ->toContain('- `CreateGadget`: the select `size` offers 3 options; show them as stacked radios')
         ->not->toContain('the select `warehouse_id`')
@@ -806,7 +807,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 92 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 94 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
@@ -1575,4 +1576,19 @@ it('lists every document status, each from the enum', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'story' => 'status'])
         ->call('loadTable')
         ->assertSeeInOrder(['Draft', 'For approval', 'Posted', 'Void']);
+});
+
+it('asks a bulk change for its one value, and exports only the ticked rows', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\BulkActionStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        ->selectTableRecords([1, 2])
+        ->mountAction(TestAction::make('changePaymentTerms')->table()->bulk())
+        ->callMountedAction()
+        ->assertHasFormErrors(['payment_terms' => 'required'])
+        ->fillForm(['payment_terms' => 'net_60'])
+        ->callMountedAction()
+        ->assertHasNoFormErrors()
+        ->assertNotified('Payment terms changed')
+        ->assertActionVisible(TestAction::make('export')->table()->bulk())
+        ->assertSeeInOrder(['Put on hold', 'Take off hold', 'Change payment terms', 'Export selected', 'Delete selected']);
 });

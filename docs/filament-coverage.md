@@ -103,7 +103,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `RestoreAction`, `ReplicateAction` | Pattern, Rule | `actions-archive` (Restore); label table (Restore; Copy, a house default) |
 | `AttachAction`, `DetachAction`, `AssociateAction`, `DissociateAction` | Pattern | `records-related-records`; house defaults (Add, Remove) |
 | `BulkAction`, `BulkActionGroup`, `DeleteBulkAction`, `ForceDeleteBulkAction`, `RestoreBulkAction`, `DetachBulkAction`, `DissociateBulkAction` | Pattern | `tables-bulk-actions`; engineering rule (`authorizeIndividualRecords()`); house defaults (headings, outlined delete, checkbox names); audit (a `BulkActionGroup` menu) |
-| `ImportAction`, `ExportAction`, `ExportBulkAction` | Pattern | `tables-import-and-export`; house defaults |
+| `ImportAction`, `ExportAction`, `ExportBulkAction` | Pattern | `tables-import-and-export`, `tables-bulk-actions` (Export selected); house defaults |
 | `SelectAction` | General | the choice rules |
 
 ## Widgets and charts
