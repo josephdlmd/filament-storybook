@@ -684,7 +684,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 51 warnings')
+        ->toStartWith('# 2 pages rendered, 0 failing, 52 warnings')
         ->toContain('- `CreateGadget`: the select `size` offers 3 options; show them as stacked radios')
         ->toContain('- `CreateGadget`: the select `features` offers 2 options to pick several from; show them as a `CheckboxList`')
         ->toContain('- `ListGadgets`: the action "Print Gadget Labels" is in Title Case')
@@ -703,6 +703,7 @@ it('audits the real resource screens against the house rules', function (): void
         ->toContain('- `CreateGadget`: the optional field "Owner" doesn\'t say so')
         ->toContain('- `CreateGadget`: the radio group `colour` is optional but can\'t be cleared once picked')
         ->toContain('- `CreateGadget`: the options of `colour` sit side by side')
+        ->toContain('- `CreateGadget`: the options of `accessories` sit side by side')
         ->toContain('- `CreateGadget`: the field `description` is a rich-text or Markdown editor')
         ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
         ->toContain('- `ListGadgets`: bulk actions are in a "Bulk actions" menu')
@@ -783,7 +784,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 88 warnings')
+        ->toStartWith('# 6 pages rendered, 0 failing, 90 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')

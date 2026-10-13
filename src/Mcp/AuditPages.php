@@ -48,6 +48,7 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -594,8 +595,9 @@ class AuditPages extends Tool
                 $warn("the radio group `{$name}` is optional but can't be cleared once picked; make it `required()` or add a \"None\" option (Carbon radio button and forms).");
             }
 
-            if (($field instanceof Radio || $field instanceof CheckboxList) && $field->isInline()) {
-                $warn("the options of `{$name}` sit side by side; stack them, without `inline()` (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\").");
+            // A radio group goes side by side with inline(), a checkbox list with columns().
+            if (($field instanceof Radio && $field->isInline()) || ($field instanceof CheckboxList && max(array_filter(Arr::wrap($field->getColumns()), 'is_int') ?: [1]) > 1)) {
+                $warn("the options of `{$name}` sit side by side; stack them, without `inline()` or `columns()` (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\").");
             }
 
             // Fixed options only: a relationship's count is how many records exist so far, and a record list grows (forms-record-picker).
