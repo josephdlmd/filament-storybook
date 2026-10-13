@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Callout;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Utilities\Get;
@@ -156,72 +157,82 @@ class DocumentTotalsStories extends Stories
 
         return Action::make('recordSupplierInvoice')
             ->label('Record supplier\'s invoice')
+            // Six inputs, more than a modal holds, entered beside the order they change: a slide-over (Carbon forms).
+            ->slideOver()
             ->color('gray')
             ->modalHeading(fn (?Model $record): string => "Record supplier's invoice for order {$record?->number}")
             ->schema([
-                TextInput::make('supplier_invoice_number')
-                    ->label('Supplier\'s invoice number')
-                    ->required()
-                    ->maxLength(30)
-                    ->maxWidth('xs'),
-                DatePicker::make('supplier_invoice_date')
-                    ->label('Invoice date')
-                    ->maxDate(today())
-                    ->required()
-                    ->maxWidth('xs'),
-                TextInput::make('total')
-                    ->label('Total as printed')
-                    ->numeric()
-                    ->prefix('₱')
-                    ->step(0.01)
-                    ->minValue(0)
-                    ->rules(['decimal:0,2'])
-                    ->required()
-                    ->live(onBlur: true)
-                    ->maxWidth('xs')
-                    ->validationMessages(['decimal' => 'Enter the total with at most 2 decimal places, such as 5298.00']),
-                TextInput::make('vat')
-                    ->label('VAT as printed')
-                    ->numeric()
-                    ->prefix('₱')
-                    ->step(0.01)
-                    ->minValue(0)
-                    ->rules(['decimal:0,2'])
-                    ->required()
-                    ->live(onBlur: true)
-                    ->maxWidth('xs')
-                    ->helperText(fn (?Model $record): string => 'The purchase order works out '.Number::currency((float) $record?->vat, 'PHP'))
-                    ->validationMessages(['decimal' => 'Enter the VAT with at most 2 decimal places, such as 567.64']),
-                // Input VAT on an invoice without these can be disallowed, so the user checks the paper before recording it.
-                Checkbox::make('is_vat_invoice')
-                    ->label('Proper VAT invoice')
-                    ->helperText('It shows the supplier\'s TIN, "VAT-registered" and the VAT on its own line')
-                    ->accepted()
-                    ->validationMessages(['accepted' => 'Confirm it is a proper VAT invoice, or send it back to the supplier']),
-                Radio::make('withholding_code')
-                    ->label('Withholding')
-                    // The codes the business keeps; WC158 and WC160 only for a company BIR has made a top withholding agent.
-                    // shortcut: radios fit up to five codes; switch to a searchable Select when there are more (forms-choice).
-                    ->options(fn (): array => [
-                        ...WithholdingCode::query()
-                            ->where('withheld_by', 'us')
-                            ->when(! config('company.top_withholding_agent'), fn ($codes) => $codes->whereNotIn('code', ['WC158', 'WC160']))
-                            ->pluck('code', 'code')
-                            ->all(),
-                        'none' => 'None',
-                    ])
-                    ->descriptions(fn (): array => WithholdingCode::query()->where('withheld_by', 'us')->get()
-                        ->mapWithKeys(fn (WithholdingCode $code): array => [$code->code => rtrim(rtrim($code->rate, '0'), '.')."% on {$code->description}"])
-                        ->all())
-                    ->default(fn (?Model $record): ?string => $record?->supplier_atc)
-                    ->required()
-                    ->live(),
-                TextEntry::make('tax_withheld')
-                    ->state($withheld)
-                    ->money('PHP'),
-                TextEntry::make('net_payable')
-                    ->state(fn (Get $get): ?string => ($tax = $withheld($get)) === null ? null : bcsub(number_format((float) $get('total'), 2, '.', ''), $tax, 2))
-                    ->money('PHP'),
+                Fieldset::make('Invoice as printed')
+                    ->columns(1)
+                    ->schema([
+                        TextInput::make('supplier_invoice_number')
+                            ->label('Supplier\'s invoice number')
+                            ->required()
+                            ->maxLength(30)
+                            ->maxWidth('xs'),
+                        DatePicker::make('supplier_invoice_date')
+                            ->label('Invoice date')
+                            ->maxDate(today())
+                            ->required()
+                            ->maxWidth('xs'),
+                        TextInput::make('total')
+                            ->label('Total as printed')
+                            ->numeric()
+                            ->prefix('₱')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->rules(['decimal:0,2'])
+                            ->required()
+                            ->live(onBlur: true)
+                            ->maxWidth('xs')
+                            ->validationMessages(['decimal' => 'Enter the total with at most 2 decimal places, such as 5298.00']),
+                        TextInput::make('vat')
+                            ->label('VAT as printed')
+                            ->numeric()
+                            ->prefix('₱')
+                            ->step(0.01)
+                            ->minValue(0)
+                            ->rules(['decimal:0,2'])
+                            ->required()
+                            ->live(onBlur: true)
+                            ->maxWidth('xs')
+                            ->helperText(fn (?Model $record): string => 'The purchase order works out '.Number::currency((float) $record?->vat, 'PHP'))
+                            ->validationMessages(['decimal' => 'Enter the VAT with at most 2 decimal places, such as 567.64']),
+                        // Input VAT on an invoice without these can be disallowed, so the user checks the paper before recording it.
+                        Checkbox::make('is_vat_invoice')
+                            ->label('Proper VAT invoice')
+                            ->helperText('It shows the supplier\'s TIN, "VAT-registered" and the VAT on its own line')
+                            ->accepted()
+                            ->validationMessages(['accepted' => 'Confirm it is a proper VAT invoice, or send it back to the supplier']),
+                    ]),
+                Fieldset::make('Payment')
+                    ->columns(1)
+                    ->schema([
+                        Radio::make('withholding_code')
+                            ->label('Withholding')
+                            // The codes the business keeps; WC158 and WC160 only for a company BIR has made a top withholding agent.
+                            // shortcut: radios fit up to five codes; switch to a searchable Select when there are more (forms-choice).
+                            ->options(fn (): array => [
+                                ...WithholdingCode::query()
+                                    ->where('withheld_by', 'us')
+                                    ->when(! config('company.top_withholding_agent'), fn ($codes) => $codes->whereNotIn('code', ['WC158', 'WC160']))
+                                    ->pluck('code', 'code')
+                                    ->all(),
+                                'none' => 'None',
+                            ])
+                            ->descriptions(fn (): array => WithholdingCode::query()->where('withheld_by', 'us')->get()
+                                ->mapWithKeys(fn (WithholdingCode $code): array => [$code->code => rtrim(rtrim($code->rate, '0'), '.')."% on {$code->description}"])
+                                ->all())
+                            ->default(fn (?Model $record): ?string => $record?->supplier_atc)
+                            ->required()
+                            ->live(),
+                        TextEntry::make('tax_withheld')
+                            ->state($withheld)
+                            ->money('PHP'),
+                        TextEntry::make('net_payable')
+                            ->state(fn (Get $get): ?string => ($tax = $withheld($get)) === null ? null : bcsub(number_format((float) $get('total'), 2, '.', ''), $tax, 2))
+                            ->money('PHP'),
+                    ]),
                 // Just above the buttons, and announced, since it answers what the user just typed (Carbon notification; WCAG 4.1.3).
                 // A warning, not a block: the invoice is recorded as printed.
                 Callout::make('Check the printed VAT')

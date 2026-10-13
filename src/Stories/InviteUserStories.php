@@ -7,6 +7,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Stories;
@@ -98,6 +99,13 @@ class InviteUserStories extends Stories
                     }),
             ])
             ->searchPlaceholder('Search by name or email')
+            ->filters([
+                // On a resource, as the status column works it out: ->query(fn (Builder $query, array $data): Builder => match ($data['value']) {
+                // 'Active' => $query->whereNotNull('password'), 'Invited' => $query->whereNull('password')->where('invited_at', '>', now()->subDays(AcceptInvitation::DAYS)),
+                // 'Expired' => $query->whereNull('password')->where('invited_at', '<=', now()->subDays(AcceptInvitation::DAYS)), default => $query }).
+                SelectFilter::make('status')
+                    ->options(['Active' => 'Active', 'Expired' => 'Expired', 'Invited' => 'Invited']),
+            ])
             ->recordActions([
                 Action::make('sendAgain')
                     ->label('Send again')

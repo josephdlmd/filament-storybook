@@ -125,7 +125,7 @@ it('records a supplier\'s invoice only once it is confirmed as a proper VAT invo
         ->mountAction(Filament\Actions\Testing\TestAction::make('recordSupplierInvoice')->schemaComponent('story', 'form'))
         ->fillForm(['supplier_invoice_number' => 'BT-20931', 'supplier_invoice_date' => today()->toDateString(), 'total' => '5298.00', 'vat' => '567.64', 'is_vat_invoice' => false])
         ->callMountedAction()
-        ->assertHasActionErrors(['is_vat_invoice' => 'accepted']);
+        ->assertHasFormErrors(['is_vat_invoice' => 'accepted']);
 });
 
 it('warns, without blocking, when the printed VAT is more than ₱0.05 from 12/112 of the VATable total', function (string $vat, bool $warned): void {
@@ -138,7 +138,7 @@ it('warns, without blocking, when the printed VAT is more than ₱0.05 from 12/1
         ->contains(fn ($component): bool => $component instanceof Filament\Schemas\Components\Callout);
 
     expect($shown)->toBe($warned);
-    $canvas->callMountedAction()->assertHasNoActionErrors();
+    $canvas->callMountedAction()->assertHasNoFormErrors();
 })->with([
     'as worked out' => ['567.64', false],
     'within ₱0.05' => ['567.69', false],
@@ -1005,7 +1005,7 @@ it('records a supplier\'s invoice as printed, withholding at the supplier\'s cod
     expect($schema->getComponent('tax_withheld')->getState())->toBe('47.30')
         ->and($schema->getComponent('net_payable')->getState())->toBe('5250.70');
 
-    $canvas->callMountedAction()->assertHasNoActionErrors()->assertNotified('Supplier\'s invoice for order PO-000042 recorded');
+    $canvas->callMountedAction()->assertHasNoFormErrors()->assertNotified('Supplier\'s invoice for order PO-000042 recorded');
 });
 
 it('numbers posted documents in one series per prefix, with no gaps', function (): void {
@@ -1034,7 +1034,7 @@ it('checks a payment against the balance due, with the tax withheld', function (
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
         ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), 'number' => '004518', 'tax_atc' => 'WC158', ...$data]);
 
-    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors([in_array(array_key_first($data), ['number', 'tax_atc'], true) ? array_key_first($data) : 'amount' => $error]);
+    $error === null ? $canvas->assertHasNoFormErrors() : $canvas->assertHasFormErrors([in_array(array_key_first($data), ['number', 'tax_atc'], true) ? array_key_first($data) : 'amount' => $error]);
 })->with([
     'a receipt serial already recorded' => [['number' => '004516', 'amount' => '1000'], 'Enter the serial of the receipt you wrote; receipt 004516 is already recorded'],
     'part of the balance' => [['amount' => '50000', 'tax_withheld' => '500', 'vat_withheld' => '2500'], null],
@@ -1048,7 +1048,7 @@ it('checks a payment against the balance due, with the tax withheld', function (
 it('keeps the income payment and ATC with each payment, for the SAWT', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\PaymentStories::class, 'story' => 'default'])
         ->callAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'), ['paid_on' => today()->toDateString(), 'number' => '004519', 'amount' => '53000.00', 'tax_withheld' => '500.00', 'vat_withheld' => '2500.00', 'tax_atc' => 'WC158'])
-        ->assertHasNoActionErrors();
+        ->assertHasNoFormErrors();
 
     // Half the invoice settled: half its ₱100,000 VAT-exclusive amount.
     expect(Josephdlmd\FilamentStorybook\Stories\Documents\Payment::query()->where('number', '004519')->first(['income_payment', 'tax_atc'])->toArray())
@@ -1102,7 +1102,7 @@ it('posts a sales invoice under the serial of its BIR form, refusing one already
     $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'story' => 'default'])
         ->callAction(Filament\Actions\Testing\TestAction::make('post')->schemaComponent('story', 'form'), ['number' => $number]);
 
-    $error === null ? $canvas->assertHasNoActionErrors() : $canvas->assertHasActionErrors(['number' => $error]);
+    $error === null ? $canvas->assertHasNoFormErrors() : $canvas->assertHasFormErrors(['number' => $error]);
 })->with([
     'an unused serial' => ['001233', null],
     'a serial already recorded' => ['001232', 'Enter the serial of the form you wrote; invoice 001232 is already recorded'],
@@ -1219,11 +1219,11 @@ it('marks a customer\'s 2307 received on a date no later than today', function (
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\Form2307ReceivedStories::class, 'story' => 'default'])
         ->callAction($action, ['received_2307_on' => null])
-        ->assertHasActionErrors(['received_2307_on' => 'required'])
+        ->assertHasFormErrors(['received_2307_on' => 'required'])
         ->callAction($action, ['received_2307_on' => '2026-10-13'])
-        ->assertHasActionErrors(['received_2307_on' => 'before_or_equal'])
+        ->assertHasFormErrors(['received_2307_on' => 'before_or_equal'])
         ->callAction($action, ['received_2307_on' => '2026-10-12'])
-        ->assertHasNoActionErrors()
+        ->assertHasNoFormErrors()
         ->assertNotified('2307 for receipt 004516 marked received');
 });
 
@@ -1236,7 +1236,7 @@ it('totals a report over every row its filters keep, and prints it with the filt
         ->filterTable('invoice_date', ['from' => '2026-10-01'])
         ->assertDontSee('₱26,780.21')
         ->assertSee('₱9,689.71')
-        ->callTableAction('downloadPdf')
+        ->callAction(Filament\Actions\Testing\TestAction::make('downloadPdf')->table())
         ->assertFileDownloaded('Sales report '.today()->translatedFormat('M j, Y').'.pdf');
 
     Spatie\LaravelPdf\Facades\Pdf::assertSee(['Sales report', 'Period', 'From Oct 1, 2026', '001232', 'Oct 11, 2026', '₱9,689.71']);
@@ -1247,7 +1247,7 @@ it('downloads every report as a PDF of the rows its filters keep', function (str
 
     Livewire::test(StoryCanvas::class, ['stories' => $stories, 'story' => $story])
         ->call('loadTable')
-        ->callTableAction('downloadPdf')
+        ->callAction(Filament\Actions\Testing\TestAction::make('downloadPdf')->table())
         ->assertFileDownloaded($title.' '.today()->translatedFormat('M j, Y').'.pdf');
 
     Spatie\LaravelPdf\Facades\Pdf::assertSee([$title, ...$sees]);
@@ -1312,12 +1312,12 @@ it('creates a delivery of what is left on an order, refusing more', function ():
 
     expect(array_column($canvas->get('mountedActions.0.data.lines'), 'quantity'))->toEqual([60, 12.5]);
 
-    $canvas->setActionData(["lines.{$gloves}.quantity" => '61'])
+    $canvas->fillForm(["lines.{$gloves}.quantity" => '61'])
         ->callMountedAction()
-        ->assertHasActionErrors(["lines.{$gloves}.quantity" => 'max'])
-        ->setActionData(["lines.{$gloves}.quantity" => '60', "lines.{$alcohol}.quantity" => '0'])
+        ->assertHasFormErrors(["lines.{$gloves}.quantity" => 'max'])
+        ->fillForm(["lines.{$gloves}.quantity" => '60', "lines.{$alcohol}.quantity" => '0'])
         ->callMountedAction()
-        ->assertHasNoActionErrors()
+        ->assertHasNoFormErrors()
         ->assertNotified('Delivery created for order SO-000012');
 });
 
@@ -1348,11 +1348,11 @@ it('sends a stock adjustment for approval with a reason, never a change of 0', f
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\AdjustStockStories::class, 'story' => 'default'])
         ->callAction($action, ['change' => '0'])
-        ->assertHasActionErrors(['change' => 'Enter a change other than 0', 'reason' => 'required'])
+        ->assertHasFormErrors(['change' => 'Enter a change other than 0', 'reason' => 'required'])
         ->callAction($action, ['change' => '-0.000', 'reason' => 'damaged'])
-        ->assertHasActionErrors(['change' => 'Enter a change other than 0'])
+        ->assertHasFormErrors(['change' => 'Enter a change other than 0'])
         ->callAction($action, ['change' => '-2', 'reason' => 'damaged'])
-        ->assertHasNoActionErrors()
+        ->assertHasNoFormErrors()
         ->assertNotified('Adjustment of Insulin pens, 3 mL sent for approval');
 });
 
@@ -1427,14 +1427,14 @@ it('reports the quarter just ended and downloads each supplier\'s 2307 details, 
         ->assertSee(['Benguet Trading', 'Luzon Medical Gases', '₱19,462.50', '₱194.62'])
         ->assertActionVisible(Filament\Actions\Testing\TestAction::make('export')->table())
         // Benguet's row is keyed by its first order, PO-000041.
-        ->callTableAction('download2307', 1)
+        ->callAction(Filament\Actions\Testing\TestAction::make('download2307')->table(1))
         ->assertFileDownloaded('Form 2307 details Jul 1, 2026 to Sep 30, 2026.pdf');
 
     Spatie\LaravelPdf\Facades\Pdf::assertSee(['Form 2307 details', 'Benguet Trading', '234-567-890-000', '₱2,232.14', '₱4,730.36', '₱69.62', 'not the certificate']);
 
     // A fresh fake, since assertSee looks in every PDF made so far.
     Spatie\LaravelPdf\Facades\Pdf::fake();
-    $report->callTableAction('downloadPdf')
+    $report->callAction(Filament\Actions\Testing\TestAction::make('downloadPdf')->table())
         ->assertFileDownloaded('Tax withheld from suppliers Oct 12, 2026.pdf');
 
     Spatie\LaravelPdf\Facades\Pdf::assertSee(['Tax withheld from suppliers', 'Jul–Sep 2026', 'Luzon Medical Gases', '₱19,462.50']);

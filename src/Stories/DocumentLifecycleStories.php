@@ -58,7 +58,7 @@ class DocumentLifecycleStories extends Stories
                     ->helperText('The serial printed on the BIR form you wrote')
                     ->required()
                     ->maxLength(20)
-                    ->unique(ignoreRecord: true)
+                    ->unique()
                     ->maxWidth('xs')
                     ->validationMessages(['unique' => 'Enter the serial of the form you wrote; invoice :input is already recorded']),
             ])

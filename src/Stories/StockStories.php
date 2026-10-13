@@ -108,7 +108,8 @@ class StockStories extends Stories
                 TextColumn::make('moved_on')
                     ->label('Date')
                     ->date(),
-                TextColumn::make('document'),
+                TextColumn::make('document')
+                    ->searchable(),
                 TextColumn::make('quantity')
                     ->label('In or out')
                     ->numeric(maxDecimalPlaces: 3)
@@ -122,6 +123,8 @@ class StockStories extends Stories
                     ->label('On hand after')
                     ->numeric(maxDecimalPlaces: 3)
                     ->alignEnd(),
-            ]);
+            ])
+            // An item's movements keep growing, so they can be searched (Carbon search).
+            ->searchPlaceholder('Search by document');
     }
 }

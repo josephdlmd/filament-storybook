@@ -5,6 +5,7 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Josephdlmd\FilamentStorybook\Stories;
@@ -47,6 +48,10 @@ class BulkActionStories extends Stories
                     ->color(fn (string $state): string => $state === 'On hold' ? 'warning' : 'success'),
             ])
             ->searchPlaceholder('Search by code or name')
+            ->filters([
+                SelectFilter::make('status')
+                    ->options(['Active' => 'Active', 'On hold' => 'On hold']),
+            ])
             // Bulk actions sit straight in the toolbar, as Carbon's batch action bar shows them, not in a BulkActionGroup menu.
             ->toolbarActions([
                 // Routine and reversible (Take off hold undoes it): no confirmation. Filament's toast says "Put on hold", or, when the
@@ -57,14 +62,16 @@ class BulkActionStories extends Stories
                     ->action(fn (Collection $records) => $records->each->update(['status' => 'On hold']))
                     ->successNotificationTitle('Put on hold')
                     ->failureNotificationTitle(fn (int $successCount, int $totalCount): string => "{$successCount} of {$totalCount} put on hold")
-                    ->missingBulkAuthorizationFailureNotificationMessage(fn (int $failureCount): string => "You don't have permission to change {$failureCount}."),
+                    ->missingBulkAuthorizationFailureNotificationMessage(fn (int $failureCount): string => "You don't have permission to change {$failureCount}.")
+                    ->deselectRecordsAfterCompletion(),
                 BulkAction::make('takeOffHold')
                     ->label('Take off hold')
                     ->authorizeIndividualRecords('update')
                     ->action(fn (Collection $records) => $records->each->update(['status' => 'Active']))
                     ->successNotificationTitle('Taken off hold')
                     ->failureNotificationTitle(fn (int $successCount, int $totalCount): string => "{$successCount} of {$totalCount} taken off hold")
-                    ->missingBulkAuthorizationFailureNotificationMessage(fn (int $failureCount): string => "You don't have permission to change {$failureCount}."),
+                    ->missingBulkAuthorizationFailureNotificationMessage(fn (int $failureCount): string => "You don't have permission to change {$failureCount}.")
+                    ->deselectRecordsAfterCompletion(),
                 // Irreversible: a danger dialog that says the consequence. Filament's toast says "Deleted", or "Deleted 3 of 5" with why.
                 DeleteBulkAction::make()
                     ->authorizeIndividualRecords()
