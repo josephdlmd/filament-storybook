@@ -557,7 +557,8 @@ class AuditPages extends Tool
         }
 
         // Read-only entries may sit beside their labels (a document's totals, forms-document-totals); a field the user fills in never does.
-        $inline = collect($fields)->filter(fn ($field): bool => (bool) rescue(fn (): ?bool => $field->hasInlineLabel(), false, report: false));
+        // A compact control in a section's heading row may sit beside its label, so the row stays one line (owner, 2026-10-13).
+        $inline = collect($fields)->filter(fn ($field): bool => (bool) rescue(fn (): ?bool => $field->hasInlineLabel(), false, report: false) && ! static::inSectionHeading($field));
 
         if ($inline->isNotEmpty()) {
             $warn('its fields have their labels beside them (`'.$inline->map->getName()->take(3)->implode('`, `').'`'.($inline->count() > 3 ? ', …' : '').'); put labels above their fields, without `inlineLabel()` (Carbon forms: "Top-aligned labels are Carbon\'s default").');
@@ -604,9 +605,9 @@ class AuditPages extends Tool
                 $warn("the radio group `{$name}` is optional but can't be cleared once picked; make it `required()` or add a \"None\" option (Carbon radio button and forms).");
             }
 
-            // A radio group goes side by side with inline(), a checkbox list with columns().
-            if (($field instanceof Radio && $field->isInline()) || ($field instanceof CheckboxList && max(array_filter(Arr::wrap($field->getColumns()), 'is_int') ?: [1]) > 1)) {
-                $warn("the options of `{$name}` sit side by side; stack them, without `inline()` or `columns()` (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\").");
+            // A radio group goes side by side with inline(), a checkbox list with columns(); two short radios may (GOV.UK inline radios).
+            if (($field instanceof Radio && $field->isInline() && ! static::twoShortOptions($field)) || ($field instanceof CheckboxList && max(array_filter(Arr::wrap($field->getColumns()), 'is_int') ?: [1]) > 1)) {
+                $warn("the options of `{$name}` sit side by side; stack them, without `inline()` or `columns()`; only two short options may sit side by side (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\"; GOV.UK radios: inline \"only\" for two short options).");
             }
 
             // Fixed options only: a relationship's count is how many records exist so far, and a record list grows (forms-record-picker).
@@ -618,7 +619,8 @@ class AuditPages extends Tool
                     : "the select `{$name}` offers ".count($options).' options; show them as stacked radios, as `forms-choice` does (Carbon forms: "When you have more than five options to present to the user, use a select list").');
             }
 
-            if ($field->isLabelHidden()) {
+            // A repeater directly under a section heading that names it, named by the same words for screen readers (WAI-ARIA APG).
+            if ($field->isLabelHidden() && ! static::namedBySectionHeading($field)) {
                 $warn("the field `{$name}` hides its label; keep it visible, above the field (Carbon forms).");
             }
 
@@ -809,5 +811,35 @@ class AuditPages extends Tool
             ->flatMap(fn ($action): array => $action instanceof ActionGroup ? $action->getFlatActions() : [$action])
             ->filter(fn ($action): bool => $action instanceof Action)
             ->values()->all();
+    }
+    /**
+     * Whether a field sits in a section's heading row (`Section::afterHeader()`).
+     */
+    protected static function inSectionHeading(mixed $field): bool
+    {
+        $container = rescue(fn () => $field->getContainer(), null, report: false);
+        $section = $container?->getParentComponent();
+
+        return $section instanceof Section && $container === $section->getChildSchema(Section::AFTER_HEADER_SCHEMA_KEY);
+    }
+
+    /**
+     * Whether a radio group has two options of one or two words each, the only ones that may sit side by side.
+     */
+    protected static function twoShortOptions(Radio $field): bool
+    {
+        $options = rescue(fn (): array => $field->getOptions(), [], report: false);
+
+        return count($options) === 2 && collect($options)->every(fn ($label): bool => str_word_count(strip_tags((string) $label)) <= 2);
+    }
+
+    /**
+     * Whether a repeater leaves its label off for the section heading right above it, named by `aria-label` instead.
+     */
+    protected static function namedBySectionHeading(mixed $field): bool
+    {
+        $section = rescue(fn () => $field->getContainer()?->getParentComponent(), null, report: false);
+
+        return $field instanceof Repeater && $section instanceof Section && filled($section->getHeading()) && filled($field->getExtraAttributes()['aria-label'] ?? null);
     }
 }

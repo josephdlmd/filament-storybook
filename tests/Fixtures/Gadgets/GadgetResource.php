@@ -47,7 +47,9 @@ class GadgetResource extends Resource
             TextInput::make('serial')->label('Serial')->hintIcon('heroicon-o-information-circle', tooltip: 'On the back of the gadget')->required()->validationMessages(['required' => 'Please enter the serial']),
             Toggle::make('is_active')->label('Active'),
             \Filament\Forms\Components\RichEditor::make('description')->label('Description (optional)'),
-            \Filament\Forms\Components\Radio::make('colour')->label('Colour (optional)')->options(['red' => 'Red', 'blue' => 'Blue'])->inline(),
+            \Filament\Forms\Components\Radio::make('colour')->label('Colour (optional)')->options(['red' => 'Red', 'blue' => 'Blue', 'green' => 'Green'])->inline(),
+            // Two short options may sit side by side (GOV.UK inline radios).
+            \Filament\Forms\Components\Radio::make('finish')->label('Finish')->options(['matte' => 'Matte', 'gloss' => 'Gloss'])->inline()->required(),
             \Filament\Forms\Components\CheckboxList::make('accessories')->label('Accessories (optional)')->options(['case' => 'Case', 'strap' => 'Strap'])->columns(2),
             Select::make('size')->label('Size')->options(['s' => 'Small', 'm' => 'Medium', 'l' => 'Large'])->required(),
             Select::make('features')->label('Features (optional)')->options(['usb' => 'USB', 'wifi' => 'Wi-Fi'])->multiple(),
@@ -60,6 +62,18 @@ class GadgetResource extends Resource
             Repeater::make('parts')
                 ->table([TableColumn::make('Part'), TableColumn::make('Qty'), TableColumn::make('Grade')])
                 ->schema([TextInput::make('part')->required(), TextInput::make('quantity')->hiddenLabel(), Select::make('grade')->options(['a' => 'A', 'b' => 'B'])->required(), TextInput::make('note')]),
+            // A count in the section's heading row beside its label, and a table named by the heading above it.
+            Section::make('Fittings')
+                ->afterHeader([TextInput::make('fitting_count')->label('Fittings')->inlineLabel()->integer()->required()])
+                ->schema([
+                    Repeater::make('fittings')
+                        ->hiddenLabel()
+                        ->extraAttributes(['role' => 'group', 'aria-label' => 'Fittings'])
+                        ->reorderable(false)
+                        ->required()
+                        ->table([TableColumn::make('Fitting')])
+                        ->schema([TextInput::make('fitting')->required()]),
+                ]),
         ]);
     }
 
