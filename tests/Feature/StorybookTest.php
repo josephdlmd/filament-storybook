@@ -787,6 +787,17 @@ it('audits the dashboard\'s widgets on a full audit', function (): void {
         ->not->toContain('- `OrdersPerMonthChart`:');
 });
 
+it('audits the panel\'s own pages on a full audit, following a page that sends the user back to itself as it opens', function (): void {
+    expect((string) (new AuditPages)->handle(new Request)->content())
+        ->toContain('- `GadgetOverview`')
+        ->not->toContain('- `GadgetOverview`: tester@example.com may not open it')
+        ->not->toContain('- `Storybook`');
+
+    // A screen-by-screen audit leaves the panel's own pages alone.
+    expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+        ->not->toContain('`GadgetOverview`');
+});
+
 it('audits the panel\'s menu on a full audit: two levels at most, groups in sentence case, words always on screen', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
         ->toContain('- `navigation`: the sidebar shrinks to icons only')
