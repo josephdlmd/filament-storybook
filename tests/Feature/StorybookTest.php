@@ -901,6 +901,13 @@ it('gives a resource sentence case where Filament title-cases its model', functi
         ->and(GadgetResource::getTitleCaseModelLabel())->toBe('Gadget');
 });
 
+it('heads global search groups in sentence case where the panel keeps Filament\'s own provider', function (): void {
+    $results = Filament\GlobalSearch\GlobalSearchResults::make()->category('purchase orders')->category('TINs');
+
+    expect(app(Filament\GlobalSearch\Providers\DefaultGlobalSearchProvider::class))->toBeInstanceOf(Josephdlmd\FilamentStorybook\GlobalSearch\SentenceCaseGlobalSearchProvider::class)
+        ->and(Josephdlmd\FilamentStorybook\GlobalSearch\SentenceCaseGlobalSearchProvider::sentenceCase($results)->getCategories()->keys()->all())->toBe(['Purchase orders', 'TINs']);
+});
+
 it('flags only Title Case someone typed, never sentence case, names or acronyms', function (string $label, string $name, bool $flagged): void {
     expect(AuditPages::isTitleCase($label, $name))->toBe($flagged);
 })->with([

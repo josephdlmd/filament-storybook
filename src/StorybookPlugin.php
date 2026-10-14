@@ -34,6 +34,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\GlobalSearch\Providers\DefaultGlobalSearchProvider;
 use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Schemas\Components\Form;
@@ -52,6 +53,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Number;
 use Illuminate\Validation\Rules\Password;
+use Josephdlmd\FilamentStorybook\GlobalSearch\SentenceCaseGlobalSearchProvider;
 use Josephdlmd\FilamentStorybook\Notifications\SignInMethodChanged;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 
@@ -159,6 +161,10 @@ class StorybookPlugin implements Plugin
 
     public static function applyHouseDefaults(): void
     {
+        // Global search heads each resource's group in sentence case, as HasSentenceCaseLabels leaves the plural model label
+        // lower case; a panel's own provider is untouched (Carbon content).
+        app()->bind(DefaultGlobalSearchProvider::class, SentenceCaseGlobalSearchProvider::class);
+
         // A delete among other actions is low-emphasis danger (outlined); the confirm button stays solid danger (Carbon button).
         foreach ([DeleteAction::class, ForceDeleteAction::class, DeleteBulkAction::class, ForceDeleteBulkAction::class] as $action) {
             $action::configureUsing(fn (Action $action) => $action->outlined());

@@ -136,6 +136,7 @@ Where a Filament default breaks a sourced rule, the plugin corrects it app-wide:
 - Filament's two-factor screens are worded to the house rules ("Security code", errors that say what to do, no links in the setup dialog, "log in"), and the user gets an email when the authenticator app is turned on or off (NIST SP 800-63B-4).
 - A table's row checkboxes are named after their row ("Select SUP-0001"), "Deselect all" and the Reset links are not danger red, and a bulk delete is outlined (Carbon data table and button).
 - The empty notifications panel says what will appear in it (Carbon empty states).
+- Global search heads each resource's group in sentence case ("Purchase orders"), as `HasSentenceCaseLabels` leaves the model label lower case; a panel that sets its own `globalSearch()` provider keeps it (Carbon content).
 
 Turn this off with `StorybookPlugin::make()->houseDefaults(false)`.
 
