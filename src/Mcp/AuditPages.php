@@ -73,7 +73,7 @@ class AuditPages extends Tool
 {
     protected string $name = 'storybook-audit';
 
-    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists, the dashboard\'s widgets and the menu, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.2 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
+    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists, the panel\'s own pages, the dashboard\'s widgets and the menu, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.2 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -105,6 +105,46 @@ class AuditPages extends Tool
         $warnings = [];
         $rendered = [];
 
+        // Renders one page and files it under passing, failing or skipped. A page that sends the user back to itself as it
+        // opens, such as a list that lands on the user's last saved filters, is followed once, as the browser would.
+        $audit = function (string $key, string $class, array $parameters, Closure $url) use (&$passing, &$failing, &$skipped, &$warnings, &$rendered, $user): void {
+            try {
+                $page = Livewire::test($class, $parameters);
+                // A redirect while mounting aborts with a plain redirect response, which the harness keeps but doesn't expose.
+                $response = $page->instance() === null ? (fn () => $this->lastState->getResponse())->call($page) : null;
+                $redirect = $response?->isRedirect() ? $response->headers->get('Location') : null;
+
+                if (is_string($redirect) && parse_url($redirect, PHP_URL_PATH) === parse_url(rescue($url, '', report: false), PHP_URL_PATH)) {
+                    parse_str((string) parse_url($redirect, PHP_URL_QUERY), $query);
+                    $page = Livewire::withQueryParams($query)->test($class, $parameters);
+                }
+
+                // Livewire's test harness returns no component when the page refuses or redirects while opening.
+                if ($page->instance() === null) {
+                    $skipped[] = "- `{$key}`: ".static::userLabel($user).' may not open it; pass "as" with a user who can.';
+
+                    return;
+                }
+
+                $rendered[$key] = $page->html();
+                $warnings = [...$warnings, ...static::warnings($key, $page->instance())];
+                $rendered = [...$rendered, ...static::states($key, $page)];
+                $passing[] = "- `{$key}`";
+            } catch (HttpException $e) {
+                $skipped[] = "- `{$key}`: ".static::userLabel($user)." may not open it ({$e->getStatusCode()}); pass \"as\" with a user who can.";
+            } catch (Throwable $e) {
+                while ($e->getPrevious() !== null) {
+                    $e = $e->getPrevious();
+                }
+
+                if ($e instanceof BindingResolutionException) {
+                    $skipped[] = "- `{$key}`: it needs route parameters the audit can't supply; open it in the browser to check it.";
+                } else {
+                    $failing[] = "- `{$key}`: ".static::failure($e);
+                }
+            }
+        };
+
         foreach ($resources as $resource) {
             foreach ($resource::getPages() as $name => $registration) {
                 $key = class_basename($registration->getPage());
@@ -122,35 +162,7 @@ class AuditPages extends Tool
                     $parameters['record'] = $record->getRouteKey();
                 }
 
-                try {
-                    $page = Livewire::test($registration->getPage(), $parameters);
-
-                    // Livewire's test harness returns no component when the page refuses or redirects while opening.
-                    if ($page->instance() === null) {
-                        $skipped[] = "- `{$key}`: ".static::userLabel($user).' may not open it; pass "as" with a user who can.';
-
-                        continue;
-                    }
-
-                    $rendered[$key] = $page->html();
-                    $warnings = [...$warnings, ...static::warnings($key, $page->instance())];
-                    $rendered = [...$rendered, ...static::states($key, $page)];
-                    $passing[] = "- `{$key}`";
-                } catch (HttpException $e) {
-                    $skipped[] = "- `{$key}`: ".static::userLabel($user)." may not open it ({$e->getStatusCode()}); pass \"as\" with a user who can.";
-                } catch (Throwable $e) {
-                    while ($e->getPrevious() !== null) {
-                        $e = $e->getPrevious();
-                    }
-
-                    if ($e instanceof BindingResolutionException) {
-                        $skipped[] = "- `{$key}`: it needs route parameters the audit can't supply; open it in the browser to check it.";
-
-                        continue;
-                    }
-
-                    $failing[] = "- `{$key}`: ".static::failure($e);
-                }
+                $audit($key, $registration->getPage(), $parameters, fn (): string => $resource::getUrl($name, $parameters));
             }
 
             // Related lists render inside the View or Edit page; read them from the resource, since a View page may embed them itself.
@@ -172,6 +184,13 @@ class AuditPages extends Tool
                 } catch (Throwable $e) {
                     $failing[] = "- `{$key}`: ".static::failure($e);
                 }
+            }
+        }
+
+        // The panel's own pages, such as a dashboard or a settings page, on a full audit; the Storybook page is the workshop, not the app.
+        foreach ($request->get('resources') ? [] : $panel->getPages() as $class) {
+            if ($class !== Storybook::class) {
+                $audit(class_basename($class), $class, [], fn (): string => $class::getUrl());
             }
         }
 

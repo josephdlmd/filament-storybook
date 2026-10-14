@@ -13,7 +13,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `src/StoryRegistry.php` | Finds stories in `src/Stories` (shared patterns) and the app's `app/Stories`. Builds the manifest: snippets, imports, and an API section of real signatures (a tokenizer follows each call chain). |
 | `src/Livewire/StoryCanvas.php` | Renders one story in its own Livewire component, like Storybook's iframe. Only registered story classes can render. |
 | `src/Pages/Storybook.php` | The `/<panel>/storybook` catalogue. Not in navigation; blocked in production. |
-| `src/Mcp/*` | The five Boost MCP tools: `storybook-list`, `storybook-show`, `storybook-instructions`, `storybook-test` (patterns) and `storybook-audit` (the app's real resource pages, their related lists, the dashboard's widgets and the menu). |
+| `src/Mcp/*` | The five Boost MCP tools: `storybook-list`, `storybook-show`, `storybook-instructions`, `storybook-test` (patterns) and `storybook-audit` (the app's real resource pages, their related lists, the panel's own pages, the dashboard's widgets and the menu). |
 | `src/Accessibility.php` + `resources/a11y/axe.mjs` | WCAG 2.2 AA checks with axe-core in headless Chromium, shared by the test and audit tools. |
 | `src/StorybookPlugin.php` | Registers the page and the **house defaults**: Filament defaults corrected app-wide where they break a rule. |
 | `resources/boost/guidelines/core.blade.php` | The guideline Boost puts in each app's `AGENTS.md`. Keep it short: Storybook found that long agent instructions get truncated. |
