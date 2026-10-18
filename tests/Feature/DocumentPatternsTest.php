@@ -768,3 +768,58 @@ it('asks a bulk change for its one value, and exports only the ticked rows', fun
         ->assertActionVisible(TestAction::make('export')->table()->bulk())
         ->assertSeeInOrder(['Put on hold', 'Take off hold', 'Change payment terms', 'Export selected', 'Delete selected']);
 });
+
+it('posts a draft only once, saying so when another user has already posted it', function (): void {
+    $post = TestAction::make('post')->schemaComponent('story', 'form');
+    $canvas = fn () => Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\DocumentLifecycleStories::class, 'story' => 'default']);
+
+    $canvas()->callAction($post, ['number' => '001233'])->assertNotified('Invoice 001233 posted');
+    // A second page, still showing the draft, posts it again under another serial.
+    $canvas()->callAction($post, ['number' => '001235'])->assertNotified('Invoice 001235 not posted');
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::find(4)->number)->toBe('001233')
+        ->and(Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::where('number', '001235')->exists())->toBeFalse();
+});
+
+it('lists a supplier once per ATC in a quarter, even when its address was corrected', function (): void {
+    Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder::query()->insert([
+        'number' => 'PO-000044', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-08-01', 'total' => '1120.00', 'vat' => '120.00',
+        'supplier_tin' => '234-567-890-000', 'supplier_address' => '10 Session Road, Baguio City 2600', 'withholding_code' => 'WC158', 'invoice_recorded_on' => '2026-08-03', 'tax_withheld' => '10.00',
+    ]);
+
+    $rows = Josephdlmd\FilamentStorybook\Stories\Reports\SupplierWithholding::quarterQuery(Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder::query(), '2026-3')
+        ->where('supplier_tin', '234-567-890-000')
+        ->get();
+
+    expect($rows)->toHaveCount(1)
+        ->and((float) $rows->sole()->income_payment)->toBe(7962.5);
+});
+
+it('ages an invoice with no due date as current, in the report and on the statement alike', function (): void {
+    Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::query()->insert(['number' => '001250', 'status' => 'posted', 'customer_id' => 1, 'invoice_date' => '2026-10-01', 'due_date' => null, 'total' => '100.00', 'balance_due' => '100.00']);
+
+    $abra = Josephdlmd\FilamentStorybook\Stories\Reports\ReceivablesAgeing::addBuckets(Josephdlmd\FilamentStorybook\Stories\Documents\Customer::query(), Illuminate\Support\Carbon::parse('2026-10-14'))
+        ->where('code', 'C-0001')
+        ->sole();
+
+    expect((float) $abra->current)->toBe(100.0)
+        ->and((float) $abra->current + $abra->days_1_30 + $abra->days_31_60 + $abra->days_61_90 + $abra->over_90)->toBe((float) $abra->balance_due);
+
+    $customer = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Abra Provincial Hospital']);
+    $invoice = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => '001250', 'invoice_date' => '2026-10-01', 'due_date' => null, 'balance_due' => '100.00']);
+    $statement = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::statementOfAccount($customer, [$invoice], Illuminate\Support\Carbon::parse('2026-10-14'));
+
+    expect($statement['totals']['Current'])->toBe('100.00')
+        ->and($statement['lines'][0]['due'])->toBeNull()
+        ->and($statement['lines'][0]['days'])->toBeNull();
+});
+
+it('names a list\'s export after the list and the day, and counts its rows by their name', function (): void {
+    $export = new Filament\Actions\Exports\Models\Export;
+    $export->created_at = Illuminate\Support\Carbon::parse('2026-10-13 09:00');
+    $export->successful_rows = 2;
+    $export->total_rows = 2;
+
+    expect((new Josephdlmd\FilamentStorybook\Stories\Imports\SupplierExporter($export, [], []))->getFileName($export))->toBe('Suppliers Oct 13, 2026')
+        ->and(Josephdlmd\FilamentStorybook\Stories\Imports\SupplierExporter::getCompletedNotificationBody($export))->toBe('2 suppliers exported.');
+});

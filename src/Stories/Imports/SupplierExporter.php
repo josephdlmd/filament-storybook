@@ -3,13 +3,15 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Imports;
 
 use Filament\Actions\Exports\ExportColumn;
-use Filament\Actions\Exports\Exporter;
-use Filament\Actions\Exports\Models\Export;
-use Illuminate\Support\Number;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
 
-class SupplierExporter extends Exporter
+class SupplierExporter extends ReportExporter
 {
     protected static ?string $model = Supplier::class;
+
+    protected static string $title = 'Suppliers';
+
+    protected static string $rows = 'supplier';
 
     public static function getColumns(): array
     {
@@ -22,16 +24,5 @@ class SupplierExporter extends Exporter
             ExportColumn::make('withholdingCode.code')
                 ->label('ATC'),
         ];
-    }
-
-    public static function getCompletedNotificationBody(Export $export): string
-    {
-        $body = Number::format($export->successful_rows).' '.str('supplier')->plural($export->successful_rows).' exported.';
-
-        if ($failed = $export->getFailedRowsCount()) {
-            $body .= ' '.Number::format($failed).' '.str('row')->plural($failed).' failed.';
-        }
-
-        return $body;
     }
 }

@@ -244,7 +244,8 @@ class DocumentTotalsStories extends Stories
             ->successNotificationTitle(fn (?Model $record): string => "Supplier's invoice for order {$record?->number} recorded")
             ->action(function (Model $record, array $data, Action $action): void {
                 // On a resource: work the tax withheld out again with DocumentTotals::withholding(), store it with the supplier's TIN and the code,
-                // and set the order's balance_due to the net payable.
+                // and set the order's balance_due to the net payable. Store "None" as a null withholding_code, never 'none', so the 2307
+                // and the QAP (`SupplierWithholding`) leave the order out.
                 $action->success();
             });
     }

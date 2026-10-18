@@ -112,7 +112,7 @@ class SupplierWithholdingStories extends Stories
                         $record->supplier_tin,
                         $record->supplier_address,
                         SupplierWithholding::start($quarter($livewire)),
-                        SupplierWithholding::quarterQuery(PurchaseOrder::query(), $quarter($livewire))->where('supplier', $record->supplier)->get(),
+                        SupplierWithholding::quarterQuery(PurchaseOrder::query(), $quarter($livewire))->where('supplier_tin', $record->supplier_tin)->get(),
                     ))),
             ]);
     }

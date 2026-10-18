@@ -93,8 +93,8 @@ class PrintedDocument
             'statement' => 'THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX',
         ];
     }
-    /** The ageing buckets of a statement and the ageing report, by days past the due date (owner's business standard). */
-    public const AGEING = ['Current', '1–30 days', '31–60 days', '61–90 days', 'Over 90 days'];
+    /** The ageing buckets of a statement and the ageing report, by days past the due date (owner's business standard), keyed as the report's query names them. */
+    public const AGEING = ['current' => 'Current', 'days_1_30' => '1–30 days', 'days_31_60' => '31–60 days', 'days_61_90' => '61–90 days', 'over_90' => 'Over 90 days'];
 
     /** Whole days past the due date, as of a date or today; null when it isn't past due, which includes the due date itself. */
     public static function daysPastDue(mixed $due, ?Carbon $asOf = null): ?int
@@ -106,13 +106,13 @@ class PrintedDocument
 
     public static function ageingBucket(int $daysPastDue): string
     {
-        return match (true) {
-            $daysPastDue <= 0 => 'Current',
-            $daysPastDue <= 30 => '1–30 days',
-            $daysPastDue <= 60 => '31–60 days',
-            $daysPastDue <= 90 => '61–90 days',
-            default => 'Over 90 days',
-        };
+        return static::AGEING[match (true) {
+            $daysPastDue <= 0 => 'current',
+            $daysPastDue <= 30 => 'days_1_30',
+            $daysPastDue <= 60 => 'days_31_60',
+            $daysPastDue <= 90 => 'days_61_90',
+            default => 'over_90',
+        }];
     }
 
     /**
@@ -160,7 +160,8 @@ class PrintedDocument
         $lines = [];
 
         foreach ($documents as $document) {
-            $due = Carbon::parse($document->due_date);
+            // No due date means none is past due: Current, with the due date left blank.
+            $due = $document->due_date === null ? null : Carbon::parse($document->due_date);
             $days = static::daysPastDue($due, $asOf);
             $bucket = static::ageingBucket($days ?? 0);
             $buckets[$bucket] = bcadd($buckets[$bucket], (string) $document->balance_due, 2);
@@ -168,7 +169,7 @@ class PrintedDocument
             $lines[] = [
                 'number' => $document->number,
                 'date' => Carbon::parse($document->{$dateColumn})->translatedFormat($format),
-                'due' => $due->translatedFormat($format),
+                'due' => $due?->translatedFormat($format),
                 'days' => $days,
                 'balance' => $document->balance_due,
             ];

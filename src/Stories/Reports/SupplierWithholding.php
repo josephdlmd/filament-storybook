@@ -61,7 +61,8 @@ class SupplierWithholding
         $key = $model->getConnection()->getDriverName() === 'sqlite' ? 'cast(min(id) as integer)' : 'min(id)';
 
         $grouped = $model->newQuery()
-            ->selectRaw("{$key} as id, supplier, supplier_tin, supplier_address, withholding_code")
+            // One row per TIN and ATC, even when the supplier's name or address was corrected during the quarter.
+            ->selectRaw("{$key} as id, max(supplier) as supplier, supplier_tin, max(supplier_address) as supplier_address, withholding_code")
             ->selectRaw('sum(case when invoice_recorded_on between ? and ? then total - vat else 0 end) as month_1', $month(0))
             ->selectRaw('sum(case when invoice_recorded_on between ? and ? then total - vat else 0 end) as month_2', $month(1))
             ->selectRaw('sum(case when invoice_recorded_on between ? and ? then total - vat else 0 end) as month_3', $month(2))
@@ -69,7 +70,7 @@ class SupplierWithholding
             ->where('status', DocumentStatus::Posted)
             ->whereNotNull('withholding_code')
             ->whereBetween('invoice_recorded_on', [$month(0)[0], $month(2)[1]])
-            ->groupBy('supplier', 'supplier_tin', 'supplier_address', 'withholding_code');
+            ->groupBy('supplier_tin', 'withholding_code');
 
         return $orders->fromSub($grouped, $model->getTable());
     }
