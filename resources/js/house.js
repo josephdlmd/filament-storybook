@@ -59,11 +59,14 @@
             const name = field.id || labelFor || `fs-field-${[...document.querySelectorAll('.fi-fo-field')].indexOf(wrapper)}`;
             const errors = [...column.querySelectorAll(':scope > [data-validation-error]')];
             const hints = [...column.querySelectorAll(':scope > .fi-sc .fi-sc-text')];
-            const ids = [...errors.map((element, i) => [element, `${name}-fs-error-${i}`]), ...hints.map((element, i) => [element, `${name}-fs-hint-${i}`])]
-                .map(([element, id]) => (element.id ||= id));
-            // Filament sets its own descriptions too (`-required`, `-error`): they stay, and only an id this script made for an
-            // error or hint that has gone is dropped.
+            // Filament sets its own descriptions too (`-required`, `-error`, `-helper-text`): they stay, and only an id this script
+            // made for an error or hint that has gone is dropped.
             const kept = (field.getAttribute('aria-describedby') ?? '').split(/\s+/).filter((id) => id !== '' && ! /-fs-(error|hint)-\d+$/.test(id));
+            // What Filament already describes is left out, or a screen reader reads it twice.
+            const covered = (element) => kept.some((id) => document.getElementById(id)?.contains(element));
+            const ids = [...errors.map((element, i) => [element, `${name}-fs-error-${i}`]), ...hints.map((element, i) => [element, `${name}-fs-hint-${i}`])]
+                .filter(([element]) => ! covered(element))
+                .map(([element, id]) => (element.id ||= id));
             const described = [...new Set([...kept, ...ids])];
 
             described.length ? field.setAttribute('aria-describedby', described.join(' ')) : field.removeAttribute('aria-describedby');
