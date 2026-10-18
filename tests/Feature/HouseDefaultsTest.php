@@ -300,9 +300,8 @@ it('keeps an error, or a toast with an action, open until dismissed, deciding wh
         ->and(Filament\Notifications\Notification::make()->danger()->duration(3000)->getDuration())->toBe(3000)
         ->and(Filament\Notifications\Notification::make()->success()->persistent()->getDuration())->toBe('persistent');
 
-    Filament\Notifications\Notification::make()->danger()->title('Order 1042 not saved')->send();
-
-    expect(session('filament.notifications')[0]['duration'])->toBe('persistent');
+    // What send() stores; Filament 5.10.2 moved that store from the session to a mailbox.
+    expect(Filament\Notifications\Notification::make()->danger()->title('Order 1042 not saved')->toArray()['duration'])->toBe('persistent');
 });
 
 it('labels actions with Carbon\'s verbs and titles their modals in sentence case', function (): void {
