@@ -280,8 +280,17 @@ class AuditPages extends Tool
             }
         }
 
+        // The error pages, on a full audit: Laravel's own make the code the heading and give no way out.
+        $laravels = array_filter([403, 404, 419, 429, 500, 503], fn (int $code): bool => ! file_exists(resource_path("views/errors/{$code}.blade.php")));
+
+        if (! $names && $laravels) {
+            $warnings[] = '- `errors`: Laravel\'s own page still shows for '.implode(', ', $laravels).', with the code as its heading and no way out; run `php artisan vendor:publish --tag=filament-storybook-errors`, as `feedback-error-pages` says (Carbon empty states: "plain language (no codes)"; USWDS 404 page).';
+        }
+
         // The page around them once, as the browser gets it: the title, language, skip link, landmarks and the menu.
         $layout = $names ? [] : rescue(fn (): array => ['layout' => static::layout($panel)], [], report: false);
+        // And a published error page, whose words the app may have changed (feedback-error-pages).
+        $layout += $names || $laravels !== [] ? [] : rescue(fn (): array => ['errors.404' => view('errors.404')->render()], [], report: false);
 
         [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered, $layout, $panel);
 

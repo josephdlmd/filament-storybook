@@ -34,6 +34,9 @@ class FilamentStorybookServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([InstallCommand::class]);
+
+            // The error pages (feedback-error-pages): each holds only its words and includes the package's layout.
+            $this->publishes([__DIR__.'/../stubs/errors' => resource_path('views/errors')], 'filament-storybook-errors');
         }
 
         Livewire::component('filament-storybook.story-canvas', StoryCanvas::class);

@@ -399,3 +399,35 @@ it('heads global search groups in sentence case where the panel keeps Filament\'
     expect(app(Filament\GlobalSearch\Providers\DefaultGlobalSearchProvider::class))->toBeInstanceOf(Josephdlmd\FilamentStorybook\GlobalSearch\SentenceCaseGlobalSearchProvider::class)
         ->and(Josephdlmd\FilamentStorybook\GlobalSearch\SentenceCaseGlobalSearchProvider::sentenceCase($results)->getCategories()->keys()->all())->toBe(['Purchase orders', 'TINs']);
 });
+
+it('shows an error in plain words with a way out and its code small, in the panel\'s look, even outside every route', function (): void {
+    $this->artisan('vendor:publish', ['--tag' => 'filament-storybook-errors']);
+    Illuminate\Support\Facades\Route::get('/maintenance', fn () => abort(503));
+    // A 500 often comes from the database being down, so its page must not need the database.
+    Illuminate\Support\Facades\Route::get('/broken', function (): never {
+        config(['database.connections.testing.database' => '/nonexistent/database.sqlite']);
+        Illuminate\Support\Facades\DB::purge('testing');
+        auth()->forgetUser();
+
+        throw new RuntimeException('The database is down.');
+    })->middleware('web');
+    config(['app.debug' => false]);
+
+    try {
+        $this->get('/no-such-page')
+            ->assertNotFound()
+            ->assertSeeInOrder(['<title>', 'Page not found', '</title>', 'fi-simple-layout', '<h1 class="fi-simple-header-heading">', 'Page not found', 'Check the address for a typing mistake', 'Go to the dashboard', 'Error 404'], false)
+            // No top bar: an error page leads out with its one button.
+            ->assertDontSee('fi-simple-layout-header', false);
+
+        $this->get('/maintenance')
+            ->assertStatus(503)
+            ->assertSeeInOrder(['Down for maintenance', 'Try again', 'Error 503']);
+
+        $this->get('/broken')
+            ->assertStatus(500)
+            ->assertSeeInOrder(['Something went wrong', 'Go to the dashboard', 'Error 500']);
+    } finally {
+        Illuminate\Support\Facades\File::deleteDirectory(resource_path('views/errors'));
+    }
+});

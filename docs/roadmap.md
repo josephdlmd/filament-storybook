@@ -12,6 +12,8 @@ The menu (v0.28.0): two levels at most, groups in sentence case, words that stay
 
 Generic screens: list tables (search, filters, money, status, import and export, bulk actions), record forms (every field pattern, contact details and percentages, line items, modal, slide-over or wizard), record pages (details, related lists, locked records), delete, approve and reject, notifications, dashboards and the settings page. Account and security: Filament's profile and two-factor screens, reworded and checked against NIST by the house defaults (no passkeys in Filament yet). Inviting users by email, with a 7-day link they set their password from. The notifications panel. Hiding table columns, with Reset (no drag-only reordering). A date-range filter (no presets: no source). Archiving used records instead of deleting them, with Restore. Emailing documents as PDFs, the payment acknowledgement and the customer statement of account (open items).
 
+Error pages (v0.86.0): 403, 404, 419, 429, 500 and 503 in Filament's simple layout, published into the app.
+
 Reports (v0.54.0): sales, collections, receivables ageing, and purchases and payables, on screen with a totals row, as a PDF and as CSV or Excel.
 
 Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing documents as PDFs in one shared layout (spatie/laravel-pdf, chosen by the owner), and a copy-from view for the hand-written collection receipts. The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
@@ -37,7 +39,7 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 - **Accounting and tax:** chart of accounts; journal entries (debits equal credits); closing a period; tax reports and certificates. App-specific.
 - **Accounting-app features** (Mobbin shows them in Xero and QuickBooks; not shared patterns): bank reconciliation, recurring invoices, payment reminders, receipt capture, payment links, multi-currency. App-specific; build them when an app asks.
 - **Other screens an app may need:** a customer portal; delivery confirmation on a phone (photo or signature); a delivery calendar; recurring documents; a first-run company setup. Build them when an app asks.
-- **Administration:** roles and permissions; error pages (the rule exists, no pattern); faster data entry ("save and create another", keyboard use on long forms). Shared.
+- **Administration:** roles and permissions; faster data entry ("save and create another", keyboard use on long forms). Shared.
 
 ## Ask the owner first
 

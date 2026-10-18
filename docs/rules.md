@@ -230,7 +230,7 @@ Patterns `records-details`, `records-view-page` and `records-locked`. Checked ag
 - **When editing is unavailable only for now** (a process running, or another user editing), Edit stays visible but disabled; when that holds up the primary action, an inline notification says how it becomes available. Carbon read-only states (Application process, Locked) and disabled states ("should never fully disappear"); USWDS button (Oct 2024).
 - **Which statuses lock a record is a business fact.** Each app sets its own, ideally on its status enum, and uses it in its own `app/Stories`; the shared pattern uses one generic condition on the record.
 - **A numbered badge marks new or updated items and clears once they're acknowledged,** with up to three digits. Carbon uses it only on the header's global actions. Carbon status indicators (Aug 2026).
-- **Error pages use plain language and keep any error code small; they say what happened and give a way out** (home, contact or search). Carbon empty states (Aug 2026: "plain language (no codes)"); USWDS 404 page (Mar 2023); NN/g error messages (May 2023). A 403 page says who to ask for access (Carbon empty states: "Suggest steps or process to request access").
+- **Error pages use plain language and keep any error code small; they say what happened and give a way out** (home, contact or search). Carbon empty states (Aug 2026: "plain language (no codes)"); USWDS 404 page (Mar 2023); NN/g error messages (May 2023). A 403 page says who to ask for access (Carbon empty states: "Suggest steps or process to request access"). *Pattern `feedback-error-pages`; `storybook-audit` warns while Laravel's own pages show, and checks the published 404 whole.*
 
 ## Documents
 
