@@ -31,7 +31,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-mark-2307-received', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-locked', 'records-paper-receipt', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'reports-tax-withheld-by-customers', 'reports-tax-withheld-from-suppliers', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-mark-2307-received', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-key-figures', 'records-locked', 'records-paper-receipt', 'records-previous-and-next', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'reports-tax-withheld-by-customers', 'reports-tax-withheld-from-suppliers', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -553,7 +553,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-locked, records-paper-receipt, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-key-figures, records-locked, records-paper-receipt, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -620,8 +620,13 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 95 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 98 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
+});
+
+it('passes every check on the patterns taken from the accounting app', function (): void {
+    expect(testStoriesWithTheme(['ids' => ['records-previous-and-next', 'records-key-figures', 'dashboards-key-figures-and-charts', 'forms-record-picker', 'reports-sales', 'reports-collections', 'reports-receivables-ageing']]))
+        ->toStartWith('# 11 passing, 0 failing, 0 warnings, 0 accessibility issues');
 });
 
 it('names every line-item field under Filament\'s own CSS, which hides the cell labels once the table shows headers', function (): void {
@@ -1154,6 +1159,25 @@ it('adds a customer from the picker in a slide-over and chooses it', function ()
 
     expect($id)->not->toBeNull()
         ->and($canvas->get('data.customer_id'))->toEqual($id);
+});
+
+it('links to the record before and after this one in number order, leaving out the link at an end', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordNeighboursStories::class, 'story' => 'default'])
+        ->assertSee('Previous invoice 001231')
+        ->assertSee('Next invoice 001234');
+
+    // The last invoice in the series: no Next link, rather than a disabled one.
+    DB::connection('storybook')->beginTransaction();
+
+    try {
+        DB::connection('storybook')->table('sales_invoices')->where('number', '001234')->delete();
+
+        Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordNeighboursStories::class, 'story' => 'default'])
+            ->assertSee('Previous invoice 001231')
+            ->assertDontSee('Next invoice');
+    } finally {
+        DB::connection('storybook')->rollBack();
+    }
 });
 
 it('proposes what a government office withholds: 1% income tax on the amount less VAT and 5% VAT on the VATable sales, and the cash expected', function (): void {

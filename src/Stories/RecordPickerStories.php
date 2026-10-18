@@ -73,6 +73,8 @@ class RecordPickerStories extends Stories
             ->createOptionAction(fn (Action $action): Action => $action
                 ->label('Add customer')
                 ->modalHeading('Add customer')
+                // Filament labels this button "Create" after the house defaults run; it repeats the action's label.
+                ->modalSubmitActionLabel('Add customer')
                 ->slideOver());
     }
 }

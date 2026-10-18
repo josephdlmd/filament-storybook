@@ -53,7 +53,9 @@ class CollectionsReportStories extends Stories
                 TextColumn::make('salesInvoice.customer.name')
                     ->label('Customer'),
                 TextColumn::make('salesInvoice.number')
-                    ->label('Invoice'),
+                    ->label('Invoice')
+                    // On a resource: SalesInvoiceResource::getUrl('view', ['record' => $record->salesInvoice])
+                    ->url(fn (?Payment $record): ?string => $record?->salesInvoice ? '#'.$record->salesInvoice->number : null),
                 TextColumn::make('amount')
                     ->label('Amount received')
                     ->money('PHP')
