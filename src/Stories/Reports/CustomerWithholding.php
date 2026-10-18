@@ -3,7 +3,6 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 
@@ -16,14 +15,14 @@ class CustomerWithholding
 {
     /**
      * The quarter's withholding, by the payment date, 2307 or not, one row per customer TIN and ATC, with the
-     * income tax and the VAT withheld apart. Read from a subquery, so the totals row and the export add up whole rows.
+     * income tax and the VAT withheld apart. The quarter is given as "2026-3", as `SupplierWithholding::quarters()` keys it. Read from a subquery, so the totals row and the export add up whole rows.
      * Given a table's query (a filter's `baseQuery()`), it changes that query in place.
      *
      * @return Builder<Payment>
      */
-    public static function sawt(int $year, int $quarter, ?Builder $payments = null): Builder
+    public static function sawt(string $quarter, ?Builder $payments = null): Builder
     {
-        $from = Carbon::create($year, $quarter * 3 - 2, 1);
+        $from = SupplierWithholding::start($quarter);
 
         $rows = Payment::query()
             ->join('sales_invoices', 'sales_invoices.id', '=', 'payments.sales_invoice_id')

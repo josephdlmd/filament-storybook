@@ -16,6 +16,7 @@ use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Reports\CustomerWithholding;
+use Josephdlmd\FilamentStorybook\Stories\Reports\SupplierWithholding;
 use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
 use Josephdlmd\FilamentStorybook\Stories\Reports\SawtExporter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -29,7 +30,7 @@ class CustomerWithholdingStories extends Stories
 
     public function description(): string
     {
-        return 'The SAWT, the summary of the tax customers withheld from us that goes with each quarter\'s returns (`default`): one row per customer TIN and ATC, with the income payment, the income tax withheld and the VAT withheld in their own columns, and a totals row. Withholding is claimed in the quarter it was paid, whether or not its 2307 has arrived, so the SAWT and the quarter\'s return agree; `awaiting` lists the payments whose 2307 is still to collect, oldest first, and `actions-mark-2307-received` records each 2307 as it arrives. Built as `reports-sales` is: a page under Reports, a quarter filter (as of this quarter until the user picks another), "Download PDF" and "Export" (a CSV or Excel file for the CPA to load into BIR\'s alphalist tool, not BIR\'s DAT file, which that tool makes). Quarters go by the payment date. Basis: the owner\'s business standards (2026-10-18: customer withholding claimed in the quarter paid; 2026-10-12: the QAP and SAWT produced for the CPA); RR 2-98 Sec. 2.58.3 (the tax withheld is credited in the quarter the income was received, supported by the 2307); USWDS table (right-align numbers).';
+        return 'The SAWT, the summary of the tax customers withheld from us that goes with each quarter\'s returns (`default`): one row per customer TIN and ATC, with the income payment, the income tax withheld and the VAT withheld in their own columns, and a totals row. Withholding is claimed in the quarter it was paid, whether or not its 2307 has arrived, so the SAWT and the quarter\'s return agree; `awaiting` lists the payments whose 2307 is still to collect, oldest first, and `actions-mark-2307-received` records each 2307 as it arrives. Built as `reports-sales` is: a page under Reports, a quarter filter (the quarter just ended until the user picks another, as `reports-supplier-withholding` has it), "Download PDF" and "Export" (a CSV or Excel file for the CPA to load into BIR\'s alphalist tool, not BIR\'s DAT file, which that tool makes). Quarters go by the payment date. Basis: the owner\'s business standards (2026-10-18: customer withholding claimed in the quarter paid; 2026-10-12: the QAP and SAWT produced for the CPA); RR 2-98 Sec. 2.58.3 (the tax withheld is credited in the quarter the income was received, supported by the 2307); USWDS table (right-align numbers).';
     }
 
     public function examples(): array
@@ -39,8 +40,8 @@ class CustomerWithholdingStories extends Stories
 
     public function default(Table $table): Table
     {
-        // The filter's quarter, or this one.
-        $quarter = fn (array $data): array => [(int) ($data['year'] ?? null ?: now()->year), (int) ($data['quarter'] ?? null ?: now()->quarter)];
+        // The filter's quarter, or the one just ended.
+        $quarter = fn (?array $data): string => $data['quarter'] ?? null ?: SupplierWithholding::lastQuarter();
 
         return $table
             ->query(Payment::query())
@@ -73,22 +74,17 @@ class CustomerWithholdingStories extends Stories
             ->searchPlaceholder('Search by TIN or customer')
             ->filters([
                 Filter::make('quarter')
-                    ->columnSpan(2)
                     ->schema([
-                        Select::make('year')
-                            ->options(fn (): array => collect(range(now()->year, now()->year - 2))->mapWithKeys(fn (int $year): array => [$year => (string) $year])->all())
-                            ->placeholder('This year'),
                         Select::make('quarter')
-                            ->options([1 => 'Q1, January to March', 2 => 'Q2, April to June', 3 => 'Q3, July to September', 4 => 'Q4, October to December'])
-                            ->placeholder('This quarter'),
+                            ->options(SupplierWithholding::quarters())
+                            ->default(SupplierWithholding::lastQuarter())
+                            ->selectablePlaceholder(false)
+                            ->maxWidth('xs'),
                     ])
-                    ->columns(2)
                     // The rows are grouped in a subquery for the quarter: baseQuery() sets it, even with the filter empty, before
                     // the search adds its conditions, so the rows, the totals row and the export agree.
-                    ->baseQuery(fn (Builder $query, array $data) => CustomerWithholding::sawt(...$quarter($data), payments: $query))
-                    ->indicateUsing(fn (array $data): ?string => filled($data['year'] ?? null) || filled($data['quarter'] ?? null)
-                        ? 'Q'.($data['quarter'] ?? null ?: now()->quarter).' '.($data['year'] ?? null ?: now()->year)
-                        : null),
+                    ->baseQuery(fn (Builder $query, array $data) => CustomerWithholding::sawt($quarter($data), payments: $query))
+                    ->indicateUsing(fn (array $data): ?string => SupplierWithholding::quarters()[$data['quarter'] ?? ''] ?? null),
             ], layout: FiltersLayout::AboveContent)
             ->deferFilters(false)
             ->headerActions([
@@ -97,7 +93,7 @@ class CustomerWithholdingStories extends Stories
                     ->color('gray')
                     ->action(fn (HasTable $livewire): StreamedResponse => PrintedDocument::download(PrintedDocument::report(
                         'Tax withheld by customers',
-                        ['Quarter' => 'Q'.$quarter($livewire->getTableFilterState('quarter') ?? [])[1].' '.$quarter($livewire->getTableFilterState('quarter') ?? [])[0]],
+                        ['Quarter' => SupplierWithholding::quarters()[$quarter($livewire->getTableFilterState('quarter'))] ?? $quarter($livewire->getTableFilterState('quarter'))],
                         [
                             'tin' => ['label' => 'TIN'],
                             'customer' => ['label' => 'Customer'],
