@@ -21,7 +21,7 @@ class SettingsPageStories extends Stories
 
     public function description(): string
     {
-        return 'The settings the whole app shares, such as the company details printed on every document: a Filament `SettingsPage` (the spatie settings plugin), in the menu\'s System group as "Settings", open only to users with the permission to manage settings, and logging each change in the activity log, as the starter\'s General settings page does. Its form is a page form like any other: one column, the settings grouped in sections with short headings, each field the same pattern as everywhere else (`forms-tin`, `forms-contact-details`, `forms-choice`, `forms-yes-or-no`), Save at the bottom, a "Saved" toast, and a warning before leaving with unsaved changes (house default). Every setting is on the page, never in a collapsed section or a second tab, since the user checks them against each other. The printout joins the address parts into one line. No source sets rules for settings pages as such; this applies the form rules. Basis: Carbon forms (Aug 2026: single column; buttons at the bottom); Carbon global header (Aug 2026: warn when "state or progress will be lost"); NN/g accordions (Jul 2023); the company\'s TIN, address and phone follow the owner\'s business standards.';
+        return 'The settings the whole app shares, such as the company details printed on every document: a Filament `SettingsPage` (the spatie settings plugin), in the menu\'s System group as "Settings", open only to users with the permission to manage settings, and logging each change in the activity log, as the starter\'s General settings page does. Its form is a page form like any other: one column (set with `->columns(1)`, since Filament\'s `SettingsPage` gives its form two after the house default runs), the settings grouped in sections with short headings, each field the same pattern as everywhere else (`forms-tin`, `forms-contact-details`, `forms-choice`, `forms-yes-or-no`), Save at the bottom, a "Saved" toast, and a warning before leaving with unsaved changes (house default). Every setting is on the page, never in a collapsed section or a second tab, since the user checks them against each other. The printout joins the address parts into one line. No source sets rules for settings pages as such; this applies the form rules. Basis: Carbon forms (Aug 2026: single column; buttons at the bottom); Carbon global header (Aug 2026: warn when "state or progress will be lost"); NN/g accordions (Jul 2023); the company\'s TIN, address and phone follow the owner\'s business standards.';
     }
 
     public function examples(): array
@@ -37,6 +37,8 @@ class SettingsPageStories extends Stories
     public function default(Schema $schema): Schema
     {
         return $schema
+            // A SettingsPage sets two columns after the house default runs, so its form sets one itself.
+            ->columns(1)
             ->components([
                 Section::make('Company')
                     ->description('Printed at the top of every document')
