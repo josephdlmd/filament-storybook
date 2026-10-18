@@ -113,6 +113,10 @@ checks = {
     "import: a related record through relationship()": bool(re.search(r"ImportColumn::make\([^;]*?->relationship\(", code, re.S)),
     "bulk archive: archive many at once": bool(re.search(r"BulkAction::make\('archive", code)) or ("DeleteBulkAction" in code and "SoftDeletes" in app_code),
     "date range: one dashboard filter every widget reads": "HasFiltersForm" in code and "InteractsWithPageFilters" in code,
+    # v0.79-v0.80: a record's key events in the activity log, notes on a record, global search.
+    "history: key events written to the activity log": "activity()" in code and "performedOn(" in code and "LogsActivity" not in app_code,
+    "notes: on the record, knowing their writer by id": bool(re.search(r"function notes\(\)", app_code)) and "user_id" in code,
+    "global search: says what it searches": "getGloballySearchableAttributes" in code,
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")
@@ -120,8 +124,8 @@ print("patterns looked up:", sorted(shown) or "none")
 prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __import__("os").path.exists(transcript.rsplit("/", 1)[0] + "/prompt.txt") else ""
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
-        "invoice": "invoice", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "customer", "printing": "print", "purchases": "purchase",
-        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range"}
+        "invoice": "vat", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "(?=^(?!.*customer name)).*customer", "printing": "print", "purchases": "purchase",
+        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range", "history": "(history|who created|who posted)", "notes": "notes?\\b", "global search": "search at the top"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
