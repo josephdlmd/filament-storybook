@@ -308,6 +308,15 @@ it('keeps the compact and house selectors on classes Filament still uses, so an 
     }
 });
 
+it('puts a page\'s own navigation in tabs at the top, unless the app sets its own place', function (): void {
+    expect(Filament\Facades\Filament::getPanel('fixture')->getSubNavigationPosition())->toBe(Filament\Pages\Enums\SubNavigationPosition::Top);
+
+    $panel = Filament\Panel::make()->id('side')->subNavigationPosition(Filament\Pages\Enums\SubNavigationPosition::End);
+    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->register($panel);
+
+    expect($panel->getSubNavigationPosition())->toBe(Filament\Pages\Enums\SubNavigationPosition::End);
+});
+
 it('gives every page the full width, unless the app sets its own', function (): void {
     expect(Filament\Facades\Filament::getPanel('fixture')->getMaxContentWidth())->toBe(Filament\Support\Enums\Width::Full);
 
@@ -697,7 +706,10 @@ it('gives agents the story-writing rules', function (): void {
 /** Agents look up each component in the coverage table, so a component Filament adds must get a row before it is used. */
 it('lists every component Filament ships in the coverage table', function (): void {
     $coverage = file_get_contents(__DIR__.'/../../docs/filament-coverage.md');
-    $dirs = ['forms/src/Components', 'infolists/src/Components', 'tables/src/Columns', 'tables/src/Filters', 'schemas/src/Components', 'actions/src'];
+    // Each folder's own level, and the folders that hold parts people build screens from; not Filament's internals (jobs, editor extensions).
+    $dirs = ['forms/src/Components', 'infolists/src/Components', 'tables/src/Columns', 'tables/src/Filters', 'schemas/src/Components', 'actions/src',
+        'tables/src/Columns/Layout', 'tables/src/Columns/Summarizers', 'tables/src/Filters/QueryBuilder/Constraints', 'schemas/src/Components/Tabs', 'schemas/src/Components/Wizard',
+        'forms/src/Components/Repeater', 'forms/src/Components/Builder', 'infolists/src/Components/RepeatableEntry', 'filament/src/Clusters'];
 
     $missing = collect($dirs)
         ->flatMap(fn (string $dir): array => glob(__DIR__."/../../vendor/filament/{$dir}/*.php"))

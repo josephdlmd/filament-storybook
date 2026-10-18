@@ -42,6 +42,7 @@ use Filament\Schemas\Components\Form;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\IconPosition;
+use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Icons\Heroicon;
@@ -147,6 +148,12 @@ class StorybookPlugin implements Plugin
 
             // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.
             $panel->maxContentWidth($panel->getMaxContentWidth() ?? Width::Full);
+
+            // A page's own navigation, such as a cluster's settings pages, is tabs at the top (Carbon UI shell left panel: "use tabs
+            // within the page"); Filament puts it beside the page. Filament's getter never says whether the app set one, so ask its property.
+            if ((fn (): mixed => $this->subNavigationPosition)->call($panel) === null) {
+                $panel->subNavigationPosition(SubNavigationPosition::Top);
+            }
 
             // An idle session warns 2 minutes before it ends, with a button to stay logged in (WCAG 2.2.1: warned, "at least 20
             // seconds to extend"; NIST SP 800-63B-4: prompt "two minutes before"). Lifetimes over 20 hours are exempt.

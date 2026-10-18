@@ -21,7 +21,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `DateTimePicker` | Rule | typeable; audit (`native(false)`); a time shows its zone |
 | `TimePicker` | Rule | AM and PM in capitals; a time shows its zone |
 | `FileUpload` | Pattern | `forms-file-upload` (limits, GOV.UK errors); audit (types and size); no multiple upload in a modal; house default (drop zone wording in sentence case) |
-| `Repeater` | Pattern | `forms-line-items`, `forms-document-totals`; audit (reorder by buttons, header matches label); compact CSS |
+| `Repeater` (and its `TableColumn`) | Pattern | `forms-line-items`, `forms-document-totals`; audit (reorder by buttons, header matches label); compact CSS |
 | `Slider` | Rule | not for amounts, dates or wide ranges; typeable |
 | `Hidden` | Rule | engineering rule: set trusted values on the server |
 | `Placeholder` | Rule | deprecated: use `TextEntry` |
@@ -30,7 +30,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `KeyValue` | General | no source says when free-form keys beat fixed fields; Filament names each input |
 | `RichEditor`, `MarkdownEditor` | Rule | not for now: their toolbars can't be reached by keyboard (WCAG 2.1.1); a `Textarea` instead; audit |
 | `ColorPicker` | Rule | the value shows as text beside the swatch |
-| `Builder` | Not applicable | content blocks for pages, not business records |
+| `Builder` (and its `Block`) | Not applicable | content blocks for pages, not business records |
 | `CodeEditor` | Not applicable | a developer tool |
 | `OneTimeCodeInput` | Rule | Filament's own multi-factor screens, under the sign-in rules (NIST, GOV.UK security codes); house defaults (two-factor wording, email when turned on or off, password rule) |
 | `ViewField` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
@@ -40,7 +40,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | Component | Status | Guidance |
 |---|---|---|
 | `TextEntry` | Pattern | `records-details`, `records-view-page`, `records-paper-receipt`, `forms-document-totals`; read-only rules; house script (copyable) |
-| `RepeatableEntry` | Pattern | `records-view-page` (read-only tables); compact CSS |
+| `RepeatableEntry` (and its `TableColumn`) | Pattern | `records-view-page` (read-only tables); compact CSS |
 | `IconEntry` | Rule | an icon alone only for yes or no; otherwise a badge with its word |
 | `ImageEntry` | Rule | empty alt text beside text that names it; `->alt()` when it carries information |
 | `ColorEntry` | Rule | the value shows as text beside the swatch |
@@ -59,6 +59,8 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `ColorColumn` | Rule | the value shows as text beside the swatch |
 | `TextInputColumn`, `SelectColumn`, `CheckboxColumn` | Rule | row editing in a slide-over; editable cells named after their row (house script) |
 | `ColumnGroup` | Rule | one level deep |
+| `Split`, `Stack`, `Panel`, layout `Grid` and `contentGrid()` (a table laid out as rows of stacked values or as cards) | General | the table rules; they drop the column titles, so a list people compare across columns stays a table with headers, and Filament already stacks a table on a narrow screen (WCAG 1.4.10) |
+| layout `View` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 | `ViewColumn` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 | `Sum`, `Average`, `Count`, `Range`, `Values` (summarizers) | Pattern | `reports-sales` and the other reports (a totals row adding every row the filters keep); house CSS (4.5:1 values) |
 
@@ -68,7 +70,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 |---|---|---|
 | `SelectFilter`, `TernaryFilter` | Pattern | `tables-list-table` (open above the table with `FiltersLayout::AboveContent`, applied as they change, kept for the session; never the collapsible layout); house default ("All" as a yes-or-no filter's empty choice); test and audit (the collapsible layout) |
 | `TrashedFilter` | Pattern | `actions-archive` (labelled "Archived"); `actions-delete.restorable` |
-| `QueryBuilder` | Rule | applies on an explicit action; the closed filter shows the count and a clear option |
+| `QueryBuilder` (and its `Constraint`s: `TextConstraint`, `NumberConstraint`, `DateConstraint`, `BooleanConstraint`, `SelectConstraint`, `RelationshipConstraint`) | Rule | applies on an explicit action; the closed filter shows the count and a clear option |
 | `Filter` (a filter with its own form) | Rule | the filter rules: open above the table, applied as they change, a way to clear them all; its fields follow the form patterns |
 
 ## Layout and schema components
@@ -79,8 +81,9 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Grid`, `Group` | Pattern | `records-view-page` (halves and quarters), `forms-document-totals`; one-column rule |
 | `Flex`, `FusedGroup` | General | one-column rule: side by side only when the fields belong together |
 | `Fieldset` | Pattern | `forms-date.range`, `forms-contact-details.address` |
-| `Tabs` | Rule | tabs rules; audit (related lists not in tabs) |
-| `Wizard` | Pattern | `forms-form-container.wizard`; test (step names) |
+| `Tabs` (and each `Tab`) | Rule | tabs rules; audit (related lists not in tabs) |
+| `Cluster` | Rule | the menu rules: a cluster is one menu item whose pages are its own navigation, tabs at the top (house default) |
+| `Wizard` (and each `Step`) | Pattern | `forms-form-container.wizard`; test (step names) |
 | `Callout` | Pattern | `feedback-notifications.inline`; test (info or warning only) |
 | `EmptyState` | General | the empty-state rule |
 | `Text` | Rule | helper text and descriptions; type table |
@@ -133,7 +136,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `MultiSelect`, `MultiSelectFilter` | Not applicable | deprecated: `Select` or `SelectFilter` with `->multiple()` |
 | `RelationshipRepeater` | Not applicable | deprecated: `Repeater` with `->relationship()` (`forms-line-items`) |
 | `ButtonAction`, `IconButtonAction` | Not applicable | deprecated: `Action` with `->button()` or `->iconButton()` |
-| `Field`, `Entry`, `Column`, `Component`, `BaseFilter`, `BaseFileUpload`, `LivewireField`, `EmbeddedSchema`, `Form`, `RenderHook`, `Indicator`, `ActionName`, `ActionsServiceProvider` | Not applicable | base classes and plumbing, not used on their own |
+| `Field`, `Entry`, `Column`, `Component`, `Summarizer`, `BaseFilter`, `BaseFileUpload`, `LivewireField`, `EmbeddedSchema`, `Form`, `RenderHook`, `Indicator`, `ActionName`, `ActionsServiceProvider` | Not applicable | base classes and plumbing, not used on their own |
 
 ## Gaps
 
