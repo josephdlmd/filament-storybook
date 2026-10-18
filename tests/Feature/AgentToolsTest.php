@@ -11,7 +11,7 @@ use Laravel\Mcp\Request;
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 106 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 107 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 

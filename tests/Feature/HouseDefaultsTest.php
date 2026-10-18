@@ -431,3 +431,15 @@ it('shows an error in plain words with a way out and its code small, in the pane
         Illuminate\Support\Facades\File::deleteDirectory(resource_path('views/errors'));
     }
 });
+
+it('keeps what the next record shares when creating another, and nothing else', function (): void {
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\FormContainerStories::class, 'story' => 'createAnother'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('create')->schemaComponent('story', 'form'))
+        ->fillForm(['code' => 'I-0004', 'name' => 'Nitrile examination gloves, small', 'unit' => 'boxes'])
+        ->callMountedAction(['another' => true])
+        ->assertHasNoFormErrors()
+        ->assertActionMounted(Filament\Actions\Testing\TestAction::make('create')->schemaComponent('story', 'form'))
+        ->assertActionDataSet(['code' => null, 'name' => null, 'unit' => 'boxes']);
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\Item::query()->where('code', 'I-0004')->value('name'))->toBe('Nitrile examination gloves, small');
+});
