@@ -407,6 +407,10 @@ class StorybookPlugin implements Plugin
             Table::configureUsing(fn (Table $table) => $table->loadingSkeleton());
         }
 
+        // Applied filters, the search and the sort stay for the session (Carbon search: a filter "should persist during future
+        // searches until the user either discards the filter or begins a new session"). A table that sets its own keeps it.
+        Table::configureUsing(fn (Table $table) => $table->persistFiltersInSession()->persistSearchInSession()->persistSortInSession());
+
         // A toggle in a table shows a tick when on, so on and off don't differ by colour alone (Carbon toggle; WCAG 1.4.1).
         ToggleColumn::configureUsing(fn (ToggleColumn $column) => $column->onIcon(Heroicon::Check));
 

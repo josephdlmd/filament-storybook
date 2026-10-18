@@ -45,6 +45,8 @@ class ReceivablesAgeingStories extends Stories
             ->columns([
                 TextColumn::make('name')
                     ->label('Customer')
+                    // The customer's invoices: SalesReport::getUrl(['tableFilters' => ['customer' => ['value' => $record->getKey()]]])
+                    ->url(fn (?Customer $record): ?string => $record ? '#'.$record->code : null)
                     ->searchable(),
                 ...collect([...ReceivablesAgeing::COLUMNS, 'balance_due' => 'Total due'])->map(fn (string $label, string $column): TextColumn => TextColumn::make($column)
                     ->label($label)

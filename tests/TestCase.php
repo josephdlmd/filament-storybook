@@ -42,6 +42,7 @@ abstract class TestCase extends Orchestra
             FilamentServiceProvider::class,
             FilamentStorybookServiceProvider::class,
             FixturePanelProvider::class,
+            \Josephdlmd\FilamentStorybook\Tests\Fixtures\ShopPanelProvider::class,
             \Spatie\LaravelPdf\PdfServiceProvider::class,
         ];
     }

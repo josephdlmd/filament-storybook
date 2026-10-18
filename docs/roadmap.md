@@ -16,6 +16,8 @@ Reports (v0.54.0): sales, collections, receivables ageing, and purchases and pay
 
 Transactional documents (v0.25.0): document totals with VAT per class, the lifecycle from draft to posted to void with gapless numbering, voiding, recording payments against the balance (withholding both ways), and picking a customer, supplier or item. Printing documents as PDFs in one shared layout (spatie/laravel-pdf, chosen by the owner), and a copy-from view for the hand-written collection receipts. The owner's answers and the practices recommended at their request are under "Business standards" in `rules.md`.
 
+From the accounting app (2026-10-18): adding a record from its picker, previous and next on a View page, key figures on a page of one task, the ageing as one stacked bar on a dashboard, report rows that open what they sum up with reports opened filtered by a link, every table keeping its filters, search and sort, and `storybook-audit` for each panel and a resource's custom page of one record.
+
 ## Next
 
 In this order (a proposal; the owner confirms). Generic flows come first: every internal tool needs them, and they need no business facts. The list comes from Mobbin (2026-10-11), which confirms that real apps have a screen but never justifies a rule; each pattern still needs its basis under the rules policy.
@@ -42,7 +44,14 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
 - When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit. No change planned for now (owner, 2026-10-12).
-- From the CPA: which quarter's SAWT a customer's withholding belongs to (paid, as now, or 2307 received); whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160; whether a government office withholds its 5% VAT on the VATable sales alone, as `DocumentTotals` now assumes (exempt and zero-rated sales carry no VAT)
+- Which quarter claims a customer's withholding. The package's SAWT lists it in the quarter it was paid, but only once its 2307 has arrived (`CustomerWithholding::sawt()`). The accounting app's owner decision (2026-10-17, Blueprint 75 Q622) claims it in the quarter paid whether or not the 2307 is in, as RR 2-98 Sec. 2.58.3 credits the tax in the quarter the income was received, and lists what still waits for its 2307; the app had found that waiting made the 2550Q and its SAWT disagree. Ask the owner whether the package follows.
+- From the CPA: whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160 (the accounting app reads it as adding WC840 to WC860 beside them); whether a government office withholds its 5% VAT on the VATable sales alone, as `DocumentTotals` now assumes (exempt and zero-rated sales carry no VAT)
+
+- What the accounting app built that the package has no basis or means to share yet (2026-10-18):
+  - **The copy beside a posting form** (`AttachedCopy`): the rule exists, but drawing a PDF whole needs pdf.js, a route that serves the file only to a user who may view the record, and the media library. Sharing it means the package ships that viewer and route. The app also splits the page two thirds and one third, where the rule says three quarters and one (owner, 2026-10-13); which one holds?
+  - **Lines by count** in place of Add line (the app's E22): no source sets it, and its count field sits beside its label, which the rules forbid on a field the user types in. It stays the app's unless a source is found.
+  - **The form sheet** (the app's E21) and the app's theme choices (blue underlined links, square corners, flat buttons, the paper-gray page): the theme's look, which the policy leaves to each app. Carbon's button page (Oct 2026) sets no shadow either way.
+  - **Inline radios** (the app's E10 and E20): three to five one-word options side by side, where the rule allows two (GOV.UK radios, USWDS); Carbon allows a horizontal group "depending on the use case". The audit flags every posting form until the rule or the app changes.
 
 ## How
 
