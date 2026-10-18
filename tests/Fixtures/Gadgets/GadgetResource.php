@@ -124,6 +124,7 @@ class GadgetResource extends Resource
             'view' => Pages\ViewGadget::route('/{record}'),
             'edit' => Pages\EditGadget::route('/{record}/edit'),
             'report' => Pages\ReportGadgets::route('/report/{year}'),
+            'check' => Pages\CheckGadget::route('/{record}/check'),
         ];
     }
 }

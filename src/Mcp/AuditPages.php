@@ -29,6 +29,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Pages\CreateRecord;
@@ -80,12 +81,19 @@ class AuditPages extends Tool
         return [
             'resources' => $schema->array()->items($schema->string())->description('Resource class names, e.g. "SupplierResource". Omit to audit every resource.'),
             'as' => $schema->string()->description('Email of the user to sign in as. Defaults to the first user who can access the panel.'),
+            'panel' => $schema->string()->description('Id of the panel to audit, e.g. "warehouse". Defaults to the panel the Storybook page is on; audit each panel in turn.'),
         ];
     }
 
     public function handle(Request $request): Response
     {
-        $panel = Storybook::panel() ?? Filament::getDefaultPanel();
+        $panels = Filament::getPanels();
+        $panel = filled($id = $request->get('panel')) ? ($panels[$id] ?? null) : (Storybook::panel() ?? Filament::getDefaultPanel());
+
+        if ($panel === null) {
+            return Response::error("No panel \"{$id}\". The panels are: ".implode(', ', array_keys($panels)).'.');
+        }
+
         Filament::setCurrentPanel($panel);
 
         $user = $this->user($panel, $request->get('as'));
@@ -104,6 +112,11 @@ class AuditPages extends Tool
         $skipped = [];
         $warnings = [];
         $rendered = [];
+
+        // A panel without the plugin misses the house settings made per panel, though the app-wide defaults still reach it.
+        if (! $panel->hasPlugin('filament-storybook')) {
+            $warnings[] = "- `panel`: the {$panel->getId()} panel has no `StorybookPlugin`, so it lacks the house settings made per panel: the idle-session warning (WCAG 2.2.1), the unsaved-changes alert and full-width pages (Carbon 2x grid); add `->plugin(StorybookPlugin::make())` to it, with the same options as the other panels.";
+        }
 
         // Renders one page and files it under passing, failing or skipped. A page that sends the user back to itself as it
         // opens, such as a list that lands on the user's last saved filters, is followed once, as the browser would.
@@ -150,7 +163,8 @@ class AuditPages extends Tool
                 $key = class_basename($registration->getPage());
                 $parameters = [];
 
-                if (in_array($name, ['edit', 'view'], true)) {
+                // Edit, View and any custom page of one record, such as a reconciliation, open on the first record.
+                if (in_array(InteractsWithRecord::class, class_uses_recursive($registration->getPage()), true)) {
                     $record = $resource::getEloquentQuery()->first();
 
                     if ($record === null) {
@@ -241,7 +255,7 @@ class AuditPages extends Tool
         // The page around them once, as the browser gets it: the title, language, skip link, landmarks and the menu.
         $layout = $request->get('resources') ? [] : rescue(fn (): array => ['layout' => static::layout($panel)], [], report: false);
 
-        [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered, $layout);
+        [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered, $layout, $panel);
 
         $text = '# '.count($passing).' pages rendered, '.count($failing).' failing, '.count($warnings).' warnings, '.count($issues)." accessibility issues\n\n"
             .'Signed in as '.static::userLabel($user).".\n".($unchecked ? "\n{$unchecked}\n" : '');

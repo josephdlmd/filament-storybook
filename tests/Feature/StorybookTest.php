@@ -487,6 +487,15 @@ it('corrects Filament defaults that break a sourced rule, app-wide', function ()
         ->and(Josephdlmd\FilamentStorybook\StorybookPlugin::requiredMessage(Filament\Forms\Components\Select::make('payment_terms')))->toBe('Select payment terms');
 });
 
+it('keeps every table\'s filters, search and sort for the session', function (): void {
+    $this->actingAs(Josephdlmd\FilamentStorybook\Tests\Fixtures\User::query()->create(['name' => 'Tester', 'email' => 'tester@example.com']));
+    $table = Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\Pages\ListGadgets::class)->instance()->getTable();
+
+    expect($table->persistsFiltersInSession())->toBeTrue()
+        ->and($table->persistsSearchInSession())->toBeTrue()
+        ->and($table->persistsSortInSession())->toBeTrue();
+});
+
 it('keeps an error, or a toast with an action, open until dismissed, deciding when it is sent', function (): void {
     expect(Filament\Notifications\Notification::make()->success()->title('Saved')->getDuration())->toBe(6000)
         ->and(Filament\Notifications\Notification::make()->danger()->title('Order 1042 not saved')->getDuration())->toBe('persistent')
@@ -611,7 +620,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 94 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 95 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -787,6 +796,25 @@ it('audits the dashboard\'s widgets on a full audit', function (): void {
         ->not->toContain('- `OrdersPerMonthChart`:');
 });
 
+it('audits the panel it is asked for, and warns when that panel has no StorybookPlugin', function (): void {
+    expect((string) (new AuditPages)->handle(new Request(['panel' => 'shop']))->content())
+        ->toContain('- `panel`: the shop panel has no `StorybookPlugin`')
+        ->not->toContain('GadgetResource');
+
+    expect((string) (new AuditPages)->handle(new Request)->content())->not->toContain('- `panel`:');
+
+    expect((string) (new AuditPages)->handle(new Request(['panel' => 'stores']))->content())
+        ->toContain('No panel "stores". The panels are: fixture, shop.');
+});
+
+it('opens a custom page of one record on the first record', function (): void {
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
+
+    expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+        ->toContain('- `CheckGadget`')
+        ->not->toContain('- `CheckGadget`: it needs route parameters');
+});
+
 it('audits the panel\'s own pages on a full audit, following a page that sends the user back to itself as it opens', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
         ->toContain('- `GadgetOverview`')
@@ -824,7 +852,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 6 pages rendered, 0 failing, 94 warnings')
+        ->toStartWith('# 7 pages rendered, 0 failing, 94 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
@@ -1113,6 +1141,19 @@ it('picks a customer by code or name, showing both', function (): void {
 
     expect($select->getSearchResults('C-0004'))->toBe([4 => 'C-0004 Davao Family Clinic'])
         ->and($select->getSearchResults('iloilo'))->toBe([5 => 'C-0005 Iloilo Dental Group']);
+});
+
+it('adds a customer from the picker in a slide-over and chooses it', function (): void {
+    $canvas = Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordPickerStories::class, 'story' => 'withAdd'])
+        ->mountAction(Filament\Actions\Testing\TestAction::make('createOption')->schemaComponent('customer_id', 'form'))
+        ->setActionData(['code' => 'C-0009', 'name' => 'Zambales Rural Health Unit'])
+        ->callMountedAction()
+        ->assertHasNoFormErrors();
+
+    $id = Josephdlmd\FilamentStorybook\Stories\Documents\Customer::query()->where('code', 'C-0009')->value('id');
+
+    expect($id)->not->toBeNull()
+        ->and($canvas->get('data.customer_id'))->toEqual($id);
 });
 
 it('proposes what a government office withholds: 1% income tax on the amount less VAT and 5% VAT on the VATable sales, and the cash expected', function (): void {

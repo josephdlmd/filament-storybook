@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook;
 
+use Filament\Panel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -18,9 +19,10 @@ class Accessibility
      * @param  array<string, string>  $pages  key => a whole page, checked whole: its title, language, landmarks and skip link
      * @return array{0: list<string>, 1: string|null} the issues, and why the check was skipped
      */
-    public static function check(array $rendered, array $pages = []): array
+    public static function check(array $rendered, array $pages = [], ?Panel $panel = null): array
     {
-        preg_match_all('/href="([^"]+\.css[^"]*)"/', (string) Storybook::panel()?->getTheme()->getHtml()->toHtml(), $hrefs);
+        $panel ??= Storybook::panel();
+        preg_match_all('/href="([^"]+\.css[^"]*)"/', (string) $panel?->getTheme()->getHtml()->toHtml(), $hrefs);
         $css = [];
         $downloaded = [];
 
@@ -38,7 +40,7 @@ class Accessibility
         // Every panel page loads the house CSS too; the line-item labels depend on it.
         $css[] = __DIR__.'/../resources/css/house.css';
 
-        $plugin = Storybook::panel()?->getPlugins()['filament-storybook'] ?? null;
+        $plugin = $panel?->getPlugins()['filament-storybook'] ?? null;
 
         if ($plugin?->hasCompactTables()) {
             $css[] = __DIR__.'/../resources/css/compact-tables.css';
