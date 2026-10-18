@@ -65,10 +65,12 @@ Shared standards live only here. If a session working in an app is asked to chan
 - For a real-app check, copy `src`, `resources` and `docs` into a starter checkout's `vendor/josephdlmd/filament-storybook`, then call the tools through `php artisan boost:mcp` over stdio. Restore the vendor copy with `composer install` afterwards.
 - `filacheck src` (FilaCheck Pro, installed globally with Composer, since it's a paid package) should find only UI suggestions the rules overrule, such as `table-without-searchable-columns` on a list that stays short (see the rules policy). The fixtures break rules on purpose, so never run `--fix` on `tests`. FilaCheck also rewrites some files without `--fix` (its `deprecated-url-parameters` rule turns `set('activeTab', …)` into `set('tab', …)`, which breaks Livewire tests, since `tab` is only the URL name): run it on a copy, or on a committed tree and check `git diff` after.
 - Look at visual changes on the Storybook page in a browser; tests don't catch layout problems.
-- After changing the agent layer (tools, guideline, instructions, rules), run `eval/run.sh <throwaway-app> <out-dir>`.
+- If a session changed the agent layer (tools, guideline, instructions, rules), run `eval/run.sh <throwaway-app> <out-dir>` once, before the session's release (owner, 2026-10-18).
 
 ## Releasing
 
+Release once per session, at its end, not after each change (owner, 2026-10-18).
+
 1. Commit to `main`, tag `vX.Y.Z` and push the tag. The package is installed from GitHub tags, not Packagist. Bump the minor version when patterns, rules or defaults change behaviour.
 2. In `filament-starter`, on a branch: run `composer require josephdlmd/filament-storybook:^X.Y` (a `^0.x` constraint does not pick up the next minor version), then `php artisan boost:update`, `composer check`, and `storybook-audit`, fixing what it finds.
-3. Open a PR and merge it only when the owner says so. Existing apps get the change only when someone updates them.
+3. Open a PR. Merge it yourself when `composer check` passes and `storybook-audit` reports 0 failures, 0 warnings and 0 accessibility issues (owner, 2026-10-18); otherwise it waits for the owner. Existing apps get the change only when someone updates them.
