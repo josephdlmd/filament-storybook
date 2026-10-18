@@ -85,6 +85,16 @@ class SampleDatabase
             $table->decimal('on_hand', 15, 3);
         });
 
+        $schema->create('record_events', function (Blueprint $table): void {
+            $table->id();
+            $table->morphs('record');
+            $table->string('event');
+            // The name as it was, so the history still says who did it after a user is renamed or removed.
+            $table->string('user_name');
+            $table->string('reason')->nullable();
+            $table->dateTime('happened_at');
+        });
+
         $schema->create('purchase_orders', function (Blueprint $table): void {
             $table->id();
             $table->string('number')->unique();
@@ -166,6 +176,13 @@ class SampleDatabase
             ['item_id' => 1, 'document' => 'Delivery DR-000030', 'moved_on' => '2026-09-28', 'quantity' => '-40', 'unit_cost' => '210.0000', 'on_hand' => '60'],
             ['item_id' => 1, 'document' => 'Receiving report RR-000007', 'moved_on' => '2026-10-05', 'quantity' => '80', 'unit_cost' => '214.3750', 'on_hand' => '140'],
         ]);
+
+        // The void invoice 001231's history.
+        DB::connection('storybook')->table('record_events')->insert(array_map(fn (array $event): array => ['record_type' => SalesInvoice::class, 'record_id' => 1, ...$event], [
+            ['event' => 'Created', 'user_name' => 'Ana Reyes', 'reason' => null, 'happened_at' => '2026-10-09 09:12:00'],
+            ['event' => 'Posted', 'user_name' => 'Ana Reyes', 'reason' => null, 'happened_at' => '2026-10-09 09:30:00'],
+            ['event' => 'Voided', 'user_name' => 'Ben Santos', 'reason' => 'Issued to the wrong customer', 'happened_at' => '2026-10-10 14:05:00'],
+        ]));
 
         // Abra's credit limit, and an order of theirs posted but not yet invoiced: with its unpaid invoices, ₱205,890.50 is taken.
         DB::connection('storybook')->table('customers')->where('code', 'C-0001')->update(['credit_limit' => '250000.00']);
