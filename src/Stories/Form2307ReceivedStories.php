@@ -17,7 +17,7 @@ class Form2307ReceivedStories extends Stories
 
     public function description(): string
     {
-        return 'Recording that a customer\'s BIR Form 2307 has arrived: a gray "Mark 2307 received" button on the View page of a payment the customer withheld tax from, until it is marked. It asks for the date the 2307 arrived (today or earlier) and keeps it with the payment; from then the withholding is in the quarter\'s SAWT and can be claimed (`reports-tax-withheld-by-customers`). Basis: the owner\'s business standards (2026-10-12: customer withholding is claimed on a return only once the 2307 is in hand); Carbon button (one primary action; this one is gray); Carbon date picker.';
+        return 'Recording that a customer\'s BIR Form 2307 has arrived: a gray "Mark 2307 received" button on the View page of a payment the customer withheld tax from, until it is marked. It asks for the date the 2307 arrived (today or earlier) and keeps it with the payment, which then leaves the list of 2307s to collect (`reports-tax-withheld-by-customers`); the withholding is in the SAWT of the quarter it was paid either way. Basis: the owner\'s business standards (2026-10-18: customer withholding claimed in the quarter paid, with each 2307 collected to support it); Carbon button (one primary action; this one is gray); Carbon date picker.';
     }
 
     public function records(): array

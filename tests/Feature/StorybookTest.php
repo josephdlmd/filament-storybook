@@ -1332,15 +1332,15 @@ it('emails a document as its PDF from the company address, and tells the sender 
         ]);
 });
 
-it('claims customer withholding only once its 2307 is in, a quarter at a time', function (): void {
+it('claims customer withholding in the quarter it was paid, 2307 or not, a quarter at a time', function (): void {
     $CustomerWithholding = Josephdlmd\FilamentStorybook\Stories\Reports\CustomerWithholding::class;
     $sawt = fn (int $year, int $quarter): array => $CustomerWithholding::sawt($year, $quarter)->orderBy('customer')->get()
         ->map(fn ($row): array => [$row->tin, $row->customer, $row->tax_atc, number_format((float) $row->income_payment, 2, '.', ''), number_format((float) $row->tax_withheld, 2, '.', ''), number_format((float) $row->vat_withheld, 2, '.', '')])->all();
 
     // Still waiting, oldest first: Abra's October payment and Cebu's November one.
     expect($CustomerWithholding::awaiting()->pluck('number')->all())->toBe(['004532', '004516'])
-        // October to December: only Cebu's, whose 2307 arrived; the void payment and the ones still waiting are left out.
-        ->and($sawt(2026, 4))->toBe([['987-654-321-000', 'Cebu Diagnostics Laboratory', 'WC158', '3003.31', '30.03', '150.17']])
+        // October to December: Abra's and both of Cebu's, 2307 or not; the void payment is left out.
+        ->and($sawt(2026, 4))->toBe([['234-567-890-000', 'Abra Medical Supply', 'WC158', '795.09', '7.95', '0.00'], ['987-654-321-000', 'Cebu Diagnostics Laboratory', 'WC158', '5734.31', '57.34', '150.17']])
         ->and($sawt(2026, 3))->toBe([['234-567-890-000', 'Abra Medical Supply', 'WC158', '4464.00', '44.64', '0.00']])
         ->and($sawt(2026, 1))->toBe([]);
 
@@ -1348,8 +1348,7 @@ it('claims customer withholding only once its 2307 is in, a quarter at a time', 
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\CustomerWithholdingStories::class, 'story' => 'default'])
         ->call('loadTable')
-        ->assertSee(['Cebu Diagnostics Laboratory', '₱150.17'])
-        ->assertDontSee('Abra Medical Supply')
+        ->assertSee(['Cebu Diagnostics Laboratory', '₱150.17', 'Abra Medical Supply', '₱7.95'])
         ->filterTable('quarter', ['year' => '2026', 'quarter' => '3'])
         ->assertSee(['Abra Medical Supply', '₱44.64'])
         ->assertDontSee('Cebu Diagnostics Laboratory');

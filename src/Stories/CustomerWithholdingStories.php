@@ -29,7 +29,7 @@ class CustomerWithholdingStories extends Stories
 
     public function description(): string
     {
-        return 'The SAWT, the summary of the tax customers withheld from us that goes with each quarter\'s returns (`default`): one row per customer TIN and ATC, with the income payment, the income tax withheld and the VAT withheld in their own columns, and a totals row. Only withholding whose 2307 has arrived is in it, since it is claimed on a return only once the 2307 is in hand; `awaiting` lists the rest, oldest first, to chase before the quarter closes, and `actions-mark-2307-received` records each 2307 as it arrives. Built as `reports-sales` is: a page under Reports, a quarter filter (as of this quarter until the user picks another), "Download PDF" and "Export" (a CSV or Excel file for the CPA to load into BIR\'s alphalist tool, not BIR\'s DAT file, which that tool makes). Quarters go by the payment date. Basis: the owner\'s business standards (2026-10-12: customer withholding claimed only with the 2307; the QAP and SAWT produced for the CPA); RR 2-98 (creditable withholding is supported by the 2307); USWDS table (right-align numbers).';
+        return 'The SAWT, the summary of the tax customers withheld from us that goes with each quarter\'s returns (`default`): one row per customer TIN and ATC, with the income payment, the income tax withheld and the VAT withheld in their own columns, and a totals row. Withholding is claimed in the quarter it was paid, whether or not its 2307 has arrived, so the SAWT and the quarter\'s return agree; `awaiting` lists the payments whose 2307 is still to collect, oldest first, and `actions-mark-2307-received` records each 2307 as it arrives. Built as `reports-sales` is: a page under Reports, a quarter filter (as of this quarter until the user picks another), "Download PDF" and "Export" (a CSV or Excel file for the CPA to load into BIR\'s alphalist tool, not BIR\'s DAT file, which that tool makes). Quarters go by the payment date. Basis: the owner\'s business standards (2026-10-18: customer withholding claimed in the quarter paid; 2026-10-12: the QAP and SAWT produced for the CPA); RR 2-98 Sec. 2.58.3 (the tax withheld is credited in the quarter the income was received, supported by the 2307); USWDS table (right-align numbers).';
     }
 
     public function examples(): array
@@ -114,7 +114,7 @@ class CustomerWithholdingStories extends Stories
             ]);
     }
 
-    /** Withholding that can't be claimed yet: posted payments whose 2307 hasn't arrived, oldest first. */
+    /** The 2307s still to collect: posted payments whose 2307 hasn't arrived, oldest first. */
     public function awaiting(Table $table): Table
     {
         return $table
