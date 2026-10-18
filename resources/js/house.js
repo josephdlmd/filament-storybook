@@ -276,3 +276,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     schedule();
 });
+
+/*
+ * Global search: Filament shows its results without saying how many, and a screen reader hears nothing as they appear
+ * (Carbon search: "Always include the number of search results, including for searches with no results"; WCAG 4.1.3).
+ * A count heads the results, and the count, or the no-results message, is announced once for each search.
+ */
+(() => {
+    let announced = null;
+
+    const count = () => {
+        const panel = document.querySelector('.fi-global-search-results-ctn');
+
+        if (! panel) {
+            announced = null;
+
+            return;
+        }
+
+        // shortcut: Filament returns at most 50 results for each resource, so a bigger match still counts 50; say "or more" if an app needs it.
+        const total = panel.querySelectorAll('.fi-global-search-result').length;
+        const message = total ? `${total} ${total === 1 ? 'result' : 'results'}` : panel.querySelector('.fi-global-search-no-results-message')?.textContent.trim();
+        const list = panel.querySelector('.fi-global-search-results');
+
+        // Livewire's morph takes out what the server didn't render, so the count goes back after every change.
+        if (list && ! list.previousElementSibling?.classList.contains('fs-global-search-count')) {
+            list.before(Object.assign(document.createElement('p'), { className: 'fs-global-search-count' }));
+        }
+
+        if (list && list.previousElementSibling.textContent !== message) {
+            list.previousElementSibling.textContent = message;
+        }
+
+        const search = `${document.querySelector('.fi-global-search-field input')?.value}|${message}`;
+
+        if (message && search !== announced) {
+            announced = search;
+
+            let region = document.getElementById('fs-global-search-status');
+
+            if (! region) {
+                region = Object.assign(document.createElement('div'), { id: 'fs-global-search-status', className: 'fi-sr-only' });
+                region.setAttribute('role', 'status');
+                document.body.append(region);
+            }
+
+            region.textContent = message;
+        }
+    };
+
+    new MutationObserver(count).observe(document.documentElement, { childList: true, subtree: true });
+})();

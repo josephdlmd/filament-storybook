@@ -24,6 +24,8 @@ class GadgetResource extends Resource
 {
     protected static ?string $model = Gadget::class;
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Stock Control';
 
     // Filament requires an icon on a menu item with items under it (the fixture panel's Stock report).

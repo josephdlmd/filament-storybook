@@ -961,6 +961,17 @@ it('gives a resource sentence case where Filament title-cases its model', functi
         ->and(GadgetResource::getTitleCaseModelLabel())->toBe('Gadget');
 });
 
+it('says what global search searches, and what to try when it finds nothing', function (): void {
+    $this->actingAs(User::forceCreate(['name' => 'Ana', 'email' => 'ana.search@example.com', 'password' => 'secret']));
+    Filament\Facades\Filament::setCurrentPanel('fixture');
+    event(new Filament\Events\ServingFilament);
+
+    expect(__('filament-panels::global-search.field.placeholder'))->toBe('Search gadgets')
+        ->and(__('filament-panels::global-search.no_results_message'))->toBe('No results. Check the spelling, or search for fewer words.')
+        ->and(file_get_contents(__DIR__.'/../../resources/css/house.css'))->toContain(".fi-global-search-result-group-header {\n    text-transform: none;")
+        ->and(file_get_contents(__DIR__.'/../../resources/js/house.js'))->toContain('`${total} ${total === 1 ? \'result\' : \'results\'}`');
+});
+
 it('heads global search groups in sentence case where the panel keeps Filament\'s own provider', function (): void {
     $results = Filament\GlobalSearch\GlobalSearchResults::make()->category('purchase orders')->category('TINs');
 

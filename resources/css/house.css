@@ -342,3 +342,23 @@
     inset-inline-end: 1.75rem;
     mask-size: 1rem;
 }
+
+/*
+ * Global search: Filament capitalises each word of a result group's heading in CSS, undoing the sentence case the
+ * house provider gives it ("Sales invoices", not "Sales Invoices"; Carbon content). The count the house script puts
+ * above the results takes the no-results message's look.
+ */
+.fi-global-search-result-group-header {
+    text-transform: none;
+}
+
+.fs-global-search-count {
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--gray-500);
+}
+
+.fs-global-search-count:where(.dark, .dark *) {
+    color: var(--gray-400);
+}

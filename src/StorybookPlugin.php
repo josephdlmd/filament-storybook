@@ -166,6 +166,17 @@ class StorybookPlugin implements Plugin
         // lower case; a panel's own provider is untouched (Carbon content).
         app()->bind(DefaultGlobalSearchProvider::class, SentenceCaseGlobalSearchProvider::class);
 
+        // Global search's placeholder says what it searches, "Search customers and sales invoices", from the resources the user may
+        // search in this panel (Carbon search: placeholder text "hinting at what the user can search for").
+        Filament::serving(function (): void {
+            $labels = collect(Filament::getResources())->filter(fn (string $resource): bool => $resource::canGloballySearch())->map(fn (string $resource): string => $resource::getPluralModelLabel());
+
+            if ($labels->isNotEmpty()) {
+                app('translator')->load('filament-panels', 'global-search', 'en');
+                app('translator')->addLines(['global-search.field.placeholder' => 'Search '.$labels->join(', ', ' and ')], 'en', 'filament-panels');
+            }
+        });
+
         // A delete among other actions is low-emphasis danger (outlined); the confirm button stays solid danger (Carbon button).
         foreach ([DeleteAction::class, ForceDeleteAction::class, DeleteBulkAction::class, ForceDeleteBulkAction::class] as $action) {
             $action::configureUsing(fn (Action $action) => $action->outlined());
@@ -321,6 +332,10 @@ class StorybookPlugin implements Plugin
             // The empty notifications panel says what will appear in it, not "Please check again later" (Carbon empty states).
             app('translator')->load('filament-notifications', 'database', 'en');
             app('translator')->addLines(['database.modal.empty.description' => 'Messages about work that finished and records that need you appear here.'], 'en', 'filament-notifications');
+
+            // Global search with no results says what to try next; Filament matches every word, so fewer words find more (Carbon search: "suggest a follow-up action").
+            app('translator')->load('filament-panels', 'global-search', 'en');
+            app('translator')->addLines(['global-search.no_results_message' => 'No results. Check the spelling, or search for fewer words.'], 'en', 'filament-panels');
 
             // A failed log in says what happened and what to do (Carbon login: "Incorrect IBMid or password. Try again.").
             app('translator')->addLines(['auth/pages/login.messages.failed' => 'Incorrect email or password. Try again.'], 'en', 'filament-panels');
