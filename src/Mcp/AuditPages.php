@@ -33,6 +33,7 @@ use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Component as SchemaComponent;
@@ -585,7 +586,12 @@ class AuditPages extends Tool
         // A list page reuses the resource form for its create modal, and a view page's form is the disabled one warned about above.
         $fields = $page instanceof ListRecords || $page instanceof ViewRecord ? [] : rescue(fn (): array => $page->form->getFlatFields(withHidden: false), [], report: false);
 
-        if ($fields !== [] && max(array_filter(rescue(fn (): array => $page->form->getColumns(), [], report: false), 'is_int') ?: [1]) > 1) {
+        // Fields that all apply as they change, on a page that saves nothing, are a filter bar above a report or list: Carbon
+        // filtering puts them side by side, every one optional by nature, as dropdowns, so the form rules below skip them.
+        $filterBar = $fields !== [] && ! $page instanceof CreateRecord && ! $page instanceof EditRecord && ! is_a($page, 'Filament\\Pages\\SettingsPage')
+            && collect($fields)->every(fn ($field): bool => (bool) rescue(fn (): bool => $field->isLive(), false, report: false));
+
+        if ($fields !== [] && ! $filterBar && max(array_filter(rescue(fn (): array => $page->form->getColumns(), [], report: false), 'is_int') ?: [1]) > 1) {
             $warn('its form lays fields out in several columns; keep one column and put only fields that belong together side by side, in a `Fieldset` or `Grid`, as `forms-date.range` does (Carbon forms: "Carbon generally recommends single-column forms").');
         }
 
@@ -630,7 +636,7 @@ class AuditPages extends Tool
                 $warn("the field `{$name}` explains itself in a hint icon's tooltip, which shows on mouse hover only; put the text in `helperText()` (WCAG 2.1.1; Carbon form: the info icon \"is a button, which is in the tab order\").");
             }
 
-            if (! $field->isRequired() && ! $field instanceof Checkbox && ! $field instanceof Toggle && ! $field instanceof Hidden && ! (method_exists($field, 'isReadOnly') && $field->isReadOnly()) && ! $field->isDisabled() && filled($label) && ! str_contains($label, '(optional)')) {
+            if (! $filterBar && ! $field->isRequired() && ! $field instanceof Checkbox && ! $field instanceof Toggle && ! $field instanceof Hidden && ! (method_exists($field, 'isReadOnly') && $field->isReadOnly()) && ! $field->isDisabled() && filled($label) && ! str_contains($label, '(optional)')) {
                 $warn("the optional field \"{$label}\" doesn't say so; label it \"{$label} (optional)\", and leave required fields unmarked (Carbon form: \"The pattern used should be consistent throughout your product\").");
             }
 
@@ -646,7 +652,7 @@ class AuditPages extends Tool
             // Fixed options only: a relationship's count is how many records exist so far, and a record list grows (forms-record-picker).
             // Options from a closure are taken to be such a list too (a query of accounts), never a fixed set written out.
             // A select in a repeater's row stays one, since radios don't fit a table cell (forms-line-items).
-            if ($field instanceof Select && ! $field->hasRelationship() && ! (fn (): bool => $this->options instanceof Closure)->call($field) && ! static::inRepeater($field) && filled($options = rescue(fn (): array => $field->getOptions(), [], report: false)) && count($options) <= 5) {
+            if (! $filterBar && $field instanceof Select && ! $field->hasRelationship() && ! (fn (): bool => $this->options instanceof Closure)->call($field) && ! static::inRepeater($field) && filled($options = rescue(fn (): array => $field->getOptions(), [], report: false)) && count($options) <= 5) {
                 $warn($field->isMultiple()
                     ? "the select `{$name}` offers ".count($options).' options to pick several from; show them as a `CheckboxList`, as `forms-choice` does (Carbon forms: a select list for more than five options).'
                     : "the select `{$name}` offers ".count($options).' options; show them as stacked radios, as `forms-choice` does (Carbon forms: "When you have more than five options to present to the user, use a select list").');
@@ -784,8 +790,12 @@ class AuditPages extends Tool
      */
     public static function isTitleCase(string $label, string $name): bool
     {
+        // Product names keep their capital (Carbon content), so "Download Excel" is sentence case.
+        // shortcut: a fixed list of the products labels name; add one when the audit flags its name.
+        $withoutProducts = preg_replace('/\b(Excel|Word|Google|Gmail|Outlook|Microsoft|Viber|GCash|Maya)\b/u', 'product', $label) ?? $label;
+
         // Two capitalised words at least: "Discount (%)" is one word and its unit.
-        return preg_match_all('/\b\p{Lu}/u', $label) > 1 && $label === Str::headline(Str::afterLast($name, '.'));
+        return preg_match_all('/\b\p{Lu}/u', $withoutProducts) > 1 && $label === Str::headline(Str::afterLast($name, '.'));
     }
 
     /** Whether a field's value reaches the save: neither it nor any group around it is `saved(false)`. */

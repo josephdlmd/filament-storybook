@@ -28,7 +28,7 @@ class FixturePanelProvider extends PanelProvider
             ->routes(fn () => \Illuminate\Support\Facades\Route::get('invitation/{user}', \Josephdlmd\FilamentStorybook\Stories\Invitations\AcceptInvitation::class)->name('invitation'))
             ->plugin(StorybookPlugin::make())
             ->resources([GadgetResource::class])
-            ->pages([GadgetOverview::class])
+            ->pages([GadgetOverview::class, GadgetReport::class])
             ->widgets([GadgetStats::class, GadgetSalesChart::class, GadgetStockChart::class, \Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class])
             // Breaks the menu rules storybook-audit checks: an icons-only sidebar and a third level under Gadgets.
             // An ungrouped item with a child is only two levels, so it raises nothing.

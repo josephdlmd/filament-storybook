@@ -812,6 +812,21 @@ it('audits the panel it is asked for, and warns when that panel has no Storybook
         ->toContain('No panel "stores". The panels are: fixture, shop.');
 });
 
+it('treats a row of filters that apply as they change as a filter bar, and lets product names keep their capital', function (): void {
+    $audit = (string) (new AuditPages)->handle(new Request)->content();
+
+    expect($audit)
+        ->toContain('- `GadgetReport`')
+        ->not->toContain('- `GadgetReport`: its form lays fields out in several columns')
+        ->not->toContain('- `GadgetReport`: the optional field')
+        ->not->toContain('- `GadgetReport`: the select `year`')
+        ->not->toContain('- `GadgetReport`: the action "Download Excel"');
+
+    expect(AuditPages::isTitleCase('Download Excel', 'Download Excel'))->toBeFalse()
+        ->and(AuditPages::isTitleCase('Export To Excel', 'Export To Excel'))->toBeTrue()
+        ->and(AuditPages::isTitleCase('Print Gadget Labels', 'Print Gadget Labels'))->toBeTrue();
+});
+
 it('opens a custom page of one record on the first record', function (): void {
     Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
