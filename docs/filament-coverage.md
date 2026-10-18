@@ -33,7 +33,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Builder` | Not applicable | content blocks for pages, not business records |
 | `CodeEditor` | Not applicable | a developer tool |
 | `OneTimeCodeInput` | Rule | Filament's own multi-factor screens, under the sign-in rules (NIST, GOV.UK security codes); house defaults (two-factor wording, email when turned on or off, password rule) |
-| `ViewField` | Not applicable | patterns use native components only |
+| `ViewField` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 
 ## Read-only entries
 
@@ -46,7 +46,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `ColorEntry` | Rule | the value shows as text beside the swatch |
 | `KeyValueEntry` | Rule | column titles of one or two words |
 | `CodeEntry` | Not applicable | a developer tool |
-| `ViewEntry` | Not applicable | patterns use native components only |
+| `ViewEntry` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 
 ## Table columns
 
@@ -59,7 +59,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `ColorColumn` | Rule | the value shows as text beside the swatch |
 | `TextInputColumn`, `SelectColumn`, `CheckboxColumn` | Rule | row editing in a slide-over; editable cells named after their row (house script) |
 | `ColumnGroup` | Rule | one level deep |
-| `ViewColumn` | Not applicable | patterns use native components only |
+| `ViewColumn` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 | `Sum`, `Average`, `Count`, `Range`, `Values` (summarizers) | Pattern | `reports-sales` and the other reports (a totals row adding every row the filters keep); house CSS (4.5:1 values) |
 
 ## Table filters
@@ -90,7 +90,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Image` | Rule | alt text as for image columns and entries |
 | `Icon` | General | decorative beside text; an icon-only control needs a name |
 | `UnorderedList` | General | writing rules |
-| `Html`, `View` | Not applicable | patterns use native components only |
+| `Html`, `View` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 
 ## Actions
 
