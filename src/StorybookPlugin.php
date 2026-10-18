@@ -194,8 +194,8 @@ class StorybookPlugin implements Plugin
         Filament::serving(function (): void {
             $labels = collect(Filament::getResources())->filter(fn (string $resource): bool => $resource::canGloballySearch())->map(fn (string $resource): string => $resource::getPluralModelLabel());
 
+            // Filament's global-search lines are already loaded, after boot, with the no-results message below.
             if ($labels->isNotEmpty()) {
-                app('translator')->load('filament-panels', 'global-search', 'en');
                 app('translator')->addLines(['global-search.field.placeholder' => 'Search '.$labels->join(', ', ' and ')], 'en', 'filament-panels');
             }
         });
@@ -397,7 +397,7 @@ class StorybookPlugin implements Plugin
             if ($change) {
                 // A user model without Laravel's Notifiable trait can't be emailed; the change still goes through. So does a mail
                 // server that is down: the error is logged, not shown as if the change had failed.
-                $action->after(fn () => method_exists($user = auth()->user(), 'notify') ? rescue(fn () => $user->notify(new SignInMethodChanged('two-factor authentication with an authenticator app', $change))) : null);
+                $action->after(fn () => method_exists($user = Filament::auth()->user(), 'notify') ? rescue(fn () => $user->notify(new SignInMethodChanged('two-factor authentication with an authenticator app', $change))) : null);
             }
         });
 

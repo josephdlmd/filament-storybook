@@ -267,6 +267,20 @@ it('lets an invited user set their password once, from the latest link, within 7
         ->and($works($second))->toBeFalse();
 });
 
+it('closes an invitation page opened from a link sent before the latest one', function (): void {
+    $user = User::forceCreate(['name' => 'Ben', 'email' => 'ben@example.com', 'password' => null, 'invited_at' => now()]);
+    Illuminate\Support\Facades\Http::fake(['api.pwnedpasswords.com/*' => Illuminate\Support\Facades\Http::response('')]);
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\OpenInvitation::$user = $user->fresh();
+    $page = Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\OpenInvitation::class);
+
+    $user->forceFill(['invited_at' => now()->addMinute()])->save();
+    $page->fillForm(['password' => 'a long enough passphrase', 'passwordConfirmation' => 'a long enough passphrase'])
+        ->call('resetPassword')
+        ->assertNotified('This invitation no longer works');
+
+    expect($user->fresh()->password)->toBeNull();
+});
+
 it('corrects Filament defaults that break a sourced rule, app-wide', function (): void {
     $delete = Filament\Actions\DeleteAction::make();
 

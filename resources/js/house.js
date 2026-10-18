@@ -61,8 +61,12 @@
             const hints = [...column.querySelectorAll(':scope > .fi-sc .fi-sc-text')];
             const ids = [...errors.map((element, i) => [element, `${name}-fs-error-${i}`]), ...hints.map((element, i) => [element, `${name}-fs-hint-${i}`])]
                 .map(([element, id]) => (element.id ||= id));
+            // Filament sets its own descriptions too (`-required`, `-error`): they stay, and only an id this script made for an
+            // error or hint that has gone is dropped.
+            const kept = (field.getAttribute('aria-describedby') ?? '').split(/\s+/).filter((id) => id !== '' && ! /-fs-(error|hint)-\d+$/.test(id));
+            const described = [...new Set([...kept, ...ids])];
 
-            ids.length ? field.setAttribute('aria-describedby', ids.join(' ')) : field.removeAttribute('aria-describedby');
+            described.length ? field.setAttribute('aria-describedby', described.join(' ')) : field.removeAttribute('aria-describedby');
             errors.length ? field.setAttribute('aria-invalid', 'true') : field.removeAttribute('aria-invalid');
         });
 
@@ -123,7 +127,49 @@
         }
     });
 
-    new MutationObserver(enhance).observe(document.documentElement, { childList: true, subtree: true });
+    /*
+     * Global search: Filament shows its results without saying how many, and a screen reader hears nothing as they appear
+     * (Carbon search: "Always include the number of search results, including for searches with no results"; WCAG 4.1.3).
+     * A count heads the results, and the count, or the no-results message, is announced once for each search.
+     */
+    let announced = null;
+
+    const count = () => {
+        const panel = document.querySelector('.fi-global-search-results-ctn');
+
+        if (! panel) {
+            announced = null;
+
+            return;
+        }
+
+        // shortcut: Filament returns at most 50 results for each resource, so a bigger match still counts 50; say "or more" if an app needs it.
+        const total = panel.querySelectorAll('.fi-global-search-result').length;
+        const message = total ? `${total} ${total === 1 ? 'result' : 'results'}` : panel.querySelector('.fi-global-search-no-results-message')?.textContent.trim();
+        const list = panel.querySelector('.fi-global-search-results');
+
+        // Livewire's morph takes out what the server didn't render, so the count goes back after every change.
+        if (list && ! list.previousElementSibling?.classList.contains('fs-global-search-count')) {
+            list.before(Object.assign(document.createElement('p'), { className: 'fs-global-search-count' }));
+        }
+
+        if (list && list.previousElementSibling.textContent !== message) {
+            list.previousElementSibling.textContent = message;
+        }
+
+        const search = `${document.querySelector('.fi-global-search-field input')?.value}|${message}`;
+
+        if (message && search !== announced) {
+            announced = search;
+
+            status().textContent = message;
+        }
+    };
+
+    new MutationObserver(() => {
+        enhance();
+        count();
+    }).observe(document.documentElement, { childList: true, subtree: true });
     // The accessibility check adds this script after the page has loaded, so it runs at once there.
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', enhance) : enhance();
 })();
@@ -276,57 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     schedule();
 });
-
-/*
- * Global search: Filament shows its results without saying how many, and a screen reader hears nothing as they appear
- * (Carbon search: "Always include the number of search results, including for searches with no results"; WCAG 4.1.3).
- * A count heads the results, and the count, or the no-results message, is announced once for each search.
- */
-(() => {
-    let announced = null;
-
-    const count = () => {
-        const panel = document.querySelector('.fi-global-search-results-ctn');
-
-        if (! panel) {
-            announced = null;
-
-            return;
-        }
-
-        // shortcut: Filament returns at most 50 results for each resource, so a bigger match still counts 50; say "or more" if an app needs it.
-        const total = panel.querySelectorAll('.fi-global-search-result').length;
-        const message = total ? `${total} ${total === 1 ? 'result' : 'results'}` : panel.querySelector('.fi-global-search-no-results-message')?.textContent.trim();
-        const list = panel.querySelector('.fi-global-search-results');
-
-        // Livewire's morph takes out what the server didn't render, so the count goes back after every change.
-        if (list && ! list.previousElementSibling?.classList.contains('fs-global-search-count')) {
-            list.before(Object.assign(document.createElement('p'), { className: 'fs-global-search-count' }));
-        }
-
-        if (list && list.previousElementSibling.textContent !== message) {
-            list.previousElementSibling.textContent = message;
-        }
-
-        const search = `${document.querySelector('.fi-global-search-field input')?.value}|${message}`;
-
-        if (message && search !== announced) {
-            announced = search;
-
-            let region = document.getElementById('fs-global-search-status');
-
-            if (! region) {
-                region = Object.assign(document.createElement('div'), { id: 'fs-global-search-status', className: 'fi-sr-only' });
-                region.setAttribute('role', 'status');
-                document.body.append(region);
-            }
-
-            region.textContent = message;
-        }
-    };
-
-    new MutationObserver(count).observe(document.documentElement, { childList: true, subtree: true });
-})();
 
 /*
  * Row menus on a right-click: right-clicking a table row, or Shift+F10 or the Menu key on something in it, opens the row's
