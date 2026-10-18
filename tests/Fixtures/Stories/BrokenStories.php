@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
@@ -145,5 +146,25 @@ class BrokenStories extends Stories
         return $table
             ->columns([TextColumn::make('code')])
             ->filters([SelectFilter::make('code'), TernaryFilter::make('active')], layout: FiltersLayout::AboveContentCollapsible);
+    }
+
+    /** Renders, but only one of its two icon-only actions has a tooltip. */
+    public function oneTooltipForTwo(Table $table): Table
+    {
+        return $table
+            ->columns([TextColumn::make('code')])
+            ->recordActions([
+                Action::make('print')->label('Print')->icon('heroicon-o-printer')->iconButton()->tooltip('Print'),
+                Action::make('email')->label('Email')->icon('heroicon-o-envelope')->iconButton(),
+            ]);
+    }
+
+    /** Renders, but one of two collapsible sections starts open, and a field is required(false). */
+    public function oneCollapsedForTwo(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Delivery')->collapsible()->collapsed()->schema([TextInput::make('address')->required()]),
+            Section::make('Billing')->collapsible()->schema([TextInput::make('billing_address')->required(false)]),
+        ]);
     }
 }

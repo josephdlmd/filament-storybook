@@ -22,11 +22,15 @@ class InstallCommand extends Command
             ->map->getPathname()
             ->first(fn (string $path): bool => str_contains(File::get($path), '->default()'));
 
+        $boostJson = File::exists(base_path('boost.json')) ? File::get(base_path('boost.json')) : '{}';
+
         $unmet = static::unmetRequirements(
             boost: class_exists(\Laravel\Boost\Mcp\ToolRegistry::class),
             pest: class_exists(\Pest\TestSuite::class),
             npm: File::exists(base_path('package.json')),
             defaultPanel: $provider !== null && preg_match('/^\s*->id\([^)]*\)$/m', File::get($provider)) === 1,
+            // Rewriting a file that doesn't decode would keep only this package.
+            boostJson: blank($boostJson) || json_validate($boostJson),
         );
 
         if ($unmet !== []) {
@@ -40,7 +44,7 @@ class InstallCommand extends Command
         Process::path(base_path())->run(['vendor/bin/pint', '--quiet', $provider]);
         $this->components->task('Storybook plugin on the default panel');
 
-        File::put(base_path('boost.json'), static::addBoostPackage(File::exists(base_path('boost.json')) ? File::get(base_path('boost.json')) : '{}'));
+        File::put(base_path('boost.json'), static::addBoostPackage($boostJson));
         $this->components->task('Boost guideline and tools', fn (): bool => $this->callSilently('boost:update') === 0);
 
         File::ensureDirectoryExists(base_path('tests/Feature'));
@@ -70,13 +74,14 @@ class InstallCommand extends Command
      *
      * @return list<string>
      */
-    public static function unmetRequirements(bool $boost, bool $pest, bool $npm, bool $defaultPanel): array
+    public static function unmetRequirements(bool $boost, bool $pest, bool $npm, bool $defaultPanel, bool $boostJson = true): array
     {
         return array_values(array_filter([
             $boost ? null : 'Laravel Boost: composer require laravel/boost --dev, then php artisan boost:install',
             $pest ? null : 'Pest: composer require pestphp/pest pestphp/pest-plugin-laravel --dev',
             $npm ? null : 'npm: a package.json at the project root (the Vite setup Laravel ships with)',
             $defaultPanel ? null : 'A default Filament panel in app/Providers/Filament with ->default() and its ->id(...) on a line of its own',
+            $boostJson ? null : 'Fix boost.json: it isn\'t valid JSON',
         ]));
     }
 

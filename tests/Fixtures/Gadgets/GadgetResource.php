@@ -40,6 +40,14 @@ class GadgetResource extends Resource
 
     public static bool $eagerSearch = false;
 
+    // A table not migrated yet, which the audit reports instead of stopping.
+    public static bool $unmigrated = false;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return static::$unmigrated ? throw new \RuntimeException('no such table: gadgets') : parent::getEloquentQuery();
+    }
+
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         return static::$ownerInSearch ? ['Owner' => $record->owner?->name] : [];
@@ -115,6 +123,8 @@ class GadgetResource extends Resource
                 Action::make('archive')->requiresConfirmation(),
                 // Shown on no row, so it doesn't count towards the inline actions.
                 Action::make('neverShown')->visible(false),
+                // Its label and tooltip type the record, which the audit doesn't have.
+                Action::make('rename')->label(fn (Gadget $record): string => "Rename {$record->name}")->tooltip(fn (Gadget $record): string => $record->name)->iconButton()->visible(false),
                 // Its heading types the record, as apps write it; the audit has no record to give it.
                 \Filament\Actions\ActionGroup::make([Action::make('inspect'), Action::make('retire')->modalHeading(fn (Gadget $record): string => "Retire {$record->name}?")]),
             ])
