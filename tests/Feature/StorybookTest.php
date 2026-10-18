@@ -31,7 +31,7 @@ beforeEach(function (): void {
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-mark-2307-received', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-history', 'records-key-figures', 'records-locked', 'records-paper-receipt', 'records-previous-and-next', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'reports-tax-withheld-by-customers', 'reports-tax-withheld-from-suppliers', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-mark-2307-received', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-history', 'records-key-figures', 'records-locked', 'records-notes', 'records-paper-receipt', 'records-previous-and-next', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'reports-tax-withheld-by-customers', 'reports-tax-withheld-from-suppliers', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -350,6 +350,7 @@ it('leaves form errors to the app, keeps amounts as text and marks optional fiel
         ->and($amount->getInputMode())->toBe('decimal')
         ->and($amount->isTrimmed())->toBeTrue()
         ->and(Filament\Forms\Components\TextInput::make('password')->password()->isTrimmed())->toBeFalse()
+        ->and(Filament\Forms\Components\Textarea::make('note')->isTrimmed())->toBeTrue()
         ->and(Filament\Forms\Components\TextInput::make('email')->email()->getType())->toBe('email')
         ->and(Filament\Forms\Components\TextInput::make('name')->required()->isMarkedAsRequired())->toBeFalse()
         ->and(Filament\Tables\Columns\ToggleColumn::make('is_active')->getOnIcon())->toBe(Filament\Support\Icons\Heroicon::Check)
@@ -553,7 +554,7 @@ it('labels actions with Carbon\'s verbs and titles their modals in sentence case
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-history, records-key-figures, records-locked, records-paper-receipt, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-history, records-key-figures, records-locked, records-notes, records-paper-receipt, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('labels a related list\'s actions by what the related records are, with the rows as records', function (): void {
@@ -620,7 +621,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 99 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 100 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -1641,6 +1642,20 @@ it('lists a document\'s history oldest first, each time with its zone', function
         ->call('loadTable')
         ->assertSeeInOrder(['Created', 'Posted', 'Voided', 'Issued to the wrong customer'])
         ->assertSee('Oct 10, 2026 2:05 PM UTC');
+});
+
+it('adds a note to a document, saying who wrote it', function (): void {
+    $this->actingAs(User::forceCreate(['name' => 'Carla Diaz', 'email' => 'carla@example.com', 'password' => 'secret']));
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordNotesStories::class, 'story' => 'default'])
+        ->call('loadTable')
+        ->assertSeeInOrder(['Customer asked', 'Check promised'])
+        ->callAction(TestAction::make('create')->table(), ['body' => '  Spoke to their accountant.  '])
+        ->assertHasNoActionErrors();
+
+    expect(Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::find(2)->notes()->latest('id')->first())
+        ->body->toBe('Spoke to their accountant.')
+        ->user_name->toBe('Carla Diaz');
 });
 
 it('archives, restores and deletes many records, deleting only those never used', function (): void {

@@ -30,7 +30,7 @@ The document work is covered too (2026-10-12): emailing documents, the statement
 
 After the documents. Shared patterns stay generic; anything that depends on one business's rules goes in that app's `app/Stories`, with the rules recorded as business standards. Built as an app needs them:
 
-- **Records:** returns and credit notes; notes and attachments on a record; global search. Shared.
+- **Records:** returns and credit notes; attachments on a record; global search. Shared.
 - **Generic flows used sometimes** (Mobbin, 2026-10-11): saved views; undo after an action (not in a toast that closes by itself, WCAG 2.2.1); progress of a long background job; the list of active sessions; API tokens; notification preferences; a side panel that previews a record beside the list; keyboard shortcut help (single-key shortcuts can be turned off, WCAG 2.1.4); a setup checklist. Shared.
 - **Stock, when an app needs it:** more than one warehouse and transfers between them; lot and expiry tracking, and which lot is used first (business standards; the owner has neither for now).
 - **Money:** price lists and customer prices; collections and deposits (including post-dated cheques, if used). Shared screens, business rules.

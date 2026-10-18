@@ -32,6 +32,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\GlobalSearch\Providers\DefaultGlobalSearchProvider;
@@ -374,6 +375,7 @@ class StorybookPlugin implements Plugin
         // Spaces before or after an answer are ignored, as Livewire skips Laravel's TrimStrings: a pasted " 1250.50" would fail
         // the amount's check (GOV.UK validation: ignore unwanted characters "before or after an answer"). Passwords stay as typed.
         TextInput::configureUsing(fn (TextInput $input) => $input->trim(fn (TextInput $input): bool => ! $input->isPassword()));
+        Textarea::configureUsing(fn (Textarea $textarea) => $textarea->trim());
 
         // Fields about the user say what they hold, so the browser can fill them in (WCAG 1.3.5): Filament's log in gives the
         // email "on", and its sign-up and profile pages give the name and email nothing. Only on those pages: a customer's

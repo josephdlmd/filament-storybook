@@ -95,6 +95,14 @@ class SampleDatabase
             $table->dateTime('happened_at');
         });
 
+        $schema->create('record_notes', function (Blueprint $table): void {
+            $table->id();
+            $table->morphs('record');
+            $table->text('body');
+            $table->string('user_name');
+            $table->dateTime('written_at');
+        });
+
         $schema->create('purchase_orders', function (Blueprint $table): void {
             $table->id();
             $table->string('number')->unique();
@@ -182,6 +190,12 @@ class SampleDatabase
             ['event' => 'Created', 'user_name' => 'Ana Reyes', 'reason' => null, 'happened_at' => '2026-10-09 09:12:00'],
             ['event' => 'Posted', 'user_name' => 'Ana Reyes', 'reason' => null, 'happened_at' => '2026-10-09 09:30:00'],
             ['event' => 'Voided', 'user_name' => 'Ben Santos', 'reason' => 'Issued to the wrong customer', 'happened_at' => '2026-10-10 14:05:00'],
+        ]));
+
+        // Notes on the posted invoice 001232.
+        DB::connection('storybook')->table('record_notes')->insert(array_map(fn (array $note): array => ['record_type' => SalesInvoice::class, 'record_id' => 2, ...$note], [
+            ['body' => 'Customer asked for the copy to go to their new billing contact.', 'user_name' => 'Ana Reyes', 'written_at' => '2026-10-11 10:20:00'],
+            ['body' => 'Check promised for November 8.', 'user_name' => 'Ben Santos', 'written_at' => '2026-10-20 16:45:00'],
         ]));
 
         // Abra's credit limit, and an order of theirs posted but not yet invoiced: with its unpaid invoices, ₱205,890.50 is taken.
