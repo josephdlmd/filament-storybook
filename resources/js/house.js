@@ -327,3 +327,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     new MutationObserver(count).observe(document.documentElement, { childList: true, subtree: true });
 })();
+
+/*
+ * Row menus on a right-click: right-clicking a table row, or Shift+F10 or the Menu key on something in it, opens the row's
+ * own "⋯" menu, so a dense table reaches a row's actions where the user is (Carbon menu: opened "through right-clicking"
+ * on "a column, or a row"). The actions stay defined once, and the visible button stays for whoever doesn't right-click
+ * (WCAG 2.1.1). A field, selected text, a row without a menu, and Shift with a right-click keep the browser's own menu.
+ * StorybookPlugin::rowContextMenus(false) turns it off.
+ */
+document.addEventListener('contextmenu', (event) => {
+    const row = event.target.closest?.('.fi-ta-row');
+    const trigger = row?.querySelector('.fi-ta-actions .fi-dropdown-trigger');
+
+    if (window.fsRowContextMenus === false || ! trigger || (event.button === 2 && event.shiftKey)
+        || event.target.closest('input, textarea, select, [contenteditable]') || String(window.getSelection()).trim() !== '') {
+        return;
+    }
+
+    event.preventDefault();
+    // Filament opens a menu on a left mousedown on its trigger, so the row's menu opens as its button would open it.
+    trigger.dispatchEvent(new MouseEvent('mousedown', { button: 0, bubbles: true }));
+});

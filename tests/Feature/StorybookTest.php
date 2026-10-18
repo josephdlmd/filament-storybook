@@ -317,6 +317,19 @@ it('puts a page\'s own navigation in tabs at the top, unless the app sets its ow
     expect($panel->getSubNavigationPosition())->toBe(Filament\Pages\Enums\SubNavigationPosition::End);
 });
 
+it('opens a row\'s own menu on a right-click, unless the app turns it off', function (): void {
+    // What the plugin's hooks put at the start of the page's body, read from the panel it registered on.
+    $render = function (Josephdlmd\FilamentStorybook\StorybookPlugin $plugin): string {
+        $plugin->register($panel = Filament\Panel::make()->id('menus'));
+
+        return collect((fn (): array => $this->renderHooks)->call($panel)[Filament\View\PanelsRenderHook::BODY_START] ?? [])->flatten()->map(fn (Closure $hook): string => (string) $hook())->implode('');
+    };
+
+    expect($render(Josephdlmd\FilamentStorybook\StorybookPlugin::make()))->not->toContain('fsRowContextMenus')
+        ->and($render(Josephdlmd\FilamentStorybook\StorybookPlugin::make()->rowContextMenus(false)))->toContain('window.fsRowContextMenus = false')
+        ->and(file_get_contents(__DIR__.'/../../resources/js/house.js'))->toContain("document.addEventListener('contextmenu'");
+});
+
 it('gives every page the full width, unless the app sets its own', function (): void {
     expect(Filament\Facades\Filament::getPanel('fixture')->getMaxContentWidth())->toBe(Filament\Support\Enums\Width::Full);
 
@@ -630,7 +643,7 @@ function testStoriesWithTheme(array $arguments = []): string
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 100 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 101 passing, 0 failing, 0 warnings, 0 accessibility issues')
         ->toContain('- `forms-money-input.required`');
 });
 

@@ -67,6 +67,8 @@ class StorybookPlugin implements Plugin
 
     protected bool $compact = false;
 
+    protected bool $rowContextMenus = true;
+
     public static function make(): static
     {
         return app(static::class);
@@ -117,9 +119,23 @@ class StorybookPlugin implements Plugin
         return $this->compact;
     }
 
+    /**
+     * Right-clicking a table row, or Shift+F10 or the Menu key on it, opens the row's own "⋯" menu (Carbon menu). On by
+     * default; the visible button stays, and Shift with a right-click keeps the browser's menu.
+     */
+    public function rowContextMenus(bool $condition = true): static
+    {
+        $this->rowContextMenus = $condition;
+
+        return $this;
+    }
+
     public function register(Panel $panel): void
     {
         $panel->pages([Storybook::class]);
+
+        // The house script reads this before opening a row's menu on a right-click.
+        $panel->renderHook(PanelsRenderHook::BODY_START, fn (): string => $this->rowContextMenus ? '' : '<script>window.fsRowContextMenus = false</script>');
 
         $panel->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => collect(['compact-tables' => $this->hasCompactTables(), 'compact' => $this->hasCompact()])
             ->filter()

@@ -2,6 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\CreateAction;
 use Filament\Tables\Enums\FiltersLayout;
@@ -12,6 +14,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories;
 
@@ -24,7 +27,7 @@ class ListTableStories extends Stories
 
     public function description(): string
     {
-        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first; one search field says what it searches; the columns follow in order of importance, money is right-aligned and status is a badge; columns other than the identifier and name can be hidden from the column manager (`toggleable()`, one few people need starting hidden), with Reset to bring back the default, but not reordered, since Filament reorders columns only by dragging (WCAG 2.5.7). With more than one filter, the filters sit above the table, open, and apply as they change (an Apply button only when results are slow); applied filters, the search and the sort stay as the user left them for the session (`persistSearchInSession()`, `persistSortInSession()`); and an empty list says what goes here and offers one next step (when a search finds nothing, Filament says so, and the heading can name the search), outlined because the page header already has the primary New button. Basis: NN/g data tables 2022 (identifier first, columns by importance and easy to hide, sortable); WCAG 2.2 2.5.7 (no drag-only reordering); USWDS table (right-align numbers); Carbon data table, filtering, search (the placeholder says what it searches; filters persist for the session) and empty states (2026: one action, "using a tertiary button for the call to action").';
+        return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first; one search field says what it searches; the columns follow in order of importance, money is right-aligned and status is a badge; columns other than the identifier and name can be hidden from the column manager (`toggleable()`, one few people need starting hidden), with Reset to bring back the default, but not reordered, since Filament reorders columns only by dragging (WCAG 2.5.7). With more than one filter, the filters sit above the table, open, and apply as they change (an Apply button only when results are slow); applied filters, the search and the sort stay as the user left them for the session (`persistSearchInSession()`, `persistSortInSession()`); a row with three or more actions keeps them in its "⋯" menu, which a right-click on the row also opens (`rowActions`; fewer stay inline); and an empty list says what goes here and offers one next step (when a search finds nothing, Filament says so, and the heading can name the search), outlined because the page header already has the primary New button. Basis: Carbon data table (Sep 2026: row actions in an overflow menu, inline when fewer than three); Carbon menu (Sep 2026: menus open "through right-clicking" on "a column, or a row", "no more than 12 items"); NN/g data tables 2022 (identifier first, columns by importance and easy to hide, sortable); WCAG 2.2 2.5.7 (no drag-only reordering); USWDS table (right-align numbers); Carbon data table, filtering, search (the placeholder says what it searches; filters persist for the session) and empty states (2026: one action, "using a tertiary button for the call to action").';
     }
 
     public function records(): array
@@ -83,6 +86,30 @@ class ListTableStories extends Stories
                 // The page header already has the primary New button, so this one is outlined (Carbon empty states: tertiary).
                 CreateAction::make()
                     ->outlined(),
+            ]);
+    }
+
+    /** Three or more row actions go in the row's "⋯" menu, which a right-click on the row (or Shift+F10 on it) opens too; fewer stay inline. */
+    public function rowActions(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('code'),
+                TextColumn::make('name'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (string $state): string => $state === 'On hold' ? 'warning' : 'success'),
+            ])
+            ->recordActions([
+                ActionGroup::make([
+                    Action::make('emailStatement')
+                        ->label('Email statement'),
+                    Action::make('downloadStatement')
+                        ->label('Download statement'),
+                    Action::make('putOnHold')
+                        ->label('Put on hold')
+                        ->visible(fn (?Model $record): bool => $record?->status === 'Active'),
+                ]),
             ]);
     }
     /**
