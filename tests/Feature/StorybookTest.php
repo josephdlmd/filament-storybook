@@ -828,6 +828,28 @@ it('treats a row of filters that apply as they change as a filter bar, and lets 
         ->and(AuditPages::isTitleCase('Print Gadget Labels', 'Print Gadget Labels'))->toBeTrue();
 });
 
+it('warns when global search loads a related value one result at a time, and leaves lazy loading as the app had it', function (): void {
+    $owner = User::forceCreate(['name' => 'Ana', 'email' => 'ana.owner@example.com', 'password' => 'secret']);
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5, 'owner_id' => $owner->id]);
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0002', 'name' => 'Lamp', 'price' => 45, 'owner_id' => $owner->id]);
+    $audit = fn (): string => (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
+    $warning = '- `GadgetResource`: global search loads `owner` one result at a time';
+
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource::$ownerInSearch = true;
+
+    try {
+        expect($audit())->toContain($warning)
+            ->and(Illuminate\Database\Eloquent\Model::preventsLazyLoading())->toBeFalse();
+
+        Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource::$eagerSearch = true;
+
+        expect($audit())->not->toContain($warning);
+    } finally {
+        Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource::$ownerInSearch = false;
+        Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource::$eagerSearch = false;
+    }
+});
+
 it('opens a custom page of one record on the first record', function (): void {
     Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
@@ -1688,6 +1710,11 @@ it('narrows the chart to the dashboard filter\'s months', function (): void {
     $chart = Livewire::test(Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class, ['pageFilters' => ['from' => '2026-06-15', 'until' => '2026-08-31']]);
 
     expect($chart->instance()->getChartAssistiveContent())->toBe('Approved orders per month: June 38, July 51, August 47.');
+
+    // A month with no orders still shows, as 0, rather than being left out.
+    $chart = Livewire::test(Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class, ['pageFilters' => ['from' => '2026-04-01', 'until' => '2026-06-30']]);
+
+    expect($chart->instance()->getChartAssistiveContent())->toBe('Approved orders per month: April 0, May 42, June 38.');
 });
 
 it('names a report\'s export after the report and the day, as its PDF is', function (string $exporter, string $name): void {

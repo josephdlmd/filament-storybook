@@ -52,6 +52,7 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -199,6 +200,12 @@ class AuditPages extends Tool
                 } catch (Throwable $e) {
                     $failing[] = "- `{$key}`: ".static::failure($e);
                 }
+            }
+
+            // A related value in a search result's title or details is loaded with the results, or each result runs a query of its own.
+            if ($resource::canGloballySearch() && ($lazy = static::lazyGlobalSearch($resource)) !== []) {
+                $relations = implode(', ', array_map(fn (string $relation): string => "`{$relation}`", $lazy));
+                $warnings[] = "- `".class_basename($resource)."`: global search loads {$relations} one result at a time; load it with the results, `parent::getGlobalSearchEloquentQuery()->with([...])` in `getGlobalSearchEloquentQuery()` (Laravel eager loading).";
             }
         }
 
@@ -369,6 +376,38 @@ class AuditPages extends Tool
      * @param  array<class-string|RelationGroup|RelationManagerConfiguration>  $relations
      * @return list<class-string>
      */
+    /**
+     * The relations a resource's global search results load one at a time, read from two of its records with lazy loading
+     * caught: Laravel only catches it on a record loaded with others. The app's own lazy-loading settings are put back.
+     *
+     * @return array<string>
+     */
+    protected static function lazyGlobalSearch(string $resource): array
+    {
+        $callback = new ReflectionProperty(Model::class, 'lazyLoadingViolationCallback');
+        [$prevented, $previous] = [Model::preventsLazyLoading(), $callback->getValue()];
+        $lazy = [];
+
+        Model::preventLazyLoading();
+        Model::handleLazyLoadingViolationUsing(function (Model $model, string $relation) use (&$lazy): void {
+            $lazy[$relation] = $relation;
+        });
+
+        try {
+            foreach ($resource::getGlobalSearchEloquentQuery()->limit(2)->get() as $record) {
+                $resource::getGlobalSearchResultTitle($record);
+                $resource::getGlobalSearchResultDetails($record);
+            }
+        } catch (Throwable) {
+            // A caught lazy load returns no related record, so the details may fail after it is noted.
+        } finally {
+            Model::preventLazyLoading($prevented);
+            $callback->setValue(null, $previous);
+        }
+
+        return array_values($lazy);
+    }
+
     protected static function relationManagers(array $relations): array
     {
         return collect($relations)

@@ -17,6 +17,8 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget;
 
 /** A screen that breaks every page-level rule storybook-audit checks, so each check is proven to fire. */
@@ -32,6 +34,21 @@ class GadgetResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedCube;
 
     public static bool $creatable = true;
+
+    // Global search results that show their owner, loaded one result at a time unless $eagerSearch (the audit's check).
+    public static bool $ownerInSearch = false;
+
+    public static bool $eagerSearch = false;
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return static::$ownerInSearch ? ['Owner' => $record->owner?->name] : [];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return static::$eagerSearch ? parent::getGlobalSearchEloquentQuery()->with('owner') : parent::getGlobalSearchEloquentQuery();
+    }
 
     public static function canCreate(): bool
     {

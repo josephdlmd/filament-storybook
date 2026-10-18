@@ -2,6 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories\Widgets;
 
+use Carbon\CarbonInterface;
+use Carbon\CarbonPeriod;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Carbon;
@@ -25,18 +27,20 @@ class OrdersPerMonthChart extends ChartWidget
 
     protected function getData(): array
     {
-        // On a dashboard, count approved orders per month with a query, and list every month in the range: 0 where there
-        // were none, null where the count is unknown, never a month left out (Carbon axes: "Never change axis ticks
-        // increments to accommodate data availability"). Month names follow the app's locale.
-        // The dashboard's From and To narrow the months, as a whereBetween() on the query would.
-        $from = filled($this->pageFilters['from'] ?? null) ? Carbon::parse($this->pageFilters['from'])->startOfMonth() : null;
-        $until = filled($this->pageFilters['until'] ?? null) ? Carbon::parse($this->pageFilters['until']) : null;
-        $orders = collect(['2026-05-01' => 42, '2026-06-01' => 38, '2026-07-01' => 51, '2026-08-01' => 47, '2026-09-01' => 63])
-            ->filter(fn (int $count, string $month): bool => (! $from || $from->lte($month)) && (! $until || $until->gte($month)));
+        // On a dashboard, the counts come from one query grouped by month, which leaves out the months with none, such as
+        // Order::approved()->whereBetween('approved_on', [$from, $until])->selectRaw("date_trunc('month', approved_on)::date as month, count(*) as count")->groupBy('month')->pluck('count', 'month').
+        $counts = collect(['2026-05-01' => 42, '2026-06-01' => 38, '2026-07-01' => 51, '2026-08-01' => 47, '2026-09-01' => 63]);
+
+        // Every month in the range is listed: 0 where there were none, null where the count is unknown, never a month left
+        // out (Carbon axes: "Never change axis ticks increments to accommodate data availability"). The dashboard's From
+        // and To set the range. Month names follow the app's locale.
+        $from = filled($this->pageFilters['from'] ?? null) ? Carbon::parse($this->pageFilters['from'])->startOfMonth() : Carbon::parse($counts->keys()->first());
+        $until = filled($this->pageFilters['until'] ?? null) ? Carbon::parse($this->pageFilters['until'])->startOfMonth() : Carbon::parse($counts->keys()->last());
+        $months = collect(CarbonPeriod::create($from, '1 month', $until));
 
         return [
-            'datasets' => [['label' => 'Approved orders', 'data' => $orders->values()->all()]],
-            'labels' => $orders->keys()->map(fn (string $month): string => Carbon::parse($month)->translatedFormat('F'))->all(),
+            'datasets' => [['label' => 'Approved orders', 'data' => $months->map(fn (CarbonInterface $month): int => $counts[$month->toDateString()] ?? 0)->all()]],
+            'labels' => $months->map(fn (CarbonInterface $month): string => $month->translatedFormat('F'))->all(),
         ];
     }
 

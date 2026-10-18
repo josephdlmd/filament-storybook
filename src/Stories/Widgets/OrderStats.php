@@ -6,6 +6,7 @@ use Filament\Support\Enums\IconPosition;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Number;
 
 class OrderStats extends StatsOverviewWidget
@@ -21,15 +22,25 @@ class OrderStats extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        // On a dashboard, count and sum with queries; money stays decimal until it is formatted. A change has an arrow
-        // and says it in words, never by colour alone (Carbon status indicators: a sign, caret or arrow; WCAG 1.4.1).
+        // On a dashboard, count and sum with queries; money stays decimal until it is formatted. They are worked out at most
+        // once a minute, not on every load and filter change: the key names what they depend on (the dashboard's filters,
+        // and the user when figures follow their permissions), and saving an order may Cache::forget() it.
+        $figures = Cache::remember('dashboard.order-stats', 60, fn (): array => [
+            'awaiting' => 12,
+            'awaitingLastWeek' => 9,
+            'approved' => 63,
+            'rejected' => 4,
+            'spent' => 1250000.50,
+        ]);
+
+        // A change has an arrow and says it in words, never by colour alone (Carbon status indicators: a sign, caret or arrow; WCAG 1.4.1).
         return [
-            Stat::make('Awaiting approval', Number::format(12))
-                ->description('3 more than last week')
+            Stat::make('Awaiting approval', Number::format($figures['awaiting']))
+                ->description(($figures['awaiting'] - $figures['awaitingLastWeek']).' more than last week')
                 ->descriptionIcon(Heroicon::ArrowUp, IconPosition::Before),
-            Stat::make('Approved this month', Number::format(63)),
-            Stat::make('Rejected this month', Number::format(4)),
-            Stat::make('Spent this month', Number::currency(1250000.50, 'PHP')),
+            Stat::make('Approved this month', Number::format($figures['approved'])),
+            Stat::make('Rejected this month', Number::format($figures['rejected'])),
+            Stat::make('Spent this month', Number::currency($figures['spent'], 'PHP')),
         ];
     }
 }
