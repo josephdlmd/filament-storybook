@@ -28,6 +28,10 @@ class AcceptInvitation extends ResetPassword
     #[Locked]
     public mixed $userId = null;
 
+    /** When the link this page was opened from was sent: a newer invitation closes the page. */
+    #[Locked]
+    public ?int $sent = null;
+
     public function mount(?string $email = null, #[SensitiveParameter] ?string $token = null): void
     {
         $user = static::invitedUser(request());
@@ -40,6 +44,7 @@ class AcceptInvitation extends ResetPassword
         }
 
         $this->userId = $user->getKey();
+        $this->sent = $user->invited_at->timestamp;
         $this->form->fill(['email' => $user->email]);
     }
 
@@ -62,10 +67,10 @@ class AcceptInvitation extends ResetPassword
 
     public function resetPassword(): ?PasswordResetResponse
     {
-        // Checked again: the page may have stayed open past the expiry, or the invitation been withdrawn since.
+        // Checked again: the page may have stayed open past the expiry, or the invitation been withdrawn or sent again since.
         $user = Filament::auth()->getProvider()->retrieveById($this->userId);
 
-        if (! $user || ! static::isOpen($user)) {
+        if (! $user || ! static::isOpen($user) || $user->invited_at->timestamp !== $this->sent) {
             static::closedNotification()->send();
 
             return null;

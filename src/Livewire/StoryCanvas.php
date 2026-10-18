@@ -50,6 +50,15 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         // permission check (`authorizeIndividualRecords('update')`, `authorize('delete')`) shows the action working.
         Gate::before(fn (mixed $user, string $ability, array $arguments): ?bool => ($record = $arguments[0] ?? null) instanceof Model
             && ((new ReflectionClass($record))->isAnonymous() || is_a($record, (string) $this->instance()->model())) ? true : null);
+
+        // An app story's model is the app's real one, and a sample row's id is a real row's: refuse every write to it for
+        // this request, so a preview's Delete never deletes that row. The package's own models write to the in-memory sample database.
+        $class = $this->instance()->model();
+
+        if ($class !== null && (new $class)->getConnectionName() !== 'storybook') {
+            $class::saving(fn (): bool => false);
+            $class::deleting(fn (): bool => false);
+        }
     }
 
     public function mount(): void

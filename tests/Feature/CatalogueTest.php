@@ -53,6 +53,16 @@ it('shows column stories with their sample rows', function (): void {
         ->assertSee('-₱320.00');
 });
 
+it('never writes a preview\'s sample row to the app\'s real table', function (): void {
+    app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
+    $gadget = Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::query()->create(['code' => 'G-1', 'name' => 'Real gadget']);
+
+    Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories\GadgetStories::class, 'story' => 'default'])
+        ->callTableAction(Filament\Actions\DeleteAction::class, 1);
+
+    expect($gadget->fresh())->not->toBeNull();
+});
+
 it('refuses to render a class that is not a registered story', function (): void {
     Livewire::test(StoryCanvas::class, ['stories' => User::class, 'story' => 'delete'])->assertNotFound();
 });
