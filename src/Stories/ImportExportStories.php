@@ -7,6 +7,7 @@ use Filament\Actions\ImportAction;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Imports\SupplierExporter;
 use Josephdlmd\FilamentStorybook\Stories\Imports\SupplierImporter;
+use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
 
 class ImportExportStories extends Stories
 {
@@ -22,7 +23,7 @@ class ImportExportStories extends Stories
 
     public function examples(): array
     {
-        return [SupplierImporter::class, SupplierExporter::class];
+        return [SupplierImporter::class, ReportExporter::class, SupplierExporter::class];
     }
 
     /** Import: a CSV file whose columns are mapped, with an example to download first. */

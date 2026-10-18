@@ -5,6 +5,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
 
 /**
@@ -16,7 +17,7 @@ use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
 class ReceivablesAgeing
 {
     /** The bucket columns, keyed as the query names them, with the labels of the statement of account. */
-    public const COLUMNS = ['current' => 'Current', 'days_1_30' => '1–30 days', 'days_31_60' => '31–60 days', 'days_61_90' => '61–90 days', 'over_90' => 'Over 90 days'];
+    public const COLUMNS = PrintedDocument::AGEING;
 
     /**
      * The customers' query, reading from a subquery that has the buckets as columns, so the report can sort by them and
@@ -35,7 +36,8 @@ class ReceivablesAgeing
 
         $withBuckets = $model->newQuery()
             ->select($model->qualifyColumn('*'))
-            ->selectSub($open()->where('due_date', '>=', $day(0)), 'current')
+            // An invoice with no due date isn't past due, so it is current, as on the statement.
+            ->selectSub($open()->where(fn (Builder $due): Builder => $due->where('due_date', '>=', $day(0))->orWhereNull('due_date')), 'current')
             ->selectSub($open()->whereBetween('due_date', [$day(30), $day(1)]), 'days_1_30')
             ->selectSub($open()->whereBetween('due_date', [$day(60), $day(31)]), 'days_31_60')
             ->selectSub($open()->whereBetween('due_date', [$day(90), $day(61)]), 'days_61_90')
