@@ -401,7 +401,6 @@ it('heads global search groups in sentence case where the panel keeps Filament\'
 });
 
 it('shows an error in plain words with a way out and its code small, in the panel\'s look, even outside every route', function (): void {
-    $this->artisan('vendor:publish', ['--tag' => 'filament-storybook-errors']);
     Illuminate\Support\Facades\Route::get('/maintenance', fn () => abort(503));
     // A 500 often comes from the database being down, so its page must not need the database.
     Illuminate\Support\Facades\Route::get('/broken', function (): never {
@@ -413,7 +412,9 @@ it('shows an error in plain words with a way out and its code small, in the pane
     })->middleware('web');
     config(['app.debug' => false]);
 
-    try {
+    withErrorPages(function (): void {
+        $this->artisan('vendor:publish', ['--tag' => 'filament-storybook-errors']);
+
         $this->get('/no-such-page')
             ->assertNotFound()
             ->assertSeeInOrder(['<title>', 'Page not found', '</title>', 'fi-simple-layout', '<h1 class="fi-simple-header-heading">', 'Page not found', 'Check the address for a typing mistake', 'Go to the dashboard', 'Error 404'], false)
@@ -427,9 +428,7 @@ it('shows an error in plain words with a way out and its code small, in the pane
         $this->get('/broken')
             ->assertStatus(500)
             ->assertSeeInOrder(['Something went wrong', 'Go to the dashboard', 'Error 500']);
-    } finally {
-        Illuminate\Support\Facades\File::deleteDirectory(resource_path('views/errors'));
-    }
+    });
 });
 
 it('keeps what the next record shares when creating another, and nothing else', function (): void {

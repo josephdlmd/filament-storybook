@@ -307,12 +307,12 @@ it('returns a timed-out accessibility check as not checked, keeping the rest of 
 });
 
 it('warns while Laravel\'s own error pages show, until the house ones are published', function (): void {
-    expect((string) (new AuditPages)->handle(new Request)->content())
-        ->toContain("- `errors`: Laravel's own page still shows for 403, 404, 419, 429, 500, 503");
+    withErrorPages(function (): void {
+        expect((string) (new AuditPages)->handle(new Request)->content())
+            ->toContain("- `errors`: Laravel's own page still shows for 403, 404, 419, 429, 500, 503");
 
-    $this->artisan('vendor:publish', ['--tag' => 'filament-storybook-errors']);
+        $this->artisan('vendor:publish', ['--tag' => 'filament-storybook-errors']);
 
-    try {
         expect((string) (new AuditPages)->handle(new Request)->content())->not->toContain('- `errors`:')->not->toContain('errors.404');
 
         // The page is checked whole, as the browser gets it: an image without a text alternative on it is reported.
@@ -320,7 +320,5 @@ it('warns while Laravel\'s own error pages show, until the house ones are publis
         $this->artisan('view:clear');
 
         expect((string) (new AuditPages)->handle(new Request)->content())->toContain('errors.404');
-    } finally {
-        Illuminate\Support\Facades\File::deleteDirectory(resource_path('views/errors'));
-    }
+    });
 });

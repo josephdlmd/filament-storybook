@@ -3,6 +3,7 @@
 use Josephdlmd\FilamentStorybook\Mcp\TestStories;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Josephdlmd\FilamentStorybook\Tests\TestCase;
+use Illuminate\Support\Facades\File;
 use Laravel\Mcp\Request;
 
 uses(TestCase::class)
@@ -22,5 +23,20 @@ function testStoriesWithTheme(array $arguments = []): string
         return (string) (new TestStories)->handle(new Request($arguments))->content();
     } finally {
         unlink($theme);
+    }
+}
+
+/** Runs a test with the app's error pages as it sets them, putting back the ones the test app ships (its own 503) after. */
+function withErrorPages(Closure $test): void
+{
+    $pages = resource_path('views/errors');
+    $shipped = $pages.'-shipped';
+    File::moveDirectory($pages, $shipped);
+
+    try {
+        $test();
+    } finally {
+        File::deleteDirectory($pages);
+        File::moveDirectory($shipped, $pages);
     }
 }
