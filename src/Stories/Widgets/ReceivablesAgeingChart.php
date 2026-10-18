@@ -31,7 +31,8 @@ class ReceivablesAgeingChart extends ChartWidget
 
     protected function getData(): array
     {
-        // On a dashboard, sum the brackets of ReceivablesAgeing::addBuckets(Customer::query(), today()) with one query.
+        // On a dashboard, sum the brackets of ReceivablesAgeing::addBuckets(Customer::query(), today()) with one query; as it does,
+        // leave out documents dated after the as-of date and those settled.
         $owed = ['current' => 11200.00, 'days_1_30' => 3363.71, 'days_31_60' => 890.50, 'days_61_90' => 0.00, 'over_90' => 5000.00];
 
         return [
