@@ -42,7 +42,8 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 These are business facts, so the owner is the source. Record the answers under "Business standards" in `rules.md`:
 
 - When the app becomes BIR-registered to issue its own invoices (CAS or e-invoicing), the sales invoice printout stops being a copy; its required fields and serials then follow BIR's permit. No change planned for now (owner, 2026-10-12).
-- From the CPA: which quarter's SAWT a customer's withholding belongs to (paid, as now, or 2307 received); whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160; whether a government office withholds its 5% VAT on the VATable sales alone, as `DocumentTotals` now assumes (exempt and zero-rated sales carry no VAT)
+- Which quarter claims a customer's withholding. The package's SAWT lists it in the quarter it was paid, but only once its 2307 has arrived (`CustomerWithholding::sawt()`). The accounting app's owner decision (2026-10-17, Blueprint 75 Q622) claims it in the quarter paid whether or not the 2307 is in, as RR 2-98 Sec. 2.58.3 credits the tax in the quarter the income was received, and lists what still waits for its 2307; the app had found that waiting made the 2550Q and its SAWT disagree. Ask the owner whether the package follows.
+- From the CPA: whether payments for rent, professional fees or contractor services will go through the app (and if so their ATCs and rates), and whether RR 24-2025 changes WC158 and WC160 (the accounting app reads it as adding WC840 to WC860 beside them); whether a government office withholds its 5% VAT on the VATable sales alone, as `DocumentTotals` now assumes (exempt and zero-rated sales carry no VAT)
 
 ## How
 
