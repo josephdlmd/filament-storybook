@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\Activitylog\Models\Activity;
 
 /** Stands in for the app's own sales invoice model, so patterns can use a real relationship and check numbers against real rows (`SampleDatabase`). */
 class SalesInvoice extends Model
@@ -33,6 +34,12 @@ class SalesInvoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /** Its key events in the activity log (`records-history`). Not spatie's LogsActivity, which would log every save. @return MorphMany<Activity, $this> */
+    public function activities(): MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject');
     }
 
     /** @return MorphMany<RecordNote, $this> */

@@ -1645,17 +1645,17 @@ it('lists a document\'s history oldest first, each time with its zone', function
 });
 
 it('adds a note to a document, saying who wrote it', function (): void {
-    $this->actingAs(User::forceCreate(['name' => 'Carla Diaz', 'email' => 'carla@example.com', 'password' => 'secret']));
+    $this->actingAs($user = User::forceCreate(['name' => 'Carla Diaz', 'email' => 'carla@example.com', 'password' => 'secret']));
 
     Livewire::test(StoryCanvas::class, ['stories' => Josephdlmd\FilamentStorybook\Stories\RecordNotesStories::class, 'story' => 'default'])
         ->call('loadTable')
-        ->assertSeeInOrder(['Customer asked', 'Check promised'])
+        ->assertSeeInOrder(['Customer asked', 'Ana Reyes', 'Check promised', 'Ben Santos'])
         ->callAction(TestAction::make('create')->table(), ['body' => '  Spoke to their accountant.  '])
         ->assertHasNoActionErrors();
 
     expect(Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice::find(2)->notes()->latest('id')->first())
         ->body->toBe('Spoke to their accountant.')
-        ->user_name->toBe('Carla Diaz');
+        ->user_id->toBe($user->id);
 });
 
 it('archives, restores and deletes many records, deleting only those never used', function (): void {

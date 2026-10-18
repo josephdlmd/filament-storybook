@@ -13,10 +13,12 @@
         "orchestra/testbench": "^11.0",
         "pestphp/pest": "^5.0",
         "pestphp/pest-plugin-laravel": "^5.0",
+        "spatie/laravel-activitylog": "^5.0",
         "spatie/laravel-pdf": "^2.14"
     },
     "suggest": {
         "laravel/boost": "Gives AI agents the patterns, rules and checks as the storybook-list, storybook-show, storybook-instructions, storybook-test and storybook-audit MCP tools.",
+        "spatie/laravel-activitylog": "Keeps the activity log the records-history pattern lists on a record's View page.",
         "spatie/laravel-pdf": "Makes the PDFs of the actions-download-pdf pattern, with spatie/browsershot and puppeteer for tagged PDFs."
     },
     "conflict": {

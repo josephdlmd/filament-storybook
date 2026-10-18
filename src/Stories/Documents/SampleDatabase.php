@@ -85,21 +85,29 @@ class SampleDatabase
             $table->decimal('on_hand', 15, 3);
         });
 
-        $schema->create('record_events', function (Blueprint $table): void {
+        // As spatie/laravel-activitylog's own migration makes it.
+        $schema->create('activity_log', function (Blueprint $table): void {
             $table->id();
-            $table->morphs('record');
-            $table->string('event');
-            // The name as it was, so the history still says who did it after a user is renamed or removed.
-            $table->string('user_name');
-            $table->string('reason')->nullable();
-            $table->dateTime('happened_at');
+            $table->string('log_name')->nullable()->index();
+            $table->text('description');
+            $table->nullableMorphs('subject', 'subject');
+            $table->string('event')->nullable();
+            $table->nullableMorphs('causer', 'causer');
+            $table->json('attribute_changes')->nullable();
+            $table->json('properties')->nullable();
+            $table->timestamps();
+        });
+
+        $schema->create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
         });
 
         $schema->create('record_notes', function (Blueprint $table): void {
             $table->id();
             $table->morphs('record');
             $table->text('body');
-            $table->string('user_name');
+            $table->foreignId('user_id');
             $table->dateTime('written_at');
         });
 
@@ -185,17 +193,19 @@ class SampleDatabase
             ['item_id' => 1, 'document' => 'Receiving report RR-000007', 'moved_on' => '2026-10-05', 'quantity' => '80', 'unit_cost' => '214.3750', 'on_hand' => '140'],
         ]);
 
-        // The void invoice 001231's history.
-        DB::connection('storybook')->table('record_events')->insert(array_map(fn (array $event): array => ['record_type' => SalesInvoice::class, 'record_id' => 1, ...$event], [
-            ['event' => 'Created', 'user_name' => 'Ana Reyes', 'reason' => null, 'happened_at' => '2026-10-09 09:12:00'],
-            ['event' => 'Posted', 'user_name' => 'Ana Reyes', 'reason' => null, 'happened_at' => '2026-10-09 09:30:00'],
-            ['event' => 'Voided', 'user_name' => 'Ben Santos', 'reason' => 'Issued to the wrong customer', 'happened_at' => '2026-10-10 14:05:00'],
+        DB::connection('storybook')->table('users')->insert([['name' => 'Ana Reyes'], ['name' => 'Ben Santos']]);
+
+        // The void invoice 001231's history, as the activity log keeps it.
+        DB::connection('storybook')->table('activity_log')->insert(array_map(fn (array $activity): array => ['log_name' => 'default', 'subject_type' => SalesInvoice::class, 'subject_id' => 1, 'causer_type' => User::class, ...$activity], [
+            ['description' => 'Created', 'event' => 'created', 'causer_id' => 1, 'properties' => '[]', 'created_at' => '2026-10-09 09:12:00', 'updated_at' => '2026-10-09 09:12:00'],
+            ['description' => 'Posted', 'event' => 'posted', 'causer_id' => 1, 'properties' => '[]', 'created_at' => '2026-10-09 09:30:00', 'updated_at' => '2026-10-09 09:30:00'],
+            ['description' => 'Voided', 'event' => 'voided', 'causer_id' => 2, 'properties' => '{"reason":"Issued to the wrong customer"}', 'created_at' => '2026-10-10 14:05:00', 'updated_at' => '2026-10-10 14:05:00'],
         ]));
 
         // Notes on the posted invoice 001232.
         DB::connection('storybook')->table('record_notes')->insert(array_map(fn (array $note): array => ['record_type' => SalesInvoice::class, 'record_id' => 2, ...$note], [
-            ['body' => 'Customer asked for the copy to go to their new billing contact.', 'user_name' => 'Ana Reyes', 'written_at' => '2026-10-11 10:20:00'],
-            ['body' => 'Check promised for November 8.', 'user_name' => 'Ben Santos', 'written_at' => '2026-10-20 16:45:00'],
+            ['body' => 'Customer asked for the copy to go to their new billing contact.', 'user_id' => 1, 'written_at' => '2026-10-11 10:20:00'],
+            ['body' => 'Check promised for November 8.', 'user_id' => 2, 'written_at' => '2026-10-20 16:45:00'],
         ]));
 
         // Abra's credit limit, and an order of theirs posted but not yet invoiced: with its unpaid invoices, ₱205,890.50 is taken.
