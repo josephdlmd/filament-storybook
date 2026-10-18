@@ -48,7 +48,8 @@ code = "".join(open(f"{app}/{path}").read() for path in untracked.split() if re.
 app_code = "".join(open(f"{app}/{path}").read() for path in untracked.split() if re.match(r"app/.*\.php$", path))
 checks = {
     "money input: prefix('₱')": "prefix('₱')" in code,
-    "money input: step(0.01)": "step(0.01)" in code,
+    # A unit price or cost takes 4 decimals (fields-money-input).
+    "money input: step(0.01)": "step(0.01)" in code or "step(0.0001)" in code,
     "money column: money('PHP')": "money('PHP')" in code,
     "money column: alignEnd()": "alignEnd()" in code,
     "status: badge()": "badge()" in code,
@@ -72,7 +73,7 @@ checks = {
     "line items: table repeater": "Repeater::make" in code and "->table([" in code,
     "line items: a row each, through relationship()": bool(re.search(r"Repeater::make\([^;]*?->relationship\(", code, re.S)),
     # Or a document's payments in a table on its View page, as records-view-page shows them.
-    "related list: a relation manager": "extends RelationManager" in code or "RepeatableEntry::make('payments')" in code,
+    "related list: a relation manager": "extends RelationManager" in code or "extends ManageRelatedRecords" in code or "RepeatableEntry::make('payments')" in code,
     # Import prompt: the importer validates like the form and never rounds amounts.
     "import: ImportAction with an importer": "ImportAction::make" in code and "extends Importer" in code,
     "import: row limit set": "maxRows(" in code,
@@ -117,6 +118,11 @@ checks = {
     "history: key events written to the activity log": "activity()" in code and "performedOn(" in code and "LogsActivity" not in app_code,
     "notes: on the record, knowing their writer by id": bool(re.search(r"function notes\(\)", app_code)) and "user_id" in code,
     "global search: says what it searches": "getGloballySearchableAttributes" in code,
+    # v0.82-v0.83: a chart's empty months, cached figures, related values loaded with search results, a wizard's last step.
+    "dashboard: chart lists every month, empty ones as 0": "extends ChartWidget" in code and ("CarbonPeriod" in code or "range(" in code),
+    "dashboard: figures cached": "extends StatsOverviewWidget" in code and bool(re.search(r"(Cache::|cache\(\)->)remember", code)),
+    "global search: related values loaded with the results": "getGlobalSearchResultDetails" not in code or "getGlobalSearchEloquentQuery" in code,
+    "wizard: ends with Check answers": "Step::make('Check answers')" in code,
 }
 shown = {c[1] for c in calls if "storybook-show" in c[0]}
 print("patterns looked up:", sorted(shown) or "none")
@@ -125,7 +131,7 @@ prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
         "invoice": "vat", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "(?=^(?!.*customer name)).*customer", "printing": "print", "purchases": "purchase",
-        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range", "history": "(history|who created|who posted)", "notes": "notes?\\b", "global search": "search at the top"}
+        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range", "history": "(history|who created|who posted)", "notes": "notes?\\b", "global search": "search at the top", "wizard": "(in steps|wizard)"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)
