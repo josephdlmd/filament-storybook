@@ -142,7 +142,10 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: a toggle is only for something that applies at once; a yes/no saved with a form is a Checkbox (Carbon toggle and checkbox).";
             }
 
-            if (str_contains($story['snippet'], 'FileUpload::make(') && (! preg_match('/->(acceptedFileTypes|image)\\(/', $story['snippet']) || ! str_contains($story['snippet'], '->maxSize('))) {
+            // Each component's chain runs to the next ::make(), so one component's option doesn't count for another.
+            $chains = preg_split('/(?=\\b\\w+::make\\()/', $story['snippet']);
+
+            if (collect($chains)->contains(fn (string $chain): bool => str_contains($chain, 'FileUpload::make(') && (! preg_match('/->(acceptedFileTypes|image)\\(/', $chain) || ! str_contains($chain, '->maxSize(')))) {
                 $warnings[] = "{$key}: an upload states its accepted types and largest size (USWDS file input).";
             }
 
@@ -158,7 +161,7 @@ class TestStories extends Tool
                         $warnings[] = "{$key}: the field `{$name}` has a placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).";
                     }
 
-                    if (! preg_match('/->(required|readOnly|disabled)\\(|\\(optional\\)/', $chain)) {
+                    if (! preg_match('/->(required|readOnly|disabled)\\((?!false\\))|\\(optional\\)/', $chain)) {
                         $warnings[] = "{$key}: the field `{$name}` is neither required() nor labelled \"(optional)\"; label an optional field \"… (optional)\" and leave required ones unmarked (Carbon form: one convention throughout).";
                     }
                 }
@@ -192,7 +195,7 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: sets its own font size, weight or colour; use Filament's size(), weight() and color() options, which take the theme's type styles and colour tokens and follow dark mode (Carbon typography and colour).";
             }
 
-            if (str_contains($story['snippet'], '->iconButton()') && ! str_contains($story['snippet'], '->tooltip(')) {
+            if (collect($chains)->contains(fn (string $chain): bool => str_contains($chain, '->iconButton()') && ! str_contains($chain, '->tooltip('))) {
                 $warnings[] = "{$key}: an icon-only action needs a tooltip saying what it does, `->tooltip('…')`, shown on hover and focus (Carbon tooltip).";
             }
 
@@ -219,7 +222,7 @@ class TestStories extends Tool
                 $warnings[] = "{$key}: AboveContentCollapsible puts the filter button alone in a row above the search, with a count even when no filter applies; show the filters open with `FiltersLayout::AboveContent` (Carbon filtering: \"horizontally at the top of the data set\").";
             }
 
-            if (preg_match('/->collapsible\\(\\)/', $story['snippet']) && ! str_contains($story['snippet'], '->collapsed(')) {
+            if (collect($chains)->contains(fn (string $chain): bool => str_contains($chain, '->collapsible()') && ! str_contains($chain, '->collapsed('))) {
                 $warnings[] = "{$key}: a collapsible section starts collapsed, `->collapsed()`; one that should start open isn't collapsible (Carbon accordion).";
             }
 

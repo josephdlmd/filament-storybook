@@ -106,8 +106,16 @@ class AuditPages extends Tool
 
         Filament::auth()->setUser($user);
 
-        $resources = collect($panel->getResources())
-            ->when($request->get('resources'), fn ($all, array $names) => $all->filter(fn (string $resource): bool => in_array(class_basename($resource), $names, true)));
+        // A resource is named by its class, short or in full.
+        $names = array_values(array_filter(array_map(fn (string $name): string => ltrim($name, '\\'), (array) $request->get('resources', []))));
+        $named = fn (string $resource): array => array_intersect([$resource, class_basename($resource)], $names);
+        $resources = collect($panel->getResources());
+
+        if ($unknown = array_diff($names, $resources->flatMap($named)->all())) {
+            return Response::error('Unknown resources: '.implode(', ', $unknown).'. The resources are: '.$resources->map(fn (string $resource): string => class_basename($resource))->implode(', ').'.');
+        }
+
+        $resources = $resources->when($names, fn ($all) => $all->filter(fn (string $resource): bool => $named($resource) !== []));
 
         $passing = [];
         $failing = [];
@@ -131,7 +139,12 @@ class AuditPages extends Tool
 
                 if (is_string($redirect) && parse_url($redirect, PHP_URL_PATH) === parse_url(rescue($url, '', report: false), PHP_URL_PATH)) {
                     parse_str((string) parse_url($redirect, PHP_URL_QUERY), $query);
-                    $page = Livewire::withQueryParams($query)->test($class, $parameters);
+                    try {
+                        $page = Livewire::withQueryParams($query)->test($class, $parameters);
+                    } finally {
+                        // Livewire keeps them for every later test() until told otherwise.
+                        Livewire::withQueryParams([]);
+                    }
                 }
 
                 // Livewire's test harness returns no component when the page refuses or redirects while opening.
@@ -161,89 +174,96 @@ class AuditPages extends Tool
         };
 
         foreach ($resources as $resource) {
-            foreach ($resource::getPages() as $name => $registration) {
-                $key = class_basename($registration->getPage());
-                $parameters = [];
+            // A resource can fail outside its pages too, such as a query on a table not migrated yet; the rest is still audited.
+            try {
+                foreach ($resource::getPages() as $name => $registration) {
+                    $key = class_basename($registration->getPage());
+                    $parameters = [];
 
-                // Edit, View and any custom page of one record, such as a reconciliation, open on the first record.
-                if (in_array(InteractsWithRecord::class, class_uses_recursive($registration->getPage()), true)) {
-                    $record = $resource::getEloquentQuery()->first();
+                    // Edit, View and any custom page of one record, such as a reconciliation, open on the first record.
+                    if (in_array(InteractsWithRecord::class, class_uses_recursive($registration->getPage()), true)) {
+                        $record = $resource::getEloquentQuery()->first();
 
-                    if ($record === null) {
-                        $skipped[] = "- `{$key}`: no record to open; create one to audit this page.";
+                        if ($record === null) {
+                            $skipped[] = "- `{$key}`: no record to open; create one to audit this page.";
 
+                            continue;
+                        }
+
+                        $parameters['record'] = $record->getRouteKey();
+                    }
+
+                    $audit($key, $registration->getPage(), $parameters, fn (): string => $resource::getUrl($name, $parameters));
+                }
+
+                // Related lists render inside the View or Edit page; read them from the resource, since a View page may embed them itself.
+                $owner = $resource::getEloquentQuery()->first();
+                $pageClass = ($resource::getPages()['view'] ?? $resource::getPages()['edit'] ?? null)?->getPage();
+
+                foreach ($owner === null || $pageClass === null ? [] : static::relationManagers($resource::getRelations()) as $manager) {
+                    if (! $manager::canViewForRecord($owner, $pageClass)) {
                         continue;
                     }
 
-                    $parameters['record'] = $record->getRouteKey();
+                    // Named with its resource, since two resources may each have an ItemsRelationManager.
+                    $key = class_basename($resource).' '.class_basename($manager);
+
+                    try {
+                        $list = Livewire::test($manager, ['ownerRecord' => $owner, 'pageClass' => $pageClass]);
+                        $rendered[$key] = $list->html();
+                        $warnings = [...$warnings, ...static::warnings($key, $list->instance())];
+                        $passing[] = "- `{$key}`";
+                    } catch (Throwable $e) {
+                        $failing[] = "- `{$key}`: ".static::failure($e);
+                    }
                 }
 
-                $audit($key, $registration->getPage(), $parameters, fn (): string => $resource::getUrl($name, $parameters));
-            }
-
-            // Related lists render inside the View or Edit page; read them from the resource, since a View page may embed them itself.
-            $owner = $resource::getEloquentQuery()->first();
-            $pageClass = ($resource::getPages()['view'] ?? $resource::getPages()['edit'] ?? null)?->getPage();
-
-            foreach ($owner === null || $pageClass === null ? [] : static::relationManagers($resource::getRelations()) as $manager) {
-                if (! $manager::canViewForRecord($owner, $pageClass)) {
-                    continue;
+                // A related value in a search result's title or details is loaded with the results, or each result runs a query of its own.
+                if ($resource::canGloballySearch() && ($lazy = static::lazyGlobalSearch($resource)) !== []) {
+                    $relations = implode(', ', array_map(fn (string $relation): string => "`{$relation}`", $lazy));
+                    $warnings[] = "- `".class_basename($resource)."`: global search loads {$relations} one result at a time; load it with the results, `parent::getGlobalSearchEloquentQuery()->with([...])` in `getGlobalSearchEloquentQuery()` (Laravel eager loading).";
                 }
-
-                $key = class_basename($manager);
-
-                try {
-                    $list = Livewire::test($manager, ['ownerRecord' => $owner, 'pageClass' => $pageClass]);
-                    $rendered[$key] = $list->html();
-                    $warnings = [...$warnings, ...static::warnings($key, $list->instance())];
-                    $passing[] = "- `{$key}`";
-                } catch (Throwable $e) {
-                    $failing[] = "- `{$key}`: ".static::failure($e);
-                }
-            }
-
-            // A related value in a search result's title or details is loaded with the results, or each result runs a query of its own.
-            if ($resource::canGloballySearch() && ($lazy = static::lazyGlobalSearch($resource)) !== []) {
-                $relations = implode(', ', array_map(fn (string $relation): string => "`{$relation}`", $lazy));
-                $warnings[] = "- `".class_basename($resource)."`: global search loads {$relations} one result at a time; load it with the results, `parent::getGlobalSearchEloquentQuery()->with([...])` in `getGlobalSearchEloquentQuery()` (Laravel eager loading).";
+            } catch (Throwable $e) {
+                $failing[] = '- `'.class_basename($resource).'`: '.static::failure($e);
             }
         }
 
         // The panel's own pages, such as a dashboard or a settings page, on a full audit; the Storybook page is the workshop, not the app.
-        foreach ($request->get('resources') ? [] : $panel->getPages() as $class) {
+        foreach ($names ? [] : $panel->getPages() as $class) {
             if ($class !== Storybook::class) {
                 $audit(class_basename($class), $class, [], fn (): string => $class::getUrl());
             }
         }
 
         // The panel's dashboard widgets, on a full audit. Filament's stats and chart widgets reload every 5 seconds unless told not to.
-        foreach ($request->get('resources') ? [] : $panel->getWidgets() as $widget) {
+        foreach ($names ? [] : $panel->getWidgets() as $widget) {
             $widget = $widget instanceof WidgetConfiguration ? $widget->widget : $widget;
             $key = class_basename($widget);
 
-            if (! $widget::canView()) {
-                continue;
-            }
-
-            if (property_exists($widget, 'pollingInterval') && ($every = (new ReflectionProperty($widget, 'pollingInterval'))->getDefaultValue()) !== null) {
-                $warnings[] = "- `{$key}`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
-            }
-
-            $datasets = is_subclass_of($widget, ChartWidget::class) ? (rescue(fn (): mixed => (new ReflectionMethod($widget, 'getData'))->invoke(new $widget), [], report: false)['datasets'] ?? []) : [];
-
-            if (count($datasets) > 1 && collect($datasets)->contains(fn (array $series): bool => blank($series['borderColor'] ?? null) && blank($series['backgroundColor'] ?? null))) {
-                $warnings[] = "- `{$key}`: its ".count($datasets).' series share one colour, since Filament paints every series in the widget\'s colour; give each its own `borderColor` and `backgroundColor` from Filament\'s palette, meeting 3:1 on the light and dark backgrounds, and its own line style, as `CashFlowChart` does (Carbon color palettes; WCAG 1.4.1, 1.4.11).';
-            }
-
-            if (count($datasets) === 1 && static::showsLegend($widget)) {
-                $warnings[] = "- `{$key}`: it has one series but shows a legend; hide it with `'plugins' => ['legend' => ['display' => false]]` (Carbon legends: \"Remove legends … when only one data category is needed\").";
-            }
-
-            if (is_subclass_of($widget, ChartWidget::class) && static::hasClickableLegend($widget)) {
-                $warnings[] = "- `{$key}`: its legend hides a series on a mouse click, which the keyboard can't do; set `'plugins' => ['legend' => ['onClick' => null]]` in `getOptions()`, and filter with the dashboard's filters instead (WCAG 2.1.1; Carbon legends).";
-            }
-
+            // Like a page, a widget that fails, such as a visibility check on a table not migrated yet, is reported and the rest audited.
             try {
+                if (! $widget::canView()) {
+                    continue;
+                }
+
+                if (property_exists($widget, 'pollingInterval') && ($every = (new ReflectionProperty($widget, 'pollingInterval'))->getDefaultValue()) !== null) {
+                    $warnings[] = "- `{$key}`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
+                }
+
+                $datasets = is_subclass_of($widget, ChartWidget::class) ? (rescue(fn (): mixed => (new ReflectionMethod($widget, 'getData'))->invoke(new $widget), [], report: false)['datasets'] ?? []) : [];
+
+                if (count($datasets) > 1 && collect($datasets)->contains(fn (array $series): bool => blank($series['borderColor'] ?? null) && blank($series['backgroundColor'] ?? null))) {
+                    $warnings[] = "- `{$key}`: its ".count($datasets).' series share one colour, since Filament paints every series in the widget\'s colour; give each its own `borderColor` and `backgroundColor` from Filament\'s palette, meeting 3:1 on the light and dark backgrounds, and its own line style, as `CashFlowChart` does (Carbon color palettes; WCAG 1.4.1, 1.4.11).';
+                }
+
+                if (count($datasets) === 1 && static::showsLegend($widget)) {
+                    $warnings[] = "- `{$key}`: it has one series but shows a legend; hide it with `'plugins' => ['legend' => ['display' => false]]` (Carbon legends: \"Remove legends … when only one data category is needed\").";
+                }
+
+                if (is_subclass_of($widget, ChartWidget::class) && static::hasClickableLegend($widget)) {
+                    $warnings[] = "- `{$key}`: its legend hides a series on a mouse click, which the keyboard can't do; set `'plugins' => ['legend' => ['onClick' => null]]` in `getOptions()`, and filter with the dashboard's filters instead (WCAG 2.1.1; Carbon legends).";
+                }
+
                 $rendered[$key] = Livewire::test($widget)->html();
                 $passing[] = "- `{$key}`";
             } catch (Throwable $e) {
@@ -252,7 +272,7 @@ class AuditPages extends Tool
         }
 
         // The menu, on a full audit. Building it runs the app's own code, such as visibility checks, so an error is reported like a page's.
-        if (! $request->get('resources')) {
+        if (! $names) {
             try {
                 $warnings = [...$warnings, ...static::navigationWarnings($panel)];
             } catch (Throwable $e) {
@@ -261,7 +281,7 @@ class AuditPages extends Tool
         }
 
         // The page around them once, as the browser gets it: the title, language, skip link, landmarks and the menu.
-        $layout = $request->get('resources') ? [] : rescue(fn (): array => ['layout' => static::layout($panel)], [], report: false);
+        $layout = $names ? [] : rescue(fn (): array => ['layout' => static::layout($panel)], [], report: false);
 
         [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered, $layout, $panel);
 
@@ -557,8 +577,9 @@ class AuditPages extends Tool
             $tableActions = static::flatten([...$table->getHeaderActions(), ...$table->getRecordActions(), ...$table->getToolbarActions()]);
         }
 
-        foreach (collect([...$headerActions, ...$tableActions])->filter(fn (Action $action): bool => $action->isIconButton() && blank($action->getTooltip()))->unique(fn (Action $action): string => $action->getName()) as $action) {
-            $warn("the icon-only action `{$action->getName()}` has no tooltip; add `->tooltip('{$action->getLabel()}')`, shown on hover and focus (Carbon tooltip: \"Every icon-only button needs a tooltip\").");
+        // A row action here has no record, so a label or tooltip that types one, `fn (Account $record) => …`, is left unchecked.
+        foreach (collect([...$headerActions, ...$tableActions])->filter(fn (Action $action): bool => rescue(fn (): bool => $action->isIconButton() && blank($action->getTooltip()), false, report: false))->unique(fn (Action $action): string => $action->getName()) as $action) {
+            $warn("the icon-only action `{$action->getName()}` has no tooltip; add `->tooltip('".rescue(fn (): string => (string) $action->getLabel(), '…', report: false)."')`, shown on hover and focus (Carbon tooltip: \"Every icon-only button needs a tooltip\").");
         }
 
         // A shortcut of one character key fires while the user types or dictates (WCAG 2.1.4); Filament's turn on Ctrl, ⌘ or Alt.
@@ -583,7 +604,7 @@ class AuditPages extends Tool
         }
 
         foreach ([...$headerActions, ...$tableActions] as $action) {
-            $label = trim((string) $action->getLabel());
+            $label = trim(rescue(fn (): string => (string) $action->getLabel(), '', report: false));
             // A row action here has no record, and asking about its modal runs closures that may type one, such as
             // `modalHeading(fn (Account $record) => …)`; a closure that can't run without its record is left unchecked.
             $verbs = rescue(fn (): array => $action->shouldOpenModal() ? [$label, trim($action->getModalSubmitActionLabel())] : [$label], [$label], report: false);

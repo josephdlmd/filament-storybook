@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook;
 
 use Filament\Panel;
+use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -51,7 +52,8 @@ class Accessibility
         }
 
         try {
-            $result = Process::path(base_path())->timeout(120)
+            // Under Boost's limit of 180 seconds a call, with time left for rendering the pages.
+            $result = Process::path(base_path())->timeout(90)
                 ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
                 // And the house script, so what it fixes in the page (names, roles) is checked as the browser gets it.
                 ->input((string) json_encode(['css' => $css, 'js' => [__DIR__.'/../resources/js/house.js'], 'stories' => [
@@ -59,6 +61,8 @@ class Accessibility
                     ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html, 'page' => true], array_keys($pages), $pages),
                 ]]))
                 ->run(['node', __DIR__.'/../resources/a11y/axe.mjs']);
+        } catch (ProcessTimedOutException) {
+            return [[], 'Accessibility not checked (axe-core took over 90 seconds). Check fewer pages or stories at a time.'];
         } finally {
             array_map('unlink', $downloaded);
         }

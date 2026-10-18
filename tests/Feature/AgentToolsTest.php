@@ -29,7 +29,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 14 passing, 3 failing, 27 warnings, 1 accessibility issues')
+        ->toStartWith('# 16 passing, 3 failing, 30 warnings, 2 accessibility issues')
         ->toContain('- `broken-story.vagueAndTitleCase`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
         ->toContain('- `broken-story.collapsedFilters`: AboveContentCollapsible puts the filter button alone')
         ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')
@@ -53,15 +53,25 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('- `broken-story.crampedChoices`: the wizard step "Choose the supplier now" is longer than 16 characters')
         ->toContain('- `broken-story.throws`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:53')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:54')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:37')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:38')
         ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
-        ->toContain('tests/Fixtures/Stories/BrokenStories.php:40')
+        ->toContain('tests/Fixtures/Stories/BrokenStories.php:41')
         ->toContain('run storybook-test again until every story passes')
         ->toContain('- `broken-story.works`');
 
     expect((new TestStories)->handle(new Request(['ids' => ['nope']]))->isError())->toBeTrue();
+});
+
+it('checks each component\'s own options, so one tooltip or one collapsed section doesn\'t cover the others', function (): void {
+    app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
+
+    expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story'], 'a11y' => false]))->content())
+        ->toContain('- `broken-story.oneTooltipForTwo`: an icon-only action needs a tooltip')
+        ->toContain('- `broken-story.oneCollapsedForTwo`: a collapsible section starts collapsed')
+        ->toContain('- `broken-story.oneCollapsedForTwo`: the field `billing_address` is neither required()')
+        ->not->toContain('- `broken-story.oneCollapsedForTwo`: the field `address` is neither');
 });
 
 it('says how to enable the accessibility check when it cannot run', function (): void {

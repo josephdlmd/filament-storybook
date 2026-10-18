@@ -26,3 +26,8 @@ it('refuses an app that does not meet the standard, saying what to change', func
 
     $this->artisan('storybook:install')->assertExitCode(1);
 });
+
+it('refuses a boost.json that isn\'t valid JSON, rather than rewriting it with only this package', function (): void {
+    expect(implode(' ', InstallCommand::unmetRequirements(boost: true, pest: true, npm: true, defaultPanel: true, boostJson: false)))
+        ->toContain('Fix boost.json: it isn\'t valid JSON');
+});

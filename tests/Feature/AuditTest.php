@@ -187,13 +187,13 @@ it('audits edit pages against an existing record', function (): void {
         ->toStartWith('# 7 pages rendered, 0 failing, 94 warnings')
         ->toContain('- `EditGadget`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
-        ->toContain('- `PartsRelationManager`: the column "Created At" is in Title Case')
-        ->toContain('- `PartsRelationManager`: the empty list offers 2 actions')
-        ->toContain('- `PartsRelationManager`: the table shows 2 column(s); a table needs three or more')
-        ->toContain('- `PartsRelationManager`: the empty list\'s button is a second primary')
-        ->toContain('- `PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')
-        ->toContain('- `PartsRelationManager`: `delete` asks "Are you sure you would like to do this?"')
-        ->not->toContain('- `SparePartsRelationManager`:')
+        ->toContain('- `GadgetResource PartsRelationManager`: the column "Created At" is in Title Case')
+        ->toContain('- `GadgetResource PartsRelationManager`: the empty list offers 2 actions')
+        ->toContain('- `GadgetResource PartsRelationManager`: the table shows 2 column(s); a table needs three or more')
+        ->toContain('- `GadgetResource PartsRelationManager`: the empty list\'s button is a second primary')
+        ->toContain('- `GadgetResource PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')
+        ->toContain('- `GadgetResource PartsRelationManager`: `delete` asks "Are you sure you would like to do this?"')
+        ->not->toContain('SparePartsRelationManager`:')
         ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
         ->toContain('- `EditGadget`: `delete` asks "Are you sure you would like to do this?"')
         ->toContain('- `ViewGadget`: it shows the record as a disabled form')
@@ -256,4 +256,52 @@ it('skips pages the user may not open, and pages that need route parameters, ins
     } finally {
         GadgetResource::$creatable = true;
     }
+});
+
+it('checks row actions whose label or tooltip needs the record', function (): void {
+    expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+        ->toContain('0 failing')
+        ->toContain('- `ListGadgets`')
+        ->not->toContain('TypeError');
+});
+
+it('leaves no query parameters behind for the pages and tests after a page that sends the user back to itself', function (): void {
+    (new AuditPages)->handle(new Request);
+
+    // Opened without a period, the overview sends the user back to itself with one.
+    expect(Livewire::test(Josephdlmd\FilamentStorybook\Tests\Fixtures\GadgetOverview::class)->instance())->toBeNull();
+});
+
+it('takes resources by short or full class name, as a list or one name, and refuses names it doesn\'t know', function (): void {
+    expect((string) (new AuditPages)->handle(new Request(['resources' => GadgetResource::class]))->content())->toContain('- `CreateGadget`')
+        ->and((string) (new AuditPages)->handle(new Request(['resources' => 'GadgetResource']))->content())->toContain('- `CreateGadget`')
+        ->and($missing = (new AuditPages)->handle(new Request(['resources' => ['GadgetResorce', 'GadgetResource']])))
+        ->and($missing->isError())->toBeTrue()
+        ->and((string) $missing->content())->toContain('GadgetResorce')->toContain('GadgetResource')->not->toContain('GadgetResorce, GadgetResource');
+});
+
+it('reports a resource or widget that fails outside its pages, such as an unmigrated table, and audits the rest', function (): void {
+    GadgetResource::$unmigrated = true;
+    Josephdlmd\FilamentStorybook\Tests\Fixtures\GadgetStats::$unmigrated = true;
+
+    try {
+        expect((string) (new AuditPages)->handle(new Request)->content())
+            ->toContain('- `GadgetResource`: RuntimeException: no such table: gadgets at ')
+            ->toContain('- `GadgetStats`: RuntimeException: no such table: stock at ')
+            ->toContain('- `GadgetOverview`')
+            ->toContain('- `GadgetSalesChart`');
+    } finally {
+        GadgetResource::$unmigrated = false;
+        Josephdlmd\FilamentStorybook\Tests\Fixtures\GadgetStats::$unmigrated = false;
+    }
+});
+
+it('returns a timed-out accessibility check as not checked, keeping the rest of the result', function (): void {
+    Illuminate\Support\Facades\Process::fake(fn (Illuminate\Process\PendingProcess $process) => $process->timeout === 90
+        ? throw new Symfony\Component\Process\Exception\ProcessTimedOutException(new Symfony\Component\Process\Process(['node']), Symfony\Component\Process\Exception\ProcessTimedOutException::TYPE_GENERAL)
+        : 1);
+
+    [$issues, $unchecked] = Josephdlmd\FilamentStorybook\Accessibility::check(['page' => '<p>Gadgets</p>']);
+
+    expect($issues)->toBe([])->and($unchecked)->toContain('Accessibility not checked')->toContain('90 seconds');
 });
