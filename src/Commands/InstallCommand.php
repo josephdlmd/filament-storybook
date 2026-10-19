@@ -57,7 +57,7 @@ class InstallCommand extends Command
         $this->components->task('House CSS published and ignored by git');
 
         $this->components->task('Accessibility check packages', fn (): bool => Process::path(base_path())->timeout(300)
-            ->run(['npm', 'install', '--save-dev', '--no-audit', '--no-fund', 'playwright-core@1.58.2', 'axe-core@4.11.0'])->successful());
+            ->run(['npm', 'install', '--save-dev', '--no-audit', '--no-fund', 'playwright-core@1.64.1', 'axe-core@4.11.0'])->successful());
 
         $this->newLine();
         $this->components->info('Connected. Next:');
