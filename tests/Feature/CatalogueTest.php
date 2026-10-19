@@ -17,7 +17,7 @@ use Livewire\Livewire;
 
 it('discovers the shipped stories, sorted by title', function (): void {
     expect(array_keys(app(StoryRegistry::class)->all()))
-        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-mark-2307-received', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-error-pages', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-history', 'records-key-figures', 'records-locked', 'records-notes', 'records-paper-receipt', 'records-previous-and-next', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'reports-tax-withheld-by-customers', 'reports-tax-withheld-from-suppliers', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
+        ->toBe(['actions-adjust-stock', 'actions-approve-and-reject', 'actions-archive', 'actions-create-next-document', 'actions-credit-limit', 'actions-delete', 'actions-download-pdf', 'actions-download-supplier-statement', 'actions-email-document', 'actions-invite-a-user', 'actions-mark-2307-received', 'actions-record-payment', 'actions-void', 'dashboards-key-figures-and-charts', 'feedback-error-pages', 'feedback-notifications', 'forms-choice', 'forms-contact-details', 'forms-date', 'forms-document-totals', 'forms-file-upload', 'forms-form-container', 'forms-line-items', 'forms-money-input', 'forms-percentage', 'forms-quantity', 'forms-record-form', 'forms-record-picker', 'forms-settings-page', 'forms-sign-in', 'forms-tin', 'forms-unit-cost', 'forms-yes-or-no', 'records-details', 'records-document-lifecycle', 'records-history', 'records-key-figures', 'records-locked', 'records-notes', 'records-paper-receipt', 'records-previous-and-next', 'records-related-records', 'records-stock', 'records-view-page', 'reports-collections', 'reports-purchases-and-payables', 'reports-receivables-ageing', 'reports-sales', 'reports-tax-withheld-by-customers', 'reports-tax-withheld-from-suppliers', 'tables-bulk-actions', 'tables-import-and-export', 'tables-list-table', 'tables-money-column', 'tables-status-badge']);
 });
 
 it('describes a story the way a components manifest does', function (): void {
@@ -137,7 +137,7 @@ it('renders a screen story as the resource would, with its sample rows', functio
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
-        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-error-pages, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-history, records-key-figures, records-locked, records-notes, records-paper-receipt, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
+        ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-error-pages, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-sign-in, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-history, records-key-figures, records-locked, records-notes, records-paper-receipt, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 
 it('shows a screen story in each state it declares, with one snippet', function (): void {
@@ -155,4 +155,26 @@ it('shows a screen story in each state it declares, with one snippet', function 
     expect(Stories::states($method))->toBe(['populated', 'loading', 'error', 'forbidden'])
         ->and(Stories::owedStates($method))->toBe(['populated', 'loading', 'error', 'forbidden'])
         ->and(Stories::owedStates(new ReflectionMethod(MoneyInputStories::class, 'default')))->toBe([]);
+});
+
+it('previews the sign-in pages without signing anyone in or sending an email', function (): void {
+    Illuminate\Support\Facades\Notification::fake();
+    auth()->logout();
+
+    Livewire::test(Josephdlmd\FilamentStorybook\Stories\Auth\LogInPreview::class)
+        ->set('data.email', 'tester@example.com')
+        ->set('data.password', 'secret')
+        ->call('authenticate')
+        ->assertNoRedirect();
+
+    Livewire::test(Josephdlmd\FilamentStorybook\Stories\Auth\RequestPasswordResetPreview::class)
+        ->set('data.email', 'tester@example.com')
+        ->call('request');
+
+    expect(auth()->check())->toBeFalse();
+    Illuminate\Support\Facades\Notification::assertNothingSent();
+
+    // A signed-in viewer still sees the page, where Filament's own sends them to the dashboard.
+    $this->actingAs(User::first());
+    Livewire::test(Josephdlmd\FilamentStorybook\Stories\Auth\LogInPreview::class)->assertNoRedirect()->assertSee('Log in');
 });

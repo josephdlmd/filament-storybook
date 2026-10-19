@@ -45,7 +45,7 @@ One rendering of a pattern, or of an app's own screen, in the gallery. Shared st
 _Avoid_: Example, demo
 
 **Screen**:
-A pattern for a whole page (a list, record view, form, report, dashboard or settings page). A screen story owes every state, except that a record screen (one record's page or form) has no empty state.
+A pattern for a whole page (a list, record view, form, report, dashboard or settings page). A screen story owes every state, except that a record screen (one record's page or form) has no empty state, and a guest page (log in and the pages around it) owes only populated and error, since it loads no data and forbids no one.
 _Avoid_: Page, view, layout
 
 **Wizard**:
