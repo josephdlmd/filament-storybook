@@ -11,13 +11,13 @@ use Laravel\Mcp\Request;
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 187 passing, 0 failing, 0 accessibility issues, 0 settled exceptions')
+        ->toStartWith('# 188 passing, 0 failing, 0 accessibility issues, 0 settled exceptions')
         ->toContain('- `forms-money-input.required`');
 });
 
 it('passes every check on the patterns taken from the accounting app', function (): void {
     expect(testStoriesWithTheme(['ids' => ['records-previous-and-next', 'records-key-figures', 'dashboards-key-figures-and-charts', 'forms-record-picker', 'reports-sales', 'reports-collections', 'reports-receivables-ageing']]))
-        ->toStartWith('# 27 passing, 0 failing, 0 accessibility issues, 0 settled exceptions');
+        ->toStartWith('# 28 passing, 0 failing, 0 accessibility issues, 0 settled exceptions');
 });
 
 it('names every line-item field under Filament\'s own CSS, which hides the cell labels once the table shows headers', function (): void {

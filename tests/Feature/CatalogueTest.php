@@ -6,6 +6,7 @@ use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\ChoiceStories;
 use Josephdlmd\FilamentStorybook\Stories\DashboardStories;
+use Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart;
 use Josephdlmd\FilamentStorybook\Stories\ListTableStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyColumnStories;
 use Josephdlmd\FilamentStorybook\Stories\MoneyInputStories;
@@ -156,6 +157,9 @@ it('shows a screen story in each state it declares, with one snippet', function 
     $state(ListTableStories::class, 'default', 'empty')->assertSee('New supplier');
     // A dashboard's widget loads lazily, behind Filament's placeholder card.
     $state(DashboardStories::class, 'default', 'loading')->assertSeeHtml('fi-loading-section')->assertDontSeeHtml('fi-sc-loading');
+    // An empty widget says why it is empty: the chart's range has no approved orders.
+    Livewire::test(OrdersPerMonthChart::class, ['pageFilters' => ['from' => '2026-01-01', 'until' => '2026-03-31']])->assertSee('No orders were approved in this period');
+    Livewire::test(OrdersPerMonthChart::class)->assertSee('September had the most this year.');
     $state(ListTableStories::class, 'default', 'error')->assertSee('Something went wrong')->assertSee('Error 500');
     $state(ListTableStories::class, 'default', 'forbidden')->assertSee('You don\'t have access to this page')->assertSee('Error 403');
     $state(RecordFormStories::class, 'default', 'loading')->assertSeeHtml('fi-sc-loading');

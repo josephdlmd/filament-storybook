@@ -131,7 +131,7 @@ prompt = open(transcript.rsplit("/", 1)[0] + "/prompt.txt").read().lower() if __
 asks = {"approval": "approv", "line items": "line", "related list": "page", "import": "import", "export": "export", "dashboard": "dashboard",
         "money": "peso", "status": "status", "terms": "terms", "TIN": "tin", "delete": "delet", "notification": "tell",
         "invoice": "vat", "posting": "posting", "cancel": "cancel", "payments": "payment(?! terms)", "customer picker": "(?=^(?!.*customer name)).*customer", "printing": "print", "purchases": "purchase",
-        "chain": "deliver", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit limit", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range", "history": "(history|who created|who posted)", "notes": "notes?\\b", "global search": "search at the top", "wizard": "(in steps|wizard)"}
+        "chain": "deliver(?!y)", "ageing": "(days past due|ageing|aging|overdue)", "credit limit": "credit.limit[^.]*(approv|order)", "email": "email", "phone": "phone", "address": "(?<!email )address", "bulk": "(at once|several|bulk)", "archive": "(archiv|out of use)", "date range": "date range", "history": "(history|who created|who posted)", "notes": "notes?\\b", "global search": "search at the top", "wizard": "(in steps|wizard)"}
 print("pattern reuse:")
 for k, v in checks.items():
     topic = next((t for t in asks if k.startswith(t)), None)

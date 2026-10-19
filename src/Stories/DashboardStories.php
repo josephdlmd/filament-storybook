@@ -52,14 +52,15 @@ class DashboardStories extends Stories
             ]);
     }
 
-    /** A chart: a bar chart that compares months, with its values as text. */
+    /** A chart: a bar chart that compares months, with its values as text; empty, a range with none says so. */
     #[Section]
-    #[States('loading')]
-    public function chart(Schema $schema): Schema
+    #[States('loading', 'empty')]
+    public function chart(Schema $schema, string $state = 'populated'): Schema
     {
         return $schema
             ->components([
-                Livewire::make(OrdersPerMonthChart::class),
+                // The dashboard passes its filters; here, empty is a range before the first approved order.
+                Livewire::make(OrdersPerMonthChart::class, $state === 'empty' ? ['pageFilters' => ['from' => '2026-01-01', 'until' => '2026-03-31']] : []),
             ]);
     }
 
