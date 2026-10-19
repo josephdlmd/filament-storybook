@@ -71,6 +71,8 @@ Shared standards live only here. If a session working in an app is asked to chan
 
 Release once per session, at its end, not after each change (owner, 2026-10-18).
 
-1. Commit to `main` and push. Once the Tests workflow on GitHub is green for that commit, tag `vX.Y.Z` and push the tag. The package is installed from GitHub tags, not Packagist. Bump the minor version when patterns, rules or defaults change behaviour.
-2. In `filament-starter`, on a branch: run `composer require josephdlmd/filament-storybook:^X.Y` (a `^0.x` constraint does not pick up the next minor version), then `php artisan boost:update`, `composer check`, and `storybook-audit`, fixing what it finds.
-3. Open a PR. Merge it yourself when `composer check` passes and `storybook-audit` reports 0 failures, 0 warnings and 0 accessibility issues (owner, 2026-10-18); otherwise it waits for the owner. Existing apps get the change only when someone updates them.
+Only the owner merges to `main`, creates version tags and merges starter PRs (owner, 2026-10-19). `main` and `v*` tags are protected; a session may push any other branch, open PRs and draft releases, and work issues.
+
+1. Work on one branch per session and open one PR to `main`. The owner reviews and merges it once the Tests workflow is green.
+2. End the session with a draft GitHub release carrying the proposed `vX.Y.Z` and its notes (`gh release create vX.Y.Z --draft --target main --notes …`). The owner merges the PR, then publishes the release, which tags the merged `main`. The package is installed from GitHub tags, not Packagist. Bump the minor version when patterns, rules or defaults change behaviour.
+3. Once the tag exists, in `filament-starter` on a branch: run `composer require josephdlmd/filament-storybook:^X.Y` (a `^0.x` constraint does not pick up the next minor version), then `php artisan boost:update`, `composer check`, and `storybook-audit`, fixing what it finds. Open a PR; it waits for the owner, since adopting a release approves it. Existing apps get the change only when someone updates them.
