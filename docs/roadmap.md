@@ -38,7 +38,7 @@ After the documents. Shared patterns stay generic; anything that depends on one 
 - **Money:** price lists and customer prices; collections and deposits (including post-dated cheques, if used). Shared screens, business rules.
 - **Accounting and tax:** chart of accounts; journal entries (debits equal credits); closing a period; tax reports and certificates. App-specific.
 - **Accounting-app features** (Mobbin shows them in Xero and QuickBooks; not shared patterns): bank reconciliation, recurring invoices, payment reminders, receipt capture, payment links, multi-currency. App-specific; build them when an app asks.
-- **Other screens an app may need:** a customer portal; delivery confirmation on a phone (photo or signature); a delivery calendar; recurring documents; a first-run company setup. Build them when an app asks.
+- **Other screens an app may need:** an outside panel for customers or suppliers (who may sign in, and what they see, is set under Business standards in `rules.md`; the Screens wait for an app); delivery confirmation on a phone (photo or signature); a delivery calendar; recurring documents; a first-run company setup. Build them when an app asks.
 - **Administration:** roles and permissions; faster data entry ("save and create another", keyboard use on long forms). Shared.
 
 ## Ask the owner first
