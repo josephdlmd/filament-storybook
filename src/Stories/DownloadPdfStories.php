@@ -5,9 +5,9 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Actions\Action;
 use Filament\Schemas\Components\View;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadPdfStories extends Stories

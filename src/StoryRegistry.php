@@ -188,7 +188,7 @@ class StoryRegistry
         return in_array($returns, ['static', 'self', '$this'], true) || is_a($returns, $class, true) ? $class : null;
     }
 
-    protected static function signature(ReflectionMethod $method): string
+    public static function signature(ReflectionMethod $method): string
     {
         $parameters = array_map(function (ReflectionParameter $parameter): string {
             $default = '';
@@ -233,7 +233,7 @@ class StoryRegistry
         return preg_match('/^return\s+(.*);$/s', $body, $match) ? $match[1] : $body;
     }
 
-    protected static function docblock(ReflectionMethod $story): string
+    public static function docblock(ReflectionMethod $story): string
     {
         $comment = (string) $story->getDocComment();
 

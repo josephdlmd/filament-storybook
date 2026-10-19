@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Filament\Actions\Exports\ExportColumn;
+use Josephdlmd\FilamentStorybook\Reports\ReportExporter;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
 
 /**

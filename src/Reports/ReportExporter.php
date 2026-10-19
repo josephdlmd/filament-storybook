@@ -1,6 +1,6 @@
 <?php
 
-namespace Josephdlmd\FilamentStorybook\Stories\Reports;
+namespace Josephdlmd\FilamentStorybook\Reports;
 
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;

@@ -7,7 +7,8 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | Path | What it is |
 |---|---|
 | `src/Stories.php` | Base class: one public method per story. The return type picks the canvas (component, column, action, or a whole `Table`/`Schema`). |
-| `src/Stories/Imports`, `src/Stories/Widgets`, `src/Stories/Documents` | Classes a pattern needs besides its stories (an importer, a chart widget, the document money and numbering). A pattern lists them in `examples()`; `storybook-show` prints their source for agents to copy. The example models there (`Customer`, `SalesInvoice`) stand in for the app's own; `Customer` keeps its sample rows in an in-memory SQLite database, so a story can use a real relationship (`Stories::model()`). |
+| `src/Documents`, `src/Contacts`, `src/Reports` | Classes a rule or business standard fixes (`DocumentTotals`, `DocumentNumber`, `DocumentStatus`, `PaymentStatus`, `PrintedDocument`, `PhoneNumber`, the abstract `ReportExporter`): apps call or extend them, never copy them; `storybook-show` prints their signatures. Keep their public methods stable, since apps depend on them by version. |
+| `src/Stories/Imports`, `src/Stories/Widgets`, `src/Stories/Documents` | Example classes a pattern needs besides its stories (an importer, a chart widget, a model). A pattern lists them in `examples()`; `storybook-show` prints their source for agents to copy. The example models there (`Customer`, `SalesInvoice`) stand in for the app's own; `Customer` keeps its sample rows in an in-memory SQLite database, so a story can use a real relationship (`Stories::model()`). |
 | `resources/views/documents` | The shared print layout for every document (`print` wraps `document` as a full page for the PDF; the Storybook page previews `document`). |
 | `src/Concerns/HasSentenceCaseLabels.php` | A trait apps add to each resource, for the titles Filament title-cases and a plugin can't reach. |
 | `src/StoryRegistry.php` | Finds stories in `src/Stories` (shared patterns) and the app's `app/Stories`. Builds the manifest: snippets, imports, and an API section of real signatures (a tokenizer follows each call chain). |
@@ -15,6 +16,7 @@ This package brings Storybook's agent promise to Laravel and Filament: agents ge
 | `src/Pages/Storybook.php` | The `/<panel>/storybook` catalogue. Not in navigation; blocked in production. |
 | `src/Mcp/*` | The five Boost MCP tools: `storybook-list`, `storybook-show`, `storybook-instructions`, `storybook-test` (patterns) and `storybook-audit` (the app's real resource pages, their related lists, the panel's own pages, the dashboard's widgets and the menu). |
 | `src/Accessibility.php` + `resources/a11y/axe.mjs` | WCAG 2.2 AA checks with axe-core in headless Chromium, shared by the test and audit tools. |
+| `src/CustomComponents.php` | What counts as an app's custom component, which `storybook-test` and `storybook-audit` fail: custom components are package-only. |
 | `src/StorybookPlugin.php` | Registers the page, the locked look's colours and compact sizes, and the **house defaults**: Filament defaults corrected app-wide where they break a rule. |
 | `resources/boost/guidelines/core.blade.php` | The guideline Boost puts in each app's `AGENTS.md`. Keep it short: Storybook found that long agent instructions get truncated. |
 | `resources/instructions/stories.md` | How to write a story: choosing the component, fitting the other patterns, checking the result. `storybook-instructions` returns it followed by `docs/filament-coverage.md` and `docs/rules.md`. |

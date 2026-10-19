@@ -3,12 +3,15 @@
 A story is one approved way to configure a Filament component. Agents copy it, so it must be correct and complete.
 
 ## Before you write
+- Start from the Screen: every page is one of the shared Screens (a list, a record's View page, a create or edit form, with the wizard as its long form, a report, a dashboard, a settings page, sign-in). Pick it first, then fill it with the piece patterns (fields, columns, actions). A page no Screen covers becomes a new shared Screen, never an app's own.
 - Call `storybook-list`. If a pattern already covers the need, reuse it; do not add a near-duplicate.
+- Call the package's classes that a rule fixes (`DocumentTotals`, `DocumentNumber`, `DocumentStatus`, `PaymentStatus`, `PhoneNumber`, `PrintedDocument`; extend `ReportExporter`): `storybook-show` prints their signatures. Copy only the example classes it prints in full (models, importers, exporters, widgets).
 - Check the method signatures in `storybook-show`'s API section. Never guess an argument.
 
 ## Choosing the component
 - Pick the component by the job, with the rules: up to five choices are radios and more are a searchable select, a yes or no saved with the form is a checkbox, a state the user acts on is a badge with its word.
 - Find each component you use in the coverage table below ("Filament coverage") and follow what its row names. **Pattern:** copy that pattern's configuration. **Rule:** apply the rule. **General:** only the general rules named there apply; say so to the user. **Not applicable:** don't use it.
+- Build from native Filament in this order: (1) its components (fields, columns, entries, actions, and layout such as Section, Grid, Flex, Callout and Empty state); (2) schema prime components (Text, Icon, Image, UnorderedList) composed with that layout, with no class or view of your own. Never a custom component in an app: no subclass of a field, column, entry or layout component, no widget with its own Blade view, no Blade component; `storybook-test` and `storybook-audit` fail them. A real gap in the coverage table goes to the owner as an extension proposal, and the package ships it.
 - When no row covers what you need, or a rule would be a guess, say so instead of inventing one. A UI rule needs a current source; a business fact comes from the owner.
 
 ## Fit the other patterns
@@ -33,7 +36,7 @@ A new story is one more screen in the same app, so it agrees with the patterns a
 - Columns and entries need sample data. Return rows from `records()`, keyed by record id, covering the edge cases: a negative amount, an empty value, a long label.
 - The canvas gives every story an unsaved record made from the first sample row, so a condition on `$record` (`fn (?Model $record): bool => …`) works as it does in a resource.
 - In a table story, type the record in a row action's closures nullable, `fn (?Order $record)`: a table calls them without a record while it has no rows.
-- A pattern that needs a class besides its stories (an importer, a widget) lists it in `examples()`; `storybook-show` prints its source to copy.
+- A pattern that needs a class besides its stories lists it in `examples()`. An example to adapt (an importer, a widget, a model) lives under the `Stories` namespace, and `storybook-show` prints its source to copy; a class a rule or business standard fixes lives outside it (`Documents`, `Contacts`, `Reports`), and `storybook-show` prints its signatures for apps to call.
 - Keep stories pure. Do not query the database, read the session or call external services; sample data goes in `records()`. A field on a relationship, such as a customer select, needs the record's real model: return its class from `model()`, as `forms-record-picker` does.
 - Use realistic content from a real task ("Order PO-000042", "Abra Medical Supply"), never lorem ipsum or "Option 1", "Section 1": placeholder wording can make a pattern look clear when it isn't. One component per story, so the snippet copies cleanly; put variants in their own stories.
 - Use the field names and labels a real screen would use, in sentence case, so the snippet pastes into a resource unchanged. A button's label is a verb ("Approve order"), never OK, Done or Submit.

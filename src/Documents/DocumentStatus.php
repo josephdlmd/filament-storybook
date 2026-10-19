@@ -1,6 +1,6 @@
 <?php
 
-namespace Josephdlmd\FilamentStorybook\Stories\Documents;
+namespace Josephdlmd\FilamentStorybook\Documents;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;

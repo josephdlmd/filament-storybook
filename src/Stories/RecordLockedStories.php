@@ -13,8 +13,8 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Attributes\Record;
 use Josephdlmd\FilamentStorybook\Attributes\States;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class RecordLockedStories extends Stories
 {

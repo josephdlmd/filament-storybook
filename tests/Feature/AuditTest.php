@@ -388,3 +388,11 @@ it('lists settled checks apart from the failing ones in the audit', function ():
         ->toContain("## Settled exceptions\n\n- `CreateGadget` `forms.upload-file-name`: the upload `manual`")
         ->toContain('Settled: Manuals keep their stored name for the archive. (owner, 2026-10-19).');
 });
+
+it('fails an app\'s custom components: wrapped fields, widgets with their own view, Blade components', function (): void {
+    $found = Josephdlmd\FilamentStorybook\CustomComponents::in(__DIR__.'/../Fixtures/CustomComponents');
+
+    expect(array_map('class_basename', $found))->toEqualCanonicalizing(['MoneyInput', 'StatusCard', 'Pill'])
+        ->and(Josephdlmd\FilamentStorybook\CustomComponents::message(Josephdlmd\FilamentStorybook\Tests\Fixtures\CustomComponents\MoneyInput::class))
+        ->toContain('it wraps Filament\'s `TextInput`')->toContain('extension proposal');
+});

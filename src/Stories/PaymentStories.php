@@ -14,10 +14,10 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Number;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\DocumentTotals;
+use Josephdlmd\FilamentStorybook\Documents\PaymentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PaymentStatus;
 
 class PaymentStories extends Stories
 {

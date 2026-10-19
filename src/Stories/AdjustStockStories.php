@@ -9,8 +9,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Stock;
 
 class AdjustStockStories extends Stories

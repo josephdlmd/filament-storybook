@@ -107,7 +107,12 @@ it('gives agents the real signatures of the methods a pattern uses', function ()
     expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-status-badge']))->content())
         ->toContain("## API")
         ->toContain('TextColumn::badge(Closure|bool $condition = true): static')
-        ->toContain('enum DocumentStatus: string implements HasColor, HasLabel');
+        // A class a rule fixes is called from the package, by its signatures, not copied as source.
+        ->toContain('Call this class from the package, `use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;`')
+        ->toContain('Cases: Draft, ForApproval, Posted, Void.')
+        ->toContain('DocumentStatus->getLabel(): string')
+        ->not->toContain('enum DocumentStatus: string implements HasColor, HasLabel')
+        ->not->toContain('DocumentStatus::tryFrom');
 });
 
 it('takes a status badge\'s word and colour from the status enum', function (): void {

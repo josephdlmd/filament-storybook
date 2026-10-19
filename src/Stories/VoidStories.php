@@ -5,8 +5,8 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class VoidStories extends Stories
 {

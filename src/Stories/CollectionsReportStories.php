@@ -14,12 +14,12 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Josephdlmd\FilamentStorybook\Attributes\States;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\PrintedDocument;
+use Josephdlmd\FilamentStorybook\Reports\ReportExporter;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Reports\CollectionsReportExporter;
-use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CollectionsReportStories extends Stories

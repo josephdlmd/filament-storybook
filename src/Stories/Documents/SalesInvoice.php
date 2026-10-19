@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Spatie\Activitylog\Models\Activity;
 
 /** Stands in for the app's own sales invoice model, so patterns can use a real relationship and check numbers against real rows (`SampleDatabase`). */

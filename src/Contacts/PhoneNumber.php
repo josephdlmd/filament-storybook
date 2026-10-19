@@ -1,6 +1,6 @@
 <?php
 
-namespace Josephdlmd\FilamentStorybook\Stories\Contacts;
+namespace Josephdlmd\FilamentStorybook\Contacts;
 
 /**
  * A Philippine phone number, typed any way the user knows it (0917 123 4567, +63 917-123-4567, (02) 8123 4567,

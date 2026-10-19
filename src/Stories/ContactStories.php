@@ -5,8 +5,8 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Closure;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Fieldset;
+use Josephdlmd\FilamentStorybook\Contacts\PhoneNumber;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Contacts\PhoneNumber;
 
 class ContactStories extends Stories
 {

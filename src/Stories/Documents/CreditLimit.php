@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Number;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 
 /**
  * Holding an order that would take a customer over their credit limit (owner's business standards): it can't be posted,

@@ -7,9 +7,9 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Callout;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Number;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\CreditLimit;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesOrder;
 
 class CreditLimitStories extends Stories

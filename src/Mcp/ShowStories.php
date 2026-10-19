@@ -10,6 +10,7 @@ use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use ReflectionClass;
+use ReflectionMethod;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[IsReadOnly]
@@ -48,8 +49,24 @@ class ShowStories extends Tool
         }
 
         foreach ($stories->examples() as $class) {
+            $reflection = new ReflectionClass($class);
+
+            // A class a rule or business standard fixes lives outside Stories\: apps call or extend it, never copy it.
+            if (! str_starts_with($class, 'Josephdlmd\\FilamentStorybook\\Stories\\')) {
+                $methods = collect($reflection->getMethods(ReflectionMethod::IS_PUBLIC))
+                    ->filter(fn (ReflectionMethod $method): bool => $method->getDeclaringClass()->getName() === $class && ! $method->isConstructor() && ! $method->isInternal())
+                    ->map(fn (ReflectionMethod $method): string => (($description = (string) strtok(StoryRegistry::docblock($method), "\n")) ? "// {$description}\n" : '')
+                        .class_basename($class).($method->isStatic() ? '::' : '->').StoryRegistry::signature($method));
+                $cases = $reflection->isEnum() ? 'Cases: '.implode(', ', array_map(fn ($case): string => $case->name, $class::cases())).".\n\n" : '';
+
+                $text .= "\n## ".class_basename($class)."\n\n".($reflection->isAbstract() ? 'Extend' : 'Call')." this class from the package, `use {$class};`; don't copy it, so it stays the shared one.\n\n{$cases}```php\n"
+                    .$methods->implode("\n")."\n```\n";
+
+                continue;
+            }
+
             $text .= "\n## ".class_basename($class)."\n\nCopy this class into the app and change its model, columns and wording.\n\n```php\n"
-                .file_get_contents((string) (new ReflectionClass($class))->getFileName())."```\n";
+                .file_get_contents((string) $reflection->getFileName())."```\n";
         }
 
         if ($manifest['api'] !== []) {

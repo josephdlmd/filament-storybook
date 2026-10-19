@@ -7,9 +7,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Josephdlmd\FilamentStorybook\Documents\DocumentNumber;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class DocumentLifecycleStories extends Stories
 {

@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 
 /** Stands in for the app's own purchase order model in the purchases, payables and withholding reports; its sample rows are in `SampleDatabase`. */
 class PurchaseOrder extends Model

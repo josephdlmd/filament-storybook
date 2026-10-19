@@ -7,10 +7,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\EmailDocument;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 
 class EmailDocumentStories extends Stories
 {

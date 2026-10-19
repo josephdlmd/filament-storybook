@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Documents;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 
 /** Stands in for the app's own payment model; its sample rows are in `SampleDatabase`. */
 class Payment extends Model

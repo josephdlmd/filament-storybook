@@ -5,9 +5,9 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Actions\EditAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\PaymentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PaymentStatus;
 
 class RecordDetailsStories extends Stories
 {

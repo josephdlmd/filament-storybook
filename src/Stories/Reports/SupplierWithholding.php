@@ -4,7 +4,7 @@ namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 
 /**
  * The tax we withheld from suppliers in a quarter, one row per supplier and ATC, with the income payments of each month
