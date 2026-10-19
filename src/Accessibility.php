@@ -3,6 +3,7 @@
 namespace Josephdlmd\FilamentStorybook;
 
 use Filament\Panel;
+use Filament\Support\Facades\FilamentColor;
 use Illuminate\Process\Exceptions\ProcessTimedOutException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
@@ -38,17 +39,18 @@ class Accessibility
             }
         }
 
-        // Every panel page loads the house CSS too; the line-item labels depend on it.
+        // Dark mode is checked only under a theme, which gives the page its dark background.
+        $themed = $css !== [];
+
+        // Every panel page loads the house and compact CSS too; the line-item labels depend on it.
         $css[] = __DIR__.'/../resources/css/house.css';
+        $css[] = __DIR__.'/../resources/css/compact.css';
 
-        $plugin = $panel?->getPlugins()['filament-storybook'] ?? null;
-
-        if ($plugin?->hasCompactTables()) {
-            $css[] = __DIR__.'/../resources/css/compact-tables.css';
-        }
-
-        if ($plugin?->hasCompact()) {
-            $css[] = __DIR__.'/../resources/css/compact.css';
+        // And the panel's colours, which Filament writes into each page's head rather than the theme, so a story is checked in them.
+        if ($panel) {
+            FilamentColor::register($panel->getColors());
+            $colors = collect(FilamentColor::getColors())->flatMap(fn (array $palette, string $name): array => collect($palette)->map(fn (string $value, int|string $shade): string => "--{$name}-{$shade}: {$value};")->all());
+            file_put_contents($css[] = $downloaded[] = sys_get_temp_dir().'/fs-colors-'.Str::random(16).'.css', ':root { '.$colors->implode(' ').' }');
         }
 
         try {
@@ -56,7 +58,7 @@ class Accessibility
             $result = Process::path(base_path())->timeout(90)
                 ->env(array_filter(['STORYBOOK_CHROMIUM' => config('filament-storybook.chromium')]))
                 // And the house script, so what it fixes in the page (names, roles) is checked as the browser gets it.
-                ->input((string) json_encode(['css' => $css, 'js' => [__DIR__.'/../resources/js/house.js'], 'stories' => [
+                ->input((string) json_encode(['css' => $css, 'dark' => $themed, 'js' => [__DIR__.'/../resources/js/house.js'], 'stories' => [
                     ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html], array_keys($rendered), $rendered),
                     ...array_map(fn (string $key, string $html): array => ['key' => $key, 'html' => $html, 'page' => true], array_keys($pages), $pages),
                 ]]))

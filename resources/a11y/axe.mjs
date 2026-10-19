@@ -1,6 +1,6 @@
-// Runs axe-core on each story's rendered HTML, with the panel's CSS inlined, in headless Chromium, then checks it at
-// 320px wide. Reads {css: [paths], js?: [paths], stories: [{key, html, page?}]} on stdin; writes {key: [violation]} on
-// stdout. The js (the house script) runs on each page before axe, as it does in the browser.
+// Runs axe-core on each story's rendered HTML, with the panel's CSS inlined, in headless Chromium, checks its contrast in
+// dark mode too, then checks it at 320px wide. Reads {css: [paths], dark?: bool, js?: [paths], stories: [{key, html, page?}]}
+// on stdin; writes {key: [violation]} on stdout. The js (the house script) runs on each page before axe, as it does in the browser.
 // playwright-core and axe-core resolve from the app first, then from this package (for its own tests).
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -69,7 +69,18 @@ for (const story of input.stories) {
     await page.addScriptTag({ content: axe });
     // A story is scoped to itself, so whole-page rules (a level-one heading, landmarks) do not apply to a fragment.
     const { violations } = await page.evaluate((whole) => window.axe.run(whole ? document : document.querySelector('main'), { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }), Boolean(story.page));
-    results[story.key] = violations.map((v) => ({ id: v.id, impact: v.impact, help: v.help, elements: v.nodes.map((n) => n.target.join(' ')).slice(0, 3) }));
+    // Contrast again in dark mode, which Filament turns on with a class on the page. Transitions are off, or a row would
+    // still be fading from its light colour when axe reads it.
+    const dark = ! input.dark ? [] : await page.evaluate(async (whole) => {
+        const still = document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '*, *::before, *::after { transition: none !important; }' }));
+        document.documentElement.classList.add('dark');
+        const { violations } = await window.axe.run(whole ? document : document.querySelector('main'), { runOnly: ['color-contrast'] });
+        document.documentElement.classList.remove('dark');
+        still.remove();
+
+        return violations;
+    }, Boolean(story.page));
+    results[story.key] = [...violations, ...dark.map((v) => ({ ...v, id: `${v.id} (dark mode)` }))].map((v) => ({ id: v.id, impact: v.impact, help: v.help, elements: v.nodes.map((n) => n.target.join(' ')).slice(0, 3) }));
 
     await page.setViewportSize({ width: 320, height: 640 });
     const cut = await page.evaluate(reflow);

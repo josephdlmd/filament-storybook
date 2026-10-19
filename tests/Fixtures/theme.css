@@ -1,0 +1,4 @@
+/* The fixture panel's theme, as an app's: the package theme and the app's @source lines (storybook-audit, The look). */
+@import '../../../../vendor/josephdlmd/filament-storybook/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';

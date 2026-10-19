@@ -9,6 +9,15 @@ use Laravel\Mcp\Request;
 uses(TestCase::class)
     ->beforeEach(function (): void {
         $this->actingAs(User::create(['name' => 'Tester', 'email' => 'tester@example.com', 'password' => 'secret']));
+
+        // No Vite build: a panel's theme is Filament's compiled one, where testStoriesWithTheme() puts it.
+        $this->app->instance(Illuminate\Foundation\Vite::class, new class extends Illuminate\Foundation\Vite
+        {
+            public function __invoke($entrypoints, $buildDirectory = null): Illuminate\Support\HtmlString
+            {
+                return new Illuminate\Support\HtmlString('<link rel="stylesheet" href="/css/filament/filament/app.css">');
+            }
+        });
     })
     ->in('Feature');
 

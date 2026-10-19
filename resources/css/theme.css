@@ -1,0 +1,8 @@
+/*
+ * The panel theme every app uses (docs/rules.md, The look): Filament's theme with Filament's Compact theme, which each app
+ * licenses and installs. An app's theme.css is this import plus its @source lines; storybook-audit fails anything else.
+ * `layers.css` must come before Filament's CSS so the Compact theme's layers are ordered correctly.
+ */
+@import '../../../../filament/compact-theme/resources/css/layers.css';
+@import '../../../../filament/filament/resources/css/theme.css';
+@import '../../../../filament/compact-theme/resources/css/theme.css';

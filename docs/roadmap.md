@@ -6,7 +6,7 @@ What the package covers at v0.85.0 (2026-10-19), and what comes next.
 
 Accessibility: every story and audited page is checked against WCAG 2.2 AA with axe-core (v0.27.0).
 
-Density (v0.29.0 to v0.50.0): `compact()` sets Carbon's sizes and spacing where Filament is bigger; full-width pages, one-column forms, and the GOV.UK error messages app-wide.
+Density (v0.29.0 to v0.50.0): the compact CSS sets Carbon's sizes and spacing where Filament is bigger, on every panel since the look was locked (2026-10-19); full-width pages, one-column forms, and the GOV.UK error messages app-wide.
 
 The menu (v0.28.0): two levels at most, groups in sentence case, words that stay on screen; checked by `storybook-audit`. No source sets the order of groups or their icons.
 

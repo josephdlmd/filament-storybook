@@ -38,7 +38,7 @@ A new story is one more screen in the same app, so it agrees with the patterns a
 - Use the field names and labels a real screen would use, in sentence case, so the snippet pastes into a resource unchanged. A button's label is a verb ("Approve order"), never OK, Done or Submit.
 
 ## Type, spacing and colour
-- Never set a size, weight, colour, padding or margin yourself, by class or style in `extra*Attributes()`: the theme and `compact()` give each kind of text and each gap its size (the type table in the rules).
+- Never set a size, weight, colour, padding or margin yourself, by class or style in `extra*Attributes()`: the theme and the compact CSS give each kind of text and each gap its size (the type table in the rules).
 - Emphasise a value with `->weight(FontWeight::SemiBold)`, such as a total; tone down secondary text with `->color('gray')`. Weight comes before size.
 - A heading comes from its component (`Section::make('Details')`), never from styled text.
 

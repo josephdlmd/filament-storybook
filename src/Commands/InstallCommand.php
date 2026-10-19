@@ -31,6 +31,7 @@ class InstallCommand extends Command
             defaultPanel: $provider !== null && preg_match('/^\s*->id\([^)]*\)$/m', File::get($provider)) === 1,
             // Rewriting a file that doesn't decode would keep only this package.
             boostJson: blank($boostJson) || json_validate($boostJson),
+            compactTheme: class_exists(\Filament\CompactTheme\CompactThemePlugin::class),
         );
 
         if ($unmet !== []) {
@@ -62,6 +63,7 @@ class InstallCommand extends Command
         $this->components->info('Connected. Next:');
         $this->components->bulletList([
             'Once per machine: npx playwright-core install chromium',
+            'Make each panel\'s theme.css the package theme plus its @source lines: @import \'../../../../vendor/josephdlmd/filament-storybook/resources/css/theme.css\'; then npm run build.',
             'Run the tests. Required-field errors now read "Enter name" and delete buttons are outlined; update tests that expect Laravel\'s "The name field is required."',
             'Restart your coding agent and ask it to run storybook-audit; fix what it reports.',
         ]);
@@ -74,7 +76,7 @@ class InstallCommand extends Command
      *
      * @return list<string>
      */
-    public static function unmetRequirements(bool $boost, bool $pest, bool $npm, bool $defaultPanel, bool $boostJson = true): array
+    public static function unmetRequirements(bool $boost, bool $pest, bool $npm, bool $defaultPanel, bool $boostJson = true, bool $compactTheme = true): array
     {
         return array_values(array_filter([
             $boost ? null : 'Laravel Boost: composer require laravel/boost --dev, then php artisan boost:install',
@@ -82,6 +84,7 @@ class InstallCommand extends Command
             $npm ? null : 'npm: a package.json at the project root (the Vite setup Laravel ships with)',
             $defaultPanel ? null : 'A default Filament panel in app/Providers/Filament with ->default() and its ->id(...) on a line of its own',
             $boostJson ? null : 'Fix boost.json: it isn\'t valid JSON',
+            $compactTheme ? null : 'Filament\'s Compact theme, which the look is built on: buy a licence, then composer require filament/compact-theme through Filament\'s Composer repository',
         ]));
     }
 

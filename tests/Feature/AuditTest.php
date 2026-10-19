@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\File;
 use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
+use Josephdlmd\FilamentStorybook\StorybookPlugin;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
@@ -321,4 +323,30 @@ it('warns while Laravel\'s own error pages show, until the house ones are publis
 
         expect((string) (new AuditPages)->handle(new Request)->content())->toContain('errors.404');
     });
+});
+
+it('fails a panel that changes the locked look: its own colours, font or theme CSS', function (): void {
+    $panel = fn (): Filament\Panel => tap(Filament\Panel::make()->id('look'), fn (Filament\Panel $panel) => StorybookPlugin::make()->register($panel))
+        ->viteTheme('fs-look-theme.css');
+    $theme = fn (string $css) => File::put(base_path('fs-look-theme.css'), $css);
+    $import = "@import '../../../../vendor/josephdlmd/filament-storybook/resources/css/theme.css';";
+
+    try {
+        $theme("/* The package theme. */\n{$import}\n\n@source '../../../../app/Filament/**/*';\n");
+        expect(AuditPages::lookFailures($panel()))->toBe([])
+            ->and(AuditPages::lookFailures(Filament\Panel::make()->id('bare')))->toHaveCount(2)
+            ->and(implode(' ', AuditPages::lookFailures($panel()->colors(['primary' => Filament\Support\Colors\Color::Indigo])->font('Roboto'))))
+            ->toContain('own colours')->toContain('own font');
+
+        $theme("{$import}\n.fi-btn { border-radius: 0; }\n");
+        expect(implode(' ', AuditPages::lookFailures($panel())))->toContain('carries CSS of its own (.fi-btn');
+
+        $theme("@import '../../../../vendor/filament/filament/resources/css/theme.css';\n@source '../../../../app/Filament/**/*';\n");
+        expect(implode(' ', AuditPages::lookFailures($panel())))->toContain('carries CSS of its own');
+
+        $theme("@source '../../../../app/Filament/**/*';\n");
+        expect(implode(' ', AuditPages::lookFailures($panel())))->toContain("doesn't import the package theme");
+    } finally {
+        File::delete(base_path('fs-look-theme.css'));
+    }
 });

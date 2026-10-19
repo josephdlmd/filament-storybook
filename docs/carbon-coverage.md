@@ -1,6 +1,6 @@
 # Carbon coverage
 
-Every Carbon page was checked against `docs/rules.md` and `StorybookPlugin::compact()` on 2026-10-11, and the findings were worked through the same day in six releases (v0.33.0 to v0.38.0), and the last open items in v0.39.0. Each page gets one row below, and each gap gets one finding.
+Every Carbon page was checked against `docs/rules.md` and the compact CSS (then `StorybookPlugin::compact()`, on every panel since 2026-10-19) on 2026-10-11, and the findings were worked through the same day in six releases (v0.33.0 to v0.38.0), and the last open items in v0.39.0. Each page gets one row below, and each gap gets one finding.
 To keep this up to date, re-check a page when its "updated" date changes. A finding's status changes when it is done, adopted or rejected.
 Status of a page: **Covered** (no open findings), **Gaps** (open findings), **Not applicable** (no Filament equivalent, or not relevant).
 Marks: **[WCAG]** an accessibility failure; **[Owner]** needs an owner decision.
