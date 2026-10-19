@@ -24,6 +24,8 @@ class FixturePanelProvider extends PanelProvider
             ->id('fixture')
             ->path('fixture')
             ->login()
+            ->passwordReset()
+            ->multiFactorAuthentication([\Filament\Auth\MultiFactor\App\AppAuthentication::make()])
             ->profile()
             ->routes(fn () => \Illuminate\Support\Facades\Route::get('invitation/{user}', \Josephdlmd\FilamentStorybook\Stories\Invitations\AcceptInvitation::class)->name('invitation'))
             ->plugin(StorybookPlugin::make())

@@ -32,7 +32,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `ColorPicker` | Rule | the value shows as text beside the swatch |
 | `Builder` (and its `Block`) | Not applicable | content blocks for pages, not business records |
 | `CodeEditor` | Not applicable | a developer tool |
-| `OneTimeCodeInput` | Rule | Filament's own multi-factor screens, under the sign-in rules (NIST, GOV.UK security codes); house defaults (two-factor wording, email when turned on or off, password rule) |
+| `OneTimeCodeInput` | Pattern | `forms-sign-in.twoFactor`: Filament's own multi-factor screens, under the sign-in rules (NIST, GOV.UK security codes); house defaults (two-factor wording, email when turned on or off, password rule) |
 | `ViewField` | Not applicable | native first: patterns use native components; a custom component only for a gap (AGENTS.md) |
 
 ## Read-only entries

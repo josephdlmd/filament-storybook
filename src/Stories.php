@@ -4,6 +4,7 @@ namespace Josephdlmd\FilamentStorybook;
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Pages\SimplePage;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Column;
@@ -92,6 +93,7 @@ abstract class Stories
             is_a($class, Column::class, true) => 'column',
             is_a($class, Action::class, true), is_a($class, ActionGroup::class, true) => 'action',
             is_a($class, Component::class, true) => 'component',
+            is_a($class, SimplePage::class, true) => 'page',
             is_a($class, Table::class, true) => 'table',
             is_a($class, Schema::class, true) => 'schema',
             default => null,
@@ -115,14 +117,16 @@ abstract class Stories
 
     /**
      * The states a story owes: a table or schema story is a screen and owes all five, a #[Record] screen all but empty, and a
-     * #[Section] only those it declares; fields, columns and actions owe none.
+     * #[Section] only those it declares; a guest page such as log in (a Filament simple page) loads no data and forbids no
+     * one, so it owes populated and error; fields, columns and actions owe none.
      *
      * @return list<string>
      */
     public static function owedStates(ReflectionMethod $story): array
     {
         return match (true) {
-            ! in_array(static::kind($story), ['table', 'schema'], true), $story->getAttributes(Section::class) !== [] => [],
+            ! in_array(static::kind($story), ['table', 'schema', 'page'], true), $story->getAttributes(Section::class) !== [] => [],
+            static::kind($story) === 'page' => ['populated', 'error'],
             $story->getAttributes(Record::class) !== [] => array_values(array_diff(static::STATES, ['empty'])),
             default => static::STATES,
         };
