@@ -64,7 +64,7 @@ class InstallCommand extends Command
         $this->components->bulletList([
             'Once per machine: npx playwright-core install chromium',
             'Make each panel\'s theme.css the package theme plus its @source lines: @import \'../../../../vendor/josephdlmd/filament-storybook/resources/css/theme.css\'; then npm run build.',
-            'Run the tests. Required-field errors now read "Enter name" and delete buttons are outlined; update tests that expect Laravel\'s "The name field is required."',
+            'Run the tests. StoriesTest now runs storybook-test and storybook-audit in strict mode: fix what they report. Required-field errors now read "Enter name" and delete buttons are outlined; update tests that expect Laravel\'s "The name field is required."',
             'Restart your coding agent and ask it to run storybook-audit; fix what it reports.',
         ]);
 

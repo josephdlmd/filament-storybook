@@ -122,7 +122,6 @@ class AuditPages extends Tool
 
         $passing = [];
         $failing = [];
-        $skipped = [];
         $warnings = [];
         $rendered = [];
 
@@ -133,9 +132,9 @@ class AuditPages extends Tool
             $failing = static::lookFailures($panel);
         }
 
-        // Renders one page and files it under passing, failing or skipped. A page that sends the user back to itself as it
+        // Renders one page and files it under passing or failing; a page it can't open fails too (strict mode). A page that sends the user back to itself as it
         // opens, such as a list that lands on the user's last saved filters, is followed once, as the browser would.
-        $audit = function (string $key, string $class, array $parameters, Closure $url) use (&$passing, &$failing, &$skipped, &$warnings, &$rendered, $user): void {
+        $audit = function (string $key, string $class, array $parameters, Closure $url) use (&$passing, &$failing, &$warnings, &$rendered, $user): void {
             try {
                 $page = Livewire::test($class, $parameters);
                 // A redirect while mounting aborts with a plain redirect response, which the harness keeps but doesn't expose.
@@ -154,7 +153,7 @@ class AuditPages extends Tool
 
                 // Livewire's test harness returns no component when the page refuses or redirects while opening.
                 if ($page->instance() === null) {
-                    $skipped[] = "- `{$key}`: ".static::userLabel($user).' may not open it; pass "as" with a user who can.';
+                    $warnings[] = "- `{$key}` `pages.forbidden`: ".static::userLabel($user).' may not open it; pass "as" with a user who can.';
 
                     return;
                 }
@@ -164,14 +163,14 @@ class AuditPages extends Tool
                 $rendered = [...$rendered, ...static::states($key, $page)];
                 $passing[] = "- `{$key}`";
             } catch (HttpException $e) {
-                $skipped[] = "- `{$key}`: ".static::userLabel($user)." may not open it ({$e->getStatusCode()}); pass \"as\" with a user who can.";
+                $warnings[] = "- `{$key}` `pages.forbidden`: ".static::userLabel($user)." may not open it ({$e->getStatusCode()}); pass \"as\" with a user who can.";
             } catch (Throwable $e) {
                 while ($e->getPrevious() !== null) {
                     $e = $e->getPrevious();
                 }
 
                 if ($e instanceof BindingResolutionException) {
-                    $skipped[] = "- `{$key}`: it needs route parameters the audit can't supply; open it in the browser to check it.";
+                    $warnings[] = "- `{$key}` `pages.route-parameters`: it needs route parameters the audit can't supply; check it by hand in the browser, and ask the owner to settle it.";
                 } else {
                     $failing[] = "- `{$key}`: ".static::failure($e);
                 }
@@ -190,7 +189,7 @@ class AuditPages extends Tool
                         $record = $resource::getEloquentQuery()->first();
 
                         if ($record === null) {
-                            $skipped[] = "- `{$key}`: no record to open; create one to audit this page.";
+                            $warnings[] = "- `{$key}` `pages.no-record`: no record to open; create one to audit this page (the app's StoriesTest makes one with the model's factory).";
 
                             continue;
                         }
@@ -310,7 +309,7 @@ class AuditPages extends Tool
         $text = '# '.count($passing).' pages rendered, '.count($failing).' failing, '.count($issues).' accessibility issues, '.count($settled)." settled exceptions\n\n"
             .'Signed in as '.static::userLabel($user).".\n";
 
-        foreach (['Failing' => $failing, 'Accessibility' => $issues, 'Settled exceptions' => $settled, 'Skipped' => $skipped, 'Passing' => $passing] as $heading => $lines) {
+        foreach (['Failing' => $failing, 'Accessibility' => $issues, 'Settled exceptions' => $settled, 'Passing' => $passing] as $heading => $lines) {
             if ($lines !== []) {
                 $text .= "\n## {$heading}\n\n".implode("\n", $lines)."\n";
             }
