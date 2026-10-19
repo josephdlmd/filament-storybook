@@ -3,3 +3,5 @@ composer.lock
 .phpunit.cache/
 /node_modules/
 auth.json
+/.claude/*
+!/.claude/settings.json
