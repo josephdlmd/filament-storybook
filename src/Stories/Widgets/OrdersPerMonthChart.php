@@ -20,6 +20,16 @@ class OrdersPerMonthChart extends ChartWidget
     // No refreshing by itself: content that updates beside other content must be able to stop (WCAG 2.2.2).
     protected ?string $pollingInterval = null;
 
+    /** With none in the range, the description says why the bars are empty and what would fill them (Carbon empty states). */
+    public function getDescription(): ?string
+    {
+        if (array_sum($this->getCachedData()['datasets'][0]['data']) > 0) {
+            return $this->description;
+        }
+
+        return 'No orders were approved in this period. Approved orders appear here by the month they were approved.';
+    }
+
     protected function getType(): string
     {
         return 'bar';
@@ -49,7 +59,8 @@ class OrdersPerMonthChart extends ChartWidget
         return [
             // One series needs no legend; a bar chart's value axis starts at zero and says what it counts (Carbon legends, axes).
             'plugins' => ['legend' => ['display' => false]],
-            'scales' => ['y' => ['beginAtZero' => true, 'title' => ['display' => true, 'text' => 'Orders']]],
+            // Orders are counted whole, so the axis never steps in tenths, even with none.
+            'scales' => ['y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0], 'title' => ['display' => true, 'text' => 'Orders']]],
         ];
     }
 

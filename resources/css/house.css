@@ -276,13 +276,15 @@
     color: var(--gray-300);
 }
 
-/* A cell with no value: Filament's placeholder is gray-400 (gray-500 in dark mode), under 3:1; it takes the 4.5:1 that
-   field placeholders take above (WCAG 1.4.3). */
-.fi-ta-cell .fi-ta-placeholder {
+/* A cell or entry with no value: Filament's placeholder is gray-400 (gray-500 in dark mode), under 3:1; it takes the 4.5:1
+   that field placeholders take above (WCAG 1.4.3). */
+.fi-ta-cell .fi-ta-placeholder,
+.fi-in-entry .fi-in-placeholder {
     color: var(--gray-500);
 }
 
-.dark .fi-ta-cell .fi-ta-placeholder {
+.dark .fi-ta-cell .fi-ta-placeholder,
+.dark .fi-in-entry .fi-in-placeholder {
     color: var(--gray-400);
 }
 

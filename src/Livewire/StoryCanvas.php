@@ -8,6 +8,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\EditAction;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -26,6 +27,8 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 use ReflectionClass;
 use ReflectionParameter;
+
+use function Filament\Support\get_model_label;
 
 /**
  * Renders one story in its own Livewire component, so stories never share state:
@@ -77,7 +80,7 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         $this->form->fill($this->state === 'empty' ? [] : Arr::first($this->instance()->records()) ?? []);
     }
 
-    /** Loading holds: the table stays deferred, so its busy indicator shows. */
+    /** Loading holds: a deferred table (a story's own `deferLoading()`) never loads, so its busy indicator shows. */
     public function loadTable(): void
     {
         if ($this->state !== 'loading') {
@@ -101,7 +104,7 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         return match ($this->kind()) {
             'component' => $schema->components([$this->build()]),
             'action' => $schema->components([Actions::make([$this->build()])->key('story')]),
-            'schema' => $this->build($schema)->deferLoading($this->state === 'loading'),
+            'schema' => tap($this->build($schema), fn (Schema $schema): Schema => $schema->deferLoading($this->state === 'loading' && $this->lazyWidgets($schema) === [])),
             default => $schema,
         };
     }
@@ -111,7 +114,9 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         // Set before a table story runs, so the story can still choose its own pagination. Rows are records, as in a resource,
         // so record actions such as `DeleteAction` get the model they expect.
         // A story without sample rows sets its own query, as a report does, so its totals and filters run on real rows.
+        // A table of sample rows has no query to name its records by, so the story's model names them ("New supplier").
         if ($this->instance()->records() !== []) {
+            $table->modelLabel(fn (): ?string => ($class = $this->instance()->model()) !== null ? get_model_label($class) : null);
             $table->records(fn (): array => collect($this->instance()->records())
                 ->map(fn (array $row, int|string $key): Model => tap($this->model([(new class extends Model {})->getKeyName() => $key, ...$row]), fn (Model $record) => $record->exists = true))
                 ->all());
@@ -125,12 +130,28 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
             default => $table,
         };
 
-        // Empty: no rows, from the story's query or its sample rows. Loading: deferred, and held by loadTable().
+        // Empty: no rows, from the story's query or its sample rows. Loading is a reload, which the view holds: a List page's
+        // rows come with the page, so its loading state is Filament's skeleton over them while a search, filter or page loads.
         if ($this->state === 'empty') {
             $table->hasQuery() ? $table->modifyQueryUsing(fn (Builder $query): Builder => $query->whereRaw('1 = 0')) : $table->records(fn (): array => []);
         }
 
-        return $table->deferLoading($this->state === 'loading');
+        return $table;
+    }
+
+    /**
+     * A dashboard's widgets load lazily, each behind Filament's placeholder (a pulsing card announced as loading), which the
+     * loading state shows in their place.
+     *
+     * @return list<View>
+     */
+    public function lazyWidgets(Schema $schema): array
+    {
+        return collect($schema->getComponents())
+            ->filter(fn (mixed $component): bool => $component instanceof Livewire && method_exists($component->getComponent(), 'isLazy') && $component->getComponent()::isLazy())
+            ->map(fn (Livewire $component): View => app($component->getComponent())->placeholder())
+            ->values()
+            ->all();
     }
 
     /** The canvas has no Edit page for `EditAction` to open, as a resource page does. */

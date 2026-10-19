@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
+use Josephdlmd\FilamentStorybook\Stories\Imports\Supplier;
 
 class ListTableStories extends Stories
 {
@@ -29,6 +30,12 @@ class ListTableStories extends Stories
     public function description(): string
     {
         return 'The table on every List page, pasted into the resource table\'s `configure()`. The identifier comes first; one search field says what it searches; the columns follow in order of importance, money is right-aligned and status is a badge; columns other than the identifier and name can be hidden from the column manager (`toggleable()`, one few people need starting hidden), with Reset to bring back the default, but not reordered, since Filament reorders columns only by dragging (WCAG 2.5.7). With more than one filter, the filters sit above the table, open, and apply as they change (an Apply button only when results are slow); applied filters, the search and the sort stay as the user left them for the session (`persistSearchInSession()`, `persistSortInSession()`); a row with three or more actions keeps them in its "⋯" menu, which a right-click on the row also opens (`rowActions`; fewer stay inline); and an empty list says what goes here and offers one next step (when a search finds nothing, Filament says so, and the heading can name the search), outlined because the page header already has the primary New button. Basis: Carbon data table (Sep 2026: row actions in an overflow menu, inline when fewer than three); Carbon menu (Sep 2026: menus open "through right-clicking" on "a column, or a row", "no more than 12 items"); NN/g data tables 2022 (identifier first, columns by importance and easy to hide, sortable); WCAG 2.2 2.5.7 (no drag-only reordering); USWDS table (right-align numbers); Carbon data table, filtering, search (the placeholder says what it searches; filters persist for the session) and empty states (2026: one action, "using a tertiary button for the call to action").';
+    }
+
+    /** Names the records, so the empty list's button says "New supplier", as on the resource's own page. */
+    public function model(): ?string
+    {
+        return Supplier::class;
     }
 
     public function records(): array
