@@ -625,6 +625,17 @@ class AuditPages extends Tool
                 $warn('tables.filters-open', 'several filters are hidden in a dropdown or behind a button; put them above the table, open, with `layout: FiltersLayout::AboveContent` (Carbon filtering: "horizontally at the top of the data set").');
             }
 
+            // Hidden takes the filters out of the table, to be drawn somewhere of the page's own.
+            if ($table->getFilters() !== [] && $table->getFiltersLayout() === FiltersLayout::Hidden) {
+                $warn('tables.filters-open', 'its filters are taken out of the table (`FiltersLayout::Hidden`); put them above it, open, with `layout: FiltersLayout::AboveContent` (Carbon filtering: "horizontally at the top of the data set").');
+            }
+
+            foreach (rescue(fn (): array => $page->getTableFiltersForm()->getFlatFields(withHidden: false), [], report: false) as $field) {
+                if ($field->isLabelHidden()) {
+                    $warn('forms.hidden-label', "the filter field `{$field->getName()}` hides its label; keep it visible, above the field, as the filters of `tables-list-table` do (Carbon forms).");
+                }
+            }
+
             if ($page instanceof ListRecords && blank($table->getEmptyStateDescription()) && $table->getEmptyStateActions() === []) {
                 $warn('tables.empty-next-step', 'the empty list gives no next step; add `emptyStateDescription()` and `emptyStateActions()`, as `tables-list-table` does (Carbon empty states).');
             }

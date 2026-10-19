@@ -186,11 +186,13 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 7 pages rendered, 95 failing')
+        ->toStartWith('# 7 pages rendered, 97 failing')
         ->toContain('- `EditGadget` `forms.one-column`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `GadgetResource PartsRelationManager` `tables.column-title-case`: the column "Created At" is in Title Case')
         ->toContain('- `GadgetResource PartsRelationManager` `tables.empty-one-action`: the empty list offers 2 actions')
+        ->toContain('- `GadgetResource PartsRelationManager` `tables.filters-open`: its filters are taken out of the table (`FiltersLayout::Hidden`)')
+        ->toContain('- `GadgetResource PartsRelationManager` `forms.hidden-label`: the filter field `year` hides its label')
         ->toContain('- `GadgetResource PartsRelationManager` `tables.three-columns`: the table shows 2 column(s); a table needs three or more')
         ->toContain('- `GadgetResource PartsRelationManager` `tables.empty-outlined`: the empty list\'s button is a second primary')
         ->toContain('- `GadgetResource PartsRelationManager` `actions.delete-or-remove`: `delete` is labelled "Remove", but it destroys the record')
@@ -389,10 +391,12 @@ it('lists settled checks apart from the failing ones in the audit', function ():
         ->toContain('Settled: Manuals keep their stored name for the archive. (owner, 2026-10-19).');
 });
 
-it('fails an app\'s custom components: wrapped fields, widgets with their own view, Blade components', function (): void {
+it('fails an app\'s custom components: wrapped fields, widgets with their own view, Blade components, UI code drawing its own view', function (): void {
     $found = Josephdlmd\FilamentStorybook\CustomComponents::in(__DIR__.'/../Fixtures/CustomComponents');
 
-    expect(array_map('class_basename', $found))->toEqualCanonicalizing(['MoneyInput', 'StatusCard', 'Pill'])
+    expect(array_map('class_basename', $found))->toEqualCanonicalizing(['MoneyInput', 'StatusCard', 'Pill', 'AgeingBar', 'HasOwnHeader'])
+        ->and(Josephdlmd\FilamentStorybook\CustomComponents::message(Josephdlmd\FilamentStorybook\Tests\Fixtures\CustomComponents\Filament\HasOwnHeader::class))
+        ->toContain('it draws a Blade view of its own')
         ->and(Josephdlmd\FilamentStorybook\CustomComponents::message(Josephdlmd\FilamentStorybook\Tests\Fixtures\CustomComponents\MoneyInput::class))
         ->toContain('it wraps Filament\'s `TextInput`')->toContain('extension proposal');
 });

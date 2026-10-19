@@ -32,19 +32,32 @@ class CustomComponents
             ->map(function ($file): ?string {
                 $source = $file->getContents();
 
-                return preg_match('/^namespace\s+([^;]+);/m', $source, $namespace) && preg_match('/^(?:final\s+|abstract\s+|readonly\s+)*class\s+(\w+)/m', $source, $class)
-                    ? "{$namespace[1]}\\{$class[1]}"
-                    : null;
+                if (! preg_match('/^namespace\s+([^;]+);/m', $source, $namespace) || ! preg_match('/^(?:final\s+|abstract\s+|readonly\s+)*(?:class|trait)\s+(\w+)/m', $source, $class)) {
+                    return null;
+                }
+
+                $name = "{$namespace[1]}\\{$class[1]}";
+
+                return (class_exists($name) && static::isCustom($name)) || (str_contains("\\{$namespace[1]}\\", '\\Filament\\') && static::rendersOwnView($source)) ? $name : null;
             })
-            ->filter(fn (?string $class): bool => $class !== null && class_exists($class) && static::isCustom($class))
+            ->filter()
             ->values()
             ->all();
+    }
+
+    /**
+     * UI code (a class or trait under a `Filament` namespace) that draws a Blade view of the app's own, as `View::make('…')`,
+     * `view('…')` or `->view('…')`, rather than a package's `name::view`: a component in all but name, such as a page header.
+     */
+    public static function rendersOwnView(string $source): bool
+    {
+        return (bool) preg_match('/\b(?:View::make|view)\(\s*[\'"](?![\w.-]+::)/', $source);
     }
 
     /** Why an agent should not ship it, for the tools' reports. */
     public static function message(string $class): string
     {
-        return 'is a custom component ('.(is_a($class, BladeComponent::class, true) ? 'a Blade view component' : (is_a($class, Widget::class, true) ? 'a widget with its own Blade view' : 'it wraps Filament\'s `'.class_basename(get_parent_class($class)).'`'))
+        return 'is a custom component ('.(is_a($class, BladeComponent::class, true) ? 'a Blade view component' : (is_a($class, Widget::class, true) ? 'a widget with its own Blade view' : (class_exists($class) && get_parent_class($class) && static::isCustom($class) ? 'it wraps Filament\'s `'.class_basename(get_parent_class($class)).'`' : 'it draws a Blade view of its own')))
             .'); custom components are package-only, so use Filament\'s own component configured as the pattern shows, or ask the owner for an extension proposal (docs/rules.md, Native Filament first).';
     }
 
