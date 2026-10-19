@@ -10,6 +10,9 @@ use Filament\Tables\Columns\Column;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Josephdlmd\FilamentStorybook\Attributes\Record;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -92,6 +95,36 @@ abstract class Stories
             is_a($class, Table::class, true) => 'table',
             is_a($class, Schema::class, true) => 'schema',
             default => null,
+        };
+    }
+
+    /** The five conditions a screen is shown in (GLOSSARY.md, State). */
+    public const STATES = ['populated', 'loading', 'empty', 'error', 'forbidden'];
+
+    /**
+     * The states a story shows: populated, and those its #[States] adds.
+     *
+     * @return list<string>
+     */
+    public static function states(ReflectionMethod $story): array
+    {
+        $declared = ($story->getAttributes(States::class)[0] ?? null)?->newInstance()->states ?? [];
+
+        return array_values(array_unique(['populated', ...$declared]));
+    }
+
+    /**
+     * The states a story owes: a table or schema story is a screen and owes all five, a #[Record] screen all but empty, and a
+     * #[Section] only those it declares; fields, columns and actions owe none.
+     *
+     * @return list<string>
+     */
+    public static function owedStates(ReflectionMethod $story): array
+    {
+        return match (true) {
+            ! in_array(static::kind($story), ['table', 'schema'], true), $story->getAttributes(Section::class) !== [] => [],
+            $story->getAttributes(Record::class) !== [] => array_values(array_diff(static::STATES, ['empty'])),
+            default => static::STATES,
         };
     }
 }

@@ -96,6 +96,7 @@ class StoryRegistry
                     'label' => Str::ucfirst(Str::snake($name, ' ')),
                     'description' => static::docblock($story),
                     'kind' => Stories::kind($story),
+                    'states' => Stories::states($story),
                     'snippet' => static::snippet($story, $source),
                 ])
                 ->values()

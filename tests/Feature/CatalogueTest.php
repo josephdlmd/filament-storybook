@@ -139,3 +139,20 @@ it('tells an agent the valid ids instead of letting it guess', function (): void
     expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
         ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-mark-2307-received, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-error-pages, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-tin, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-history, records-key-figures, records-locked, records-notes, records-paper-receipt, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, reports-tax-withheld-by-customers, reports-tax-withheld-from-suppliers, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
+
+it('shows a screen story in each state it declares, with one snippet', function (): void {
+    $state = fn (string $stories, string $story, string $state) => Livewire::test(StoryCanvas::class, ['stories' => $stories, 'story' => $story, 'state' => $state]);
+
+    $state(ListTableStories::class, 'default', 'populated')->assertSee('SUP-0001');
+    $state(ListTableStories::class, 'default', 'empty')->assertSee('No suppliers yet')->assertDontSee('SUP-0001');
+    // Loading holds: the deferred table stays busy even when the browser asks it to load.
+    $state(ListTableStories::class, 'default', 'loading')->assertSeeHtml('aria-busy="true"')->call('loadTable')->assertDontSee('SUP-0001');
+    $state(ListTableStories::class, 'default', 'error')->assertSee('Something went wrong')->assertSee('Error 500');
+    $state(ListTableStories::class, 'default', 'forbidden')->assertSee('You don\'t have access to this page')->assertSee('Error 403');
+    $state(RecordFormStories::class, 'default', 'loading')->assertSeeHtml('fi-sc-loading');
+
+    $method = new ReflectionMethod(RecordFormStories::class, 'default');
+    expect(Stories::states($method))->toBe(['populated', 'loading', 'error', 'forbidden'])
+        ->and(Stories::owedStates($method))->toBe(['populated', 'loading', 'error', 'forbidden'])
+        ->and(Stories::owedStates(new ReflectionMethod(MoneyInputStories::class, 'default')))->toBe([]);
+});

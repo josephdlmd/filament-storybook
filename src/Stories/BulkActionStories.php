@@ -10,6 +10,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Imports\SupplierExporter;
 
@@ -40,9 +41,12 @@ class BulkActionStories extends Stories
             ->all();
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No suppliers yet')
+            ->emptyStateDescription('Create a supplier to start ordering from them.')
             ->columns([
                 TextColumn::make('code')
                     ->searchable()

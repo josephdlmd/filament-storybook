@@ -9,6 +9,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Josephdlmd\FilamentStorybook\Attributes\Record;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Contacts\PhoneNumber;
 
@@ -34,6 +36,8 @@ class SettingsPageStories extends Stories
         return [1 => ['name' => 'Sample Medical Trading Corporation', 'tin' => '123-456-789-000', 'vat' => 'vat', 'top_withholding_agent' => true, 'street' => '12 Rizal Avenue', 'barangay' => 'San Isidro', 'city' => 'Quezon City', 'province' => null, 'zip_code' => '1100', 'phone' => '+63 2 8123 4567', 'email' => 'billing@sample.ph']];
     }
 
+    #[Record]
+    #[States('loading', 'error', 'forbidden')]
     public function default(Schema $schema): Schema
     {
         return $schema

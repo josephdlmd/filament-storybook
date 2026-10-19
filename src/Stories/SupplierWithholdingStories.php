@@ -13,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
@@ -38,12 +39,15 @@ class SupplierWithholdingStories extends Stories
         return [SupplierWithholding::class, QapExporter::class, ReportExporter::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         // The quarter the user picked, or the one just ended.
         $quarter = fn (HasTable $livewire): string => $livewire->getTableFilterState('quarter')['quarter'] ?? SupplierWithholding::lastQuarter();
 
         return $table
+            ->emptyStateHeading('No tax withheld in this quarter')
+            ->emptyStateDescription('Payments to suppliers you withheld tax from appear here, in the quarter they were paid.')
             ->query(PurchaseOrder::query())
             ->columns([
                 TextColumn::make('supplier')

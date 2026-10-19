@@ -13,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Customer;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
@@ -38,9 +39,12 @@ class ReceivablesAgeingStories extends Stories
         return [ReceivablesAgeing::class, ReceivablesAgeingExporter::class, ReportExporter::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No customer owes anything')
+            ->emptyStateDescription('Posted invoices not yet paid in full appear here, by how long they are past due.')
             ->query(Customer::query())
             ->columns([
                 TextColumn::make('name')

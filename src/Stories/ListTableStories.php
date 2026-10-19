@@ -16,6 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class ListTableStories extends Stories
@@ -39,6 +40,7 @@ class ListTableStories extends Stories
         ];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
@@ -90,9 +92,12 @@ class ListTableStories extends Stories
     }
 
     /** Three or more row actions go in the row's "⋯" menu, which a right-click on the row (or Shift+F10 on it) opens too; fewer stay inline. */
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function rowActions(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No customers yet')
+            ->emptyStateDescription('Create a customer to start selling to them.')
             ->columns([
                 TextColumn::make('code'),
                 TextColumn::make('name'),
@@ -116,9 +121,12 @@ class ListTableStories extends Stories
      * A date-range filter: From and To side by side in one filter, either left empty, each shown as its own indicator.
      * No presets such as "Last 7 days": no qualifying source sets them.
      */
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function dateRange(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No suppliers yet')
+            ->emptyStateDescription('Create a supplier to start ordering from them.')
             ->columns([
                 TextColumn::make('code')
                     ->searchable()

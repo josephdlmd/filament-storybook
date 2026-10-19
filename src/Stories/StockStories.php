@@ -8,6 +8,8 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Item;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Stock;
@@ -30,9 +32,12 @@ class StockStories extends Stories
         return [Stock::class, Item::class, StockMovement::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No items yet')
+            ->emptyStateDescription('Items you stock appear here with what is on hand.')
             ->query(Item::query()->selectRaw('items.*, on_hand * average_cost as stock_value'))
             ->columns([
                 TextColumn::make('code')
@@ -75,6 +80,8 @@ class StockStories extends Stories
     }
 
     /** Items at or below their reorder level, most short first: the list for the dashboard. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function lowStock(Table $table): Table
     {
         return $table
@@ -98,9 +105,13 @@ class StockStories extends Stories
     }
 
     /** An item's movements on its View page: each document, what came in or went out, and what was on hand after. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function movements(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No stock movements yet')
+            ->emptyStateDescription('Deliveries, receipts and adjustments of this item appear here.')
             ->query(StockMovement::query()->where('item_id', 1))
             ->heading('Stock movements')
             ->defaultSort('id')

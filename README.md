@@ -5,7 +5,7 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | Storybook | Here |
 |---|---|
 | CSF file: meta + named exports | A class extending `Stories`: `title()`, `description()`, one public method per story |
-| Renderer + iframe | `StoryCanvas`: each story in its own Livewire component, with real state and actions |
+| Renderer + iframe | `StoryCanvas`: each story in its own Livewire component, with real state and actions, and a screen in each of its five states (loading, empty, populated, error, forbidden), one tab each |
 | Docs page + sidebar | The **Storybook** panel page: live story beside its PHP snippet, grouped by title |
 | `components.json` manifest | `StoryRegistry::manifest()`: imports, snippets and docblocks, read by reflection |
 | `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |

@@ -14,6 +14,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
@@ -40,9 +41,12 @@ class PurchasesReportStories extends Stories
         return [PurchasesReportExporter::class, PayablesReportExporter::class, ReportExporter::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No purchases in this range')
+            ->emptyStateDescription('Posted purchase orders dated in the range appear here; change the dates or the supplier to see others.')
             ->query(PurchaseOrder::query()->where('status', DocumentStatus::Posted))
             ->columns([
                 TextColumn::make('number')
@@ -119,9 +123,12 @@ class PurchasesReportStories extends Stories
     }
 
     /** What is still owed to suppliers: every order with a balance, oldest due first. */
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function payables(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('Nothing is owed to suppliers')
+            ->emptyStateDescription('Posted purchase orders not yet paid in full appear here.')
             ->query(PurchaseOrder::query()->where('status', DocumentStatus::Posted)->where('balance_due', '>', 0))
             ->columns([
                 TextColumn::make('number')

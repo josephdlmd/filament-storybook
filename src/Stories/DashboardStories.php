@@ -4,6 +4,8 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Schema;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Widgets\CashFlowChart;
 use Josephdlmd\FilamentStorybook\Stories\Widgets\Dashboard;
@@ -29,6 +31,8 @@ class DashboardStories extends Stories
     }
 
     /** Key figures: a stats widget, each a number with a short label. */
+    #[Section]
+    #[States('loading')]
     public function default(Schema $schema): Schema
     {
         return $schema
@@ -38,6 +42,8 @@ class DashboardStories extends Stories
     }
 
     /** Two series over time: a line each, in its own colour and line style, with a legend that isn't clickable. */
+    #[Section]
+    #[States('loading')]
     public function twoSeries(Schema $schema): Schema
     {
         return $schema
@@ -47,6 +53,8 @@ class DashboardStories extends Stories
     }
 
     /** A chart: a bar chart that compares months, with its values as text. */
+    #[Section]
+    #[States('loading')]
     public function chart(Schema $schema): Schema
     {
         return $schema
@@ -56,6 +64,8 @@ class DashboardStories extends Stories
     }
 
     /** Parts of a whole: what customers owe by days past due, each bracket's amount in its legend label. */
+    #[Section]
+    #[States('loading')]
     public function ageing(Schema $schema): Schema
     {
         return $schema
