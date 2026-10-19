@@ -45,8 +45,12 @@ One rendering of a pattern, or of an app's own screen, in the gallery. Shared st
 _Avoid_: Example, demo
 
 **Screen**:
-A pattern for a whole page (a list, report, dashboard, wizard or settings page). A screen story owes every state, except that a record screen (one record's page or form) has no empty state.
+A pattern for a whole page (a list, record view, form, report, dashboard or settings page). A screen story owes every state, except that a record screen (one record's page or form) has no empty state.
 _Avoid_: Page, view, layout
+
+**Wizard**:
+A form split into named steps, done in order, for a linear task of three or more steps. It is the long form of the create or edit form, not a screen of its own.
+_Avoid_: Stepper, multi-step form
 
 **Section**:
 A part of a screen that holds its own data (history, notes, related records). It shows only the states it has.
