@@ -13,7 +13,7 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 54 failing')
+        ->toStartWith('# 2 pages rendered, 58 failing')
         ->toContain('- `CreateGadget` `forms.upload-file-name`: the upload `manual` shows a file by the random name it is stored under')
         ->toContain('- `CreateGadget` `forms.inline-labels`: its fields have their labels beside them (`released_on`); put labels above their fields')
         ->toContain('- `CreateGadget` `forms.few-options`: the select `size` offers 3 options; show them as stacked radios')
@@ -77,8 +77,8 @@ it('audits the real resource screens against the house rules', function (): void
         ->not->toContain('"Part"')
         ->not->toContain('the error "Enter name"')
         ->not->toContain('25 rows')
-        ->toContain('- `EditGadget`: no record to open')
-        ->toContain('- `ViewGadget`: no record to open')
+        ->toContain('- `EditGadget` `pages.no-record`: no record to open')
+        ->toContain('- `ViewGadget` `pages.no-record`: no record to open')
         ->toContain('Fix each one, then run storybook-audit again');
 });
 
@@ -146,13 +146,13 @@ it('opens a custom page of one record on the first record', function (): void {
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
         ->toContain('- `CheckGadget`')
-        ->not->toContain('- `CheckGadget`: it needs route parameters');
+        ->not->toContain('- `CheckGadget` `pages.route-parameters`');
 });
 
 it('audits the panel\'s own pages on a full audit, following a page that sends the user back to itself as it opens', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
         ->toContain('- `GadgetOverview`')
-        ->not->toContain('- `GadgetOverview`: tester@example.com may not open it')
+        ->not->toContain('- `GadgetOverview` `pages.forbidden`')
         ->not->toContain('- `Storybook`');
 
     // A screen-by-screen audit leaves the panel's own pages alone.
@@ -186,7 +186,7 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 7 pages rendered, 94 failing')
+        ->toStartWith('# 7 pages rendered, 95 failing')
         ->toContain('- `EditGadget` `forms.one-column`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
         ->toContain('- `GadgetResource PartsRelationManager` `tables.column-title-case`: the column "Created At" is in Title Case')
@@ -247,14 +247,14 @@ it('flags only Title Case someone typed, never sentence case, names or acronyms'
     'one word' => ['Price', 'price', false],
 ]);
 
-it('skips pages the user may not open, and pages that need route parameters, instead of failing them', function (): void {
+it('fails pages the user may not open, and pages that need route parameters, until the owner settles them', function (): void {
     GadgetResource::$creatable = false;
 
     try {
         expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
             ->not->toContain('Exception')
-            ->toContain('- `CreateGadget`: tester@example.com may not open it; pass "as" with a user who can.')
-            ->toContain("- `ReportGadgets`: it needs route parameters the audit can't supply");
+            ->toContain('- `CreateGadget` `pages.forbidden`: tester@example.com may not open it; pass "as" with a user who can.')
+            ->toContain("- `ReportGadgets` `pages.route-parameters`: it needs route parameters the audit can't supply");
     } finally {
         GadgetResource::$creatable = true;
     }
@@ -383,7 +383,7 @@ it('lists settled checks apart from the failing ones in the audit', function ():
     ]]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 2 pages rendered, 53 failing')
+        ->toStartWith('# 2 pages rendered, 57 failing')
         ->toContain('1 settled exceptions')
         ->toContain("## Settled exceptions\n\n- `CreateGadget` `forms.upload-file-name`: the upload `manual`")
         ->toContain('Settled: Manuals keep their stored name for the archive. (owner, 2026-10-19).');

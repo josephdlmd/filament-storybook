@@ -22,6 +22,7 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 The package works with apps that follow one standard: the `filament-starter` template's stack.
 - Laravel with Filament 5, and a default panel in `app/Providers/Filament`
 - Filament's Compact theme (a paid licence), which the look is built on
+- Chromium from Playwright, locally and in CI, for the accessibility checks the tests run
 - Laravel Boost, installed for development
 - Pest
 - npm (the `package.json` Laravel ships with)
@@ -39,7 +40,7 @@ php artisan storybook:install
 The installer:
 - adds the plugin to the default panel;
 - registers the package with Boost and refreshes the agent guidelines;
-- writes the standard `tests/Feature/StoriesTest.php`, which renders every story and fails if Boost stops serving the tools;
+- writes the standard `tests/Feature/StoriesTest.php`, which renders every story, fails if Boost stops serving the tools, and runs `storybook-test` and `storybook-audit` in strict mode;
 - publishes the house CSS and ignores it in git;
 - installs the accessibility check packages.
 
@@ -171,7 +172,7 @@ One thing a plugin can't reach: Filament title-cases the model in each resource'
 
 ## Render every story in the app's tests
 
-`storybook:install` writes the standard `tests/Feature/StoriesTest.php` ([stubs/StoriesTest.php](stubs/StoriesTest.php)). The first test renders every story. The second fails the build if a Boost update ever stops giving agents the tools: they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file. Every app has the same file, so don't edit it there; change the stub.
+`storybook:install` writes the standard `tests/Feature/StoriesTest.php` ([stubs/StoriesTest.php](stubs/StoriesTest.php)). The first test renders every story. The second fails the build if a Boost update ever stops giving agents the tools: they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file. The last two run `storybook-test` and `storybook-audit`, accessibility included, and fail on anything the owner hasn't settled (see Strict mode). For the audit, the test runs the app's database seeder (so one of its users may open each panel), lets every policy allow, makes one record per resource with its model's factory, and audits every panel; a page it still can't open fails, so give the model a factory, seed what it needs, or ask the owner to settle it. CI needs the built assets and a Playwright Chromium (`npx playwright-core install chromium`). Every app has the same file, so don't edit it there; change the stub.
 
 ## Agent eval
 
