@@ -11,8 +11,8 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Fulfilment;
 
 class NextDocumentStories extends Stories

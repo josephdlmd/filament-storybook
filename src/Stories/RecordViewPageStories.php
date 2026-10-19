@@ -12,9 +12,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Josephdlmd\FilamentStorybook\Attributes\Record;
 use Josephdlmd\FilamentStorybook\Attributes\States;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\PaymentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PaymentStatus;
 
 class RecordViewPageStories extends Stories
 {

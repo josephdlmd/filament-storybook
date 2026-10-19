@@ -11,8 +11,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Josephdlmd\FilamentStorybook\Attributes\Record;
 use Josephdlmd\FilamentStorybook\Attributes\States;
+use Josephdlmd\FilamentStorybook\Contacts\PhoneNumber;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Contacts\PhoneNumber;
 
 class SettingsPageStories extends Stories
 {

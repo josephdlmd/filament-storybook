@@ -144,7 +144,7 @@ it('keeps a locked record\'s values out of the save, even when changed in the br
 });
 
 it('works out a document\'s VAT once per class, as 12/112 of the VAT-inclusive total, half up', function (array $lines, array $totals): void {
-    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::of($lines))->toBe($totals);
+    expect(Josephdlmd\FilamentStorybook\Documents\DocumentTotals::of($lines))->toBe($totals);
 })->with([
     'VAT from a VAT-inclusive total' => [[['quantity' => '1', 'unit_price' => '112', 'vat_class' => 'vatable']], ['vatable_sales' => '100.00', 'vat' => '12.00', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '112.00']],
     'once per class, not per line' => [[['quantity' => '1', 'unit_price' => '0.05', 'vat_class' => 'vatable'], ['quantity' => '1', 'unit_price' => '0.05', 'vat_class' => 'vatable']], ['vatable_sales' => '0.09', 'vat' => '0.01', 'zero_rated_sales' => '0.00', 'exempt_sales' => '0.00', 'total' => '0.10']],
@@ -154,7 +154,7 @@ it('works out a document\'s VAT once per class, as 12/112 of the VAT-inclusive t
 ]);
 
 it('withholds from a supplier\'s invoice once, the rate on its total less VAT, and writes amounts as on a receipt', function (): void {
-    $totals = Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::class;
+    $totals = Josephdlmd\FilamentStorybook\Documents\DocumentTotals::class;
 
     $code = fn (string $code) => Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode::find($code);
 
@@ -187,15 +187,15 @@ it('numbers posted documents in one series per prefix, with no gaps', function (
         $table->unsignedInteger('last');
     });
     Illuminate\Support\Facades\DB::table('document_numbers')->insert([['prefix' => 'SI', 'last' => 0], ['prefix' => 'PO', 'last' => 41]]);
-    $next = fn (string $prefix): string => Illuminate\Support\Facades\DB::transaction(fn (): string => Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next($prefix));
+    $next = fn (string $prefix): string => Illuminate\Support\Facades\DB::transaction(fn (): string => Josephdlmd\FilamentStorybook\Documents\DocumentNumber::next($prefix));
 
     expect([$next('SI'), $next('SI'), $next('PO')])->toBe(['SI-000001', 'SI-000002', 'PO-000042'])
         ->and(fn () => $next('RR'))->toThrow(RuntimeException::class, 'no number series for RR')
-        ->and(fn () => Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next('SI'))->toThrow(RuntimeException::class, 'inside the transaction');
+        ->and(fn () => Josephdlmd\FilamentStorybook\Documents\DocumentNumber::next('SI'))->toThrow(RuntimeException::class, 'inside the transaction');
 
     // A posting that fails after taking its number gives the number back.
     rescue(fn () => Illuminate\Support\Facades\DB::transaction(function (): void {
-        Josephdlmd\FilamentStorybook\Stories\Documents\DocumentNumber::next('SI');
+        Josephdlmd\FilamentStorybook\Documents\DocumentNumber::next('SI');
 
         throw new RuntimeException('Posting failed');
     }), report: false);
@@ -275,13 +275,13 @@ it('proposes what a government office withholds: 1% income tax on the amount les
         ->mountAction(Filament\Actions\Testing\TestAction::make('recordPayment')->schemaComponent('story', 'form'))
         ->assertSchemaStateSet(['amount' => '106000.00', 'tax_withheld' => '1000.00', 'vat_withheld' => '5000.00'], 'mountedActionSchema0');
 
-    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('2363.71', '3363.71', '3003.31', '0.01'))->toBe('21.10')
+    expect(Josephdlmd\FilamentStorybook\Documents\DocumentTotals::expectedWithholding('2363.71', '3363.71', '3003.31', '0.01'))->toBe('21.10')
         // ₱3,426 VATable (₱3,058.93 before VAT) and ₱2,900 exempt: VAT is withheld on the VATable sales alone.
-        ->and(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::expectedWithholding('6326.00', '6326.00', '3058.93', '0.05'))->toBe('152.95');
+        ->and(Josephdlmd\FilamentStorybook\Documents\DocumentTotals::expectedWithholding('6326.00', '6326.00', '3058.93', '0.05'))->toBe('152.95');
 });
 
 it('sets what a customer withholds by type, with no income tax on a government purchase of ₱10,000 or less', function (?string $type, string $total, array $rates): void {
-    expect(Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals::customerRates($type, $total))->toBe($rates);
+    expect(Josephdlmd\FilamentStorybook\Documents\DocumentTotals::customerRates($type, $total))->toBe($rates);
 })->with([
     'government, over ₱10,000' => ['government', '10000.01', ['income_tax' => '0.01', 'vat' => '0.05']],
     'government, exactly ₱10,000' => ['government', '10000.00', ['income_tax' => '0', 'vat' => '0.05']],
@@ -351,7 +351,7 @@ it('downloads a posted document as a tagged A4 PDF in the shared layout, an invo
 it('lists a customer\'s open invoices on a statement, with each ageing bucket and the total due', function (): void {
     $customer = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard', 'tin' => '987-654-321-000']);
     $invoice = fn (string $number, string $due, string $balance) => (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => $number, 'invoice_date' => '2026-08-01', 'due_date' => $due, 'balance_due' => $balance]);
-    $statement = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::statementOfAccount($customer, [
+    $statement = Josephdlmd\FilamentStorybook\Documents\PrintedDocument::statementOfAccount($customer, [
         $invoice('001200', '2026-07-01', '100.10'),  // 152 days
         $invoice('001214', '2026-09-01', '890.50'),  // 90 days
         $invoice('001220', '2026-10-01', '10.00'),   // 60 days
@@ -367,7 +367,7 @@ it('lists a customer\'s open invoices on a statement, with each ageing bucket an
 it('acknowledges a collection under its receipt\'s serial, not as an official receipt', function (): void {
     $payment = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => '000387', 'paid_on' => '2026-11-08', 'amount' => '6298.69', 'tax_withheld' => '27.31', 'vat_withheld' => '0.00', 'reference' => 'Check 0047731']);
 
-    $document = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::paymentAcknowledgement($payment);
+    $document = Josephdlmd\FilamentStorybook\Documents\PrintedDocument::paymentAcknowledgement($payment);
 
     expect($document['totals'])->toBe(['Amount received' => '6298.69', 'Income tax withheld' => '27.31', 'Total settled' => '6326.00'])
         ->and($document['statement'])->toBe('THIS IS NOT AN OFFICIAL RECEIPT');
@@ -377,7 +377,7 @@ it('emails a document as its PDF from the company address, and tells the sender 
     Spatie\LaravelPdf\Facades\Pdf::fake();
     config(['mail.default' => 'array', 'queue.default' => 'sync']);
     $sender = User::forceCreate(['name' => 'Ana', 'email' => 'ana@example.com', 'password' => 'secret']);
-    $document = ['title' => 'Statement of account', 'number' => 'Nov 30, 2026'] + Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::statementOfAccount((new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Cebu Diagnostics Laboratory']), []);
+    $document = ['title' => 'Statement of account', 'number' => 'Nov 30, 2026'] + Josephdlmd\FilamentStorybook\Documents\PrintedDocument::statementOfAccount((new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Cebu Diagnostics Laboratory']), []);
     $job = new Josephdlmd\FilamentStorybook\Stories\Documents\EmailDocument($document, 'accounts@cebudiagnostics.ph', null, $sender);
 
     $job->handle();
@@ -477,7 +477,7 @@ it('downloads every report as a PDF of the rows its filters keep', function (str
 ]);
 
 it('counts days past due from the day after the due date, in the report and on the statement alike', function (): void {
-    $days = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::daysPastDue(...);
+    $days = Josephdlmd\FilamentStorybook\Documents\PrintedDocument::daysPastDue(...);
     $asOf = Illuminate\Support\Carbon::parse('2026-10-14');
 
     expect($days('2026-10-15', $asOf))->toBeNull()
@@ -576,7 +576,7 @@ it('sends a stock adjustment for approval with a reason, never a change of 0', f
 
 it('lists what is owed to a supplier in the receivables ageing buckets', function (): void {
     $order = fn (string $number, string $due, string $balance) => (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => $number, 'order_date' => '2026-06-01', 'due_date' => $due, 'balance_due' => $balance]);
-    $statement = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::supplierStatement('Luzon Medical Gases', [
+    $statement = Josephdlmd\FilamentStorybook\Documents\PrintedDocument::supplierStatement('Luzon Medical Gases', [
         $order('PO-000040', '2026-07-01', '100.00'),  // 103 days
         $order('PO-000043', '2026-09-14', '7000.00'), // 28 days
         $order('PO-000046', '2026-10-31', '3360.00'), // not yet due
@@ -629,7 +629,7 @@ it('groups the tax withheld from each supplier by quarter and month, as Form 230
         ->get();
 
     // PO-000039 in July and PO-000041 in September; PO-000042, recorded in October, is the next quarter's.
-    $document = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::form2307Details('Benguet Trading', '234-567-890-000', '8 Session Road, Baguio City 2600', Josephdlmd\FilamentStorybook\Stories\Reports\SupplierWithholding::start('2026-3'), $rows);
+    $document = Josephdlmd\FilamentStorybook\Documents\PrintedDocument::form2307Details('Benguet Trading', '234-567-890-000', '8 Session Road, Baguio City 2600', Josephdlmd\FilamentStorybook\Stories\Reports\SupplierWithholding::start('2026-3'), $rows);
 
     expect($document['number'])->toBe('Jul 1, 2026 to Sep 30, 2026')
         ->and($document['lines'])->toBe([['atc' => 'WC158', 'month_1' => '2232.14', 'month_2' => '0.00', 'month_3' => '4730.36', 'income_payment' => '6962.50', 'tax_withheld' => '69.62']])
@@ -664,7 +664,7 @@ it('reports the quarter just ended and downloads each supplier\'s 2307 details, 
 it('leaves a missing date off the printed copy instead of printing today', function (): void {
     $invoice = (new Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice)->forceFill(['number' => '001232', 'invoice_date' => '2026-10-11', 'terms' => 'Cash', 'due_date' => null]);
 
-    expect(Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::salesInvoice($invoice)['details'])
+    expect(Josephdlmd\FilamentStorybook\Documents\PrintedDocument::salesInvoice($invoice)['details'])
         ->toBe(['Date' => 'Oct 11, 2026', 'Terms' => 'Cash']);
 });
 
@@ -808,7 +808,7 @@ it('ages an invoice with no due date as current, in the report and on the statem
 
     $customer = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['name' => 'Abra Provincial Hospital']);
     $invoice = (new class extends Illuminate\Database\Eloquent\Model {})->forceFill(['number' => '001250', 'invoice_date' => '2026-10-01', 'due_date' => null, 'balance_due' => '100.00']);
-    $statement = Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument::statementOfAccount($customer, [$invoice], Illuminate\Support\Carbon::parse('2026-10-14'));
+    $statement = Josephdlmd\FilamentStorybook\Documents\PrintedDocument::statementOfAccount($customer, [$invoice], Illuminate\Support\Carbon::parse('2026-10-14'));
 
     expect($statement['totals']['Current'])->toBe('100.00')
         ->and($statement['lines'][0]['due'])->toBeNull()

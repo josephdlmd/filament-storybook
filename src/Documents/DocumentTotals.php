@@ -1,8 +1,9 @@
 <?php
 
-namespace Josephdlmd\FilamentStorybook\Stories\Documents;
+namespace Josephdlmd\FilamentStorybook\Documents;
 
 use Illuminate\Support\Number;
+use Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode;
 
 /**
  * A document's money, worked out the one way the books use: decimal strings, never floats, and each figure rounded

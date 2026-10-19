@@ -1,6 +1,6 @@
 <?php
 
-namespace Josephdlmd\FilamentStorybook\Stories\Documents;
+namespace Josephdlmd\FilamentStorybook\Documents;
 
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;

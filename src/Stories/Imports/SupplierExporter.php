@@ -3,7 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Imports;
 
 use Filament\Actions\Exports\ExportColumn;
-use Josephdlmd\FilamentStorybook\Stories\Reports\ReportExporter;
+use Josephdlmd\FilamentStorybook\Reports\ReportExporter;
 
 class SupplierExporter extends ReportExporter
 {

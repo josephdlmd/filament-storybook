@@ -9,8 +9,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Utilities\Get;
+use Josephdlmd\FilamentStorybook\Documents\DocumentTotals;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
 
 class LineItemsStories extends Stories
 {

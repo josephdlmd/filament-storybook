@@ -20,8 +20,8 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Number;
 use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Documents\DocumentTotals;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
 use Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode;
 
 class DocumentTotalsStories extends Stories

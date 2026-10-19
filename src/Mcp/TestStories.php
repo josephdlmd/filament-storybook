@@ -6,6 +6,7 @@ use Filament\Facades\Filament;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Str;
 use Josephdlmd\FilamentStorybook\Accessibility;
+use Josephdlmd\FilamentStorybook\CustomComponents;
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 use Josephdlmd\FilamentStorybook\SettledExceptions;
@@ -54,7 +55,13 @@ class TestStories extends Tool
         $rendered = [];
 
         foreach ($ids === [] ? $all : array_intersect_key($all, array_flip($ids)) as $id => $stories) {
-            $warnings = [...$warnings, ...static::warnings($id, $stories, app(StoryRegistry::class)->manifest($stories))];
+            $manifest = app(StoryRegistry::class)->manifest($stories);
+            $warnings = [...$warnings, ...static::warnings($id, $stories, $manifest)];
+
+            // An app's story may combine approved patterns only: a custom component of the app's own fails (package-only).
+            foreach (array_filter($manifest['imports'], fn (string $import): bool => str_starts_with($import, app()->getNamespace()) && class_exists($import) && CustomComponents::isCustom($import)) as $import) {
+                $warnings[] = "`{$id}` `story.custom-component`: `".class_basename($import).'` '.CustomComponents::message($import);
+            }
 
             foreach ($stories->stories() as $name => $story) {
                 if (Stories::kind($story) === null) {

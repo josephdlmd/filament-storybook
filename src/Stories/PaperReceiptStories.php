@@ -8,8 +8,8 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Josephdlmd\FilamentStorybook\Attributes\Record;
 use Josephdlmd\FilamentStorybook\Attributes\States;
+use Josephdlmd\FilamentStorybook\Documents\DocumentTotals;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
 
 class PaperReceiptStories extends Stories
 {

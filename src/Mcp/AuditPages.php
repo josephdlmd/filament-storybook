@@ -60,6 +60,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
+use Josephdlmd\FilamentStorybook\CustomComponents;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 use Josephdlmd\FilamentStorybook\SettledExceptions;
 use Laravel\Mcp\Request;
@@ -282,6 +283,11 @@ class AuditPages extends Tool
             } catch (Throwable $e) {
                 $failing[] = '- `navigation`: '.static::failure($e);
             }
+        }
+
+        // Custom components, on a full audit: package-only, so an app's own fails.
+        foreach ($names ? [] : CustomComponents::in(app_path()) as $class) {
+            $warnings[] = '- `'.class_basename($class).'` `components.custom`: '.CustomComponents::message($class);
         }
 
         // The error pages, on a full audit: Laravel's own make the code the heading and give no way out.

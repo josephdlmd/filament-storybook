@@ -3,7 +3,8 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Filament\Actions\Exports\ExportColumn;
-use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
+use Josephdlmd\FilamentStorybook\Documents\PrintedDocument;
+use Josephdlmd\FilamentStorybook\Reports\ReportExporter;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PurchaseOrder;
 
 /** What is owed to suppliers as a CSV or Excel file: every order with a balance, its due date, the days past it and the balance. */

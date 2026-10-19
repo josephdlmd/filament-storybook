@@ -3,8 +3,8 @@
 namespace Josephdlmd\FilamentStorybook\Stories;
 
 use Filament\Tables\Columns\TextColumn;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 
 class StatusBadgeStories extends Stories
 {

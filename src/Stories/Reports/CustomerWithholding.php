@@ -3,7 +3,7 @@
 namespace Josephdlmd\FilamentStorybook\Stories\Reports;
 
 use Illuminate\Database\Eloquent\Builder;
-use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
+use Josephdlmd\FilamentStorybook\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 
 /**
