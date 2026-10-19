@@ -55,3 +55,11 @@ _Avoid_: Registry, catalogue, manifest
 **Design registry**:
 The factory's list of layout and component ids that a screen spec may name, with the story each id stands for on each frontend. The factory owns it; the allowlist is what it is checked against.
 _Avoid_: Allowlist, component list
+
+**Screenshot capture**:
+Pictures of every story in each state it shows, light and dark, at desktop and phone width, with a list of what each picture is. Storybook takes them; it never compares them.
+_Avoid_: Snapshot, baseline
+
+**Baseline**:
+An approved screenshot the factory keeps and compares a new capture against. Only a person approves a change to one.
+_Avoid_: Snapshot, golden image
