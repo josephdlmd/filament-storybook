@@ -61,6 +61,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
+use Josephdlmd\FilamentStorybook\SettledExceptions;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -78,7 +79,7 @@ class AuditPages extends Tool
 {
     protected string $name = 'storybook-audit';
 
-    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists, the panel\'s own pages, the dashboard\'s widgets and the menu, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.2 AA issues on each. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
+    protected string $description = 'Render the app\'s real resource pages (list, create, edit, view), their related lists, the panel\'s own pages, the dashboard\'s widgets and the menu, signed in as a panel user, and report render errors, house-rule breaks and WCAG 2.2 AA issues on each. Every finding fails, unless the owner settled it in config/storybook-exceptions.php. Run it after building or changing a resource screen. Fix every issue and run it again until none remain.';
 
     public function schema(JsonSchema $schema): array
     {
@@ -127,7 +128,7 @@ class AuditPages extends Tool
 
         // A panel without the plugin misses the house settings made per panel, though the app-wide defaults still reach it.
         if (! $panel->hasPlugin('filament-storybook')) {
-            $warnings[] = "- `panel`: the {$panel->getId()} panel has no `StorybookPlugin`, so it lacks the house settings made per panel: the idle-session warning (WCAG 2.2.1), the unsaved-changes alert and full-width pages (Carbon 2x grid); add `->plugin(StorybookPlugin::make())` to it, with the same options as the other panels.";
+            $warnings[] = "- `panel` `panel.plugin`: the {$panel->getId()} panel has no `StorybookPlugin`, so it lacks the house settings made per panel: the idle-session warning (WCAG 2.2.1), the unsaved-changes alert and full-width pages (Carbon 2x grid); add `->plugin(StorybookPlugin::make())` to it, with the same options as the other panels.";
         } else {
             $failing = static::lookFailures($panel);
         }
@@ -225,7 +226,7 @@ class AuditPages extends Tool
                 // A related value in a search result's title or details is loaded with the results, or each result runs a query of its own.
                 if ($resource::canGloballySearch() && ($lazy = static::lazyGlobalSearch($resource)) !== []) {
                     $relations = implode(', ', array_map(fn (string $relation): string => "`{$relation}`", $lazy));
-                    $warnings[] = "- `".class_basename($resource)."`: global search loads {$relations} one result at a time; load it with the results, `parent::getGlobalSearchEloquentQuery()->with([...])` in `getGlobalSearchEloquentQuery()` (Laravel eager loading).";
+                    $warnings[] = "- `".class_basename($resource)."` `search.eager-load`: global search loads {$relations} one result at a time; load it with the results, `parent::getGlobalSearchEloquentQuery()->with([...])` in `getGlobalSearchEloquentQuery()` (Laravel eager loading).";
                 }
             } catch (Throwable $e) {
                 $failing[] = '- `'.class_basename($resource).'`: '.static::failure($e);
@@ -251,21 +252,21 @@ class AuditPages extends Tool
                 }
 
                 if (property_exists($widget, 'pollingInterval') && ($every = (new ReflectionProperty($widget, 'pollingInterval'))->getDefaultValue()) !== null) {
-                    $warnings[] = "- `{$key}`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
+                    $warnings[] = "- `{$key}` `widgets.polling`: it reloads itself every {$every}, and the user can't stop it; set `protected ?string \$pollingInterval = null;`, as the `dashboards-key-figures-and-charts` widgets do (WCAG 2.2.2).";
                 }
 
                 $datasets = is_subclass_of($widget, ChartWidget::class) ? (rescue(fn (): mixed => (new ReflectionMethod($widget, 'getData'))->invoke(new $widget), [], report: false)['datasets'] ?? []) : [];
 
                 if (count($datasets) > 1 && collect($datasets)->contains(fn (array $series): bool => blank($series['borderColor'] ?? null) && blank($series['backgroundColor'] ?? null))) {
-                    $warnings[] = "- `{$key}`: its ".count($datasets).' series share one colour, since Filament paints every series in the widget\'s colour; give each its own `borderColor` and `backgroundColor` from Filament\'s palette, meeting 3:1 on the light and dark backgrounds, and its own line style, as `CashFlowChart` does (Carbon color palettes; WCAG 1.4.1, 1.4.11).';
+                    $warnings[] = "- `{$key}` `widgets.series-colours`: its ".count($datasets).' series share one colour, since Filament paints every series in the widget\'s colour; give each its own `borderColor` and `backgroundColor` from Filament\'s palette, meeting 3:1 on the light and dark backgrounds, and its own line style, as `CashFlowChart` does (Carbon color palettes; WCAG 1.4.1, 1.4.11).';
                 }
 
                 if (count($datasets) === 1 && static::showsLegend($widget)) {
-                    $warnings[] = "- `{$key}`: it has one series but shows a legend; hide it with `'plugins' => ['legend' => ['display' => false]]` (Carbon legends: \"Remove legends … when only one data category is needed\").";
+                    $warnings[] = "- `{$key}` `widgets.single-legend`: it has one series but shows a legend; hide it with `'plugins' => ['legend' => ['display' => false]]` (Carbon legends: \"Remove legends … when only one data category is needed\").";
                 }
 
                 if (is_subclass_of($widget, ChartWidget::class) && static::hasClickableLegend($widget)) {
-                    $warnings[] = "- `{$key}`: its legend hides a series on a mouse click, which the keyboard can't do; set `'plugins' => ['legend' => ['onClick' => null]]` in `getOptions()`, and filter with the dashboard's filters instead (WCAG 2.1.1; Carbon legends).";
+                    $warnings[] = "- `{$key}` `widgets.legend-click`: its legend hides a series on a mouse click, which the keyboard can't do; set `'plugins' => ['legend' => ['onClick' => null]]` in `getOptions()`, and filter with the dashboard's filters instead (WCAG 2.1.1; Carbon legends).";
                 }
 
                 $rendered[$key] = Livewire::test($widget)->html();
@@ -288,7 +289,7 @@ class AuditPages extends Tool
         $laravels = array_filter([403, 404, 419, 429, 500, 503], fn (int $code): bool => ! file_exists(resource_path("views/errors/{$code}.blade.php")));
 
         if (! $names && $laravels) {
-            $warnings[] = '- `errors`: Laravel\'s own page still shows for '.implode(', ', $laravels).', with the code as its heading and no way out; run `php artisan vendor:publish --tag=filament-storybook-errors`, as `feedback-error-pages` says (Carbon empty states: "plain language (no codes)"; USWDS 404 page).';
+            $warnings[] = '- `errors` `errors.published`: Laravel\'s own page still shows for '.implode(', ', $laravels).', with the code as its heading and no way out; run `php artisan vendor:publish --tag=filament-storybook-errors`, as `feedback-error-pages` says (Carbon empty states: "plain language (no codes)"; USWDS 404 page).';
         }
 
         // The page around them once, as the browser gets it: the title, language, skip link, landmarks and the menu.
@@ -297,17 +298,25 @@ class AuditPages extends Tool
         $layout += $names || $laravels !== [] ? [] : rescue(fn (): array => ['errors.404' => view('errors.404')->render()], [], report: false);
 
         [$issues, $unchecked] = $rendered === [] ? [[], null] : Accessibility::check($rendered, $layout, $panel);
+        [$checks, $settled] = SettledExceptions::apply($warnings, stories: false, full: ! $names);
 
-        $text = '# '.count($passing).' pages rendered, '.count($failing).' failing, '.count($warnings).' warnings, '.count($issues)." accessibility issues\n\n"
-            .'Signed in as '.static::userLabel($user).".\n".($unchecked ? "\n{$unchecked}\n" : '');
+        // Strict mode: accessibility that couldn't be checked fails too, and no exception settles it.
+        if ($unchecked) {
+            $checks[] = "- `accessibility` `a11y.unchecked`: {$unchecked}";
+        }
 
-        foreach (['Failing' => $failing, 'Accessibility' => $issues, 'Warnings' => $warnings, 'Skipped' => $skipped, 'Passing' => $passing] as $heading => $lines) {
+        $failing = [...$failing, ...$checks];
+
+        $text = '# '.count($passing).' pages rendered, '.count($failing).' failing, '.count($issues).' accessibility issues, '.count($settled)." settled exceptions\n\n"
+            .'Signed in as '.static::userLabel($user).".\n";
+
+        foreach (['Failing' => $failing, 'Accessibility' => $issues, 'Settled exceptions' => $settled, 'Skipped' => $skipped, 'Passing' => $passing] as $heading => $lines) {
             if ($lines !== []) {
                 $text .= "\n## {$heading}\n\n".implode("\n", $lines)."\n";
             }
         }
 
-        return Response::text($text.($failing === [] && $issues === [] && $warnings === [] ? '' : "\nFix each one, then run storybook-audit again until none remain.\n"));
+        return Response::text($text.($failing === [] && $issues === [] ? '' : "\nFix each one, then run storybook-audit again until none remain. Only the owner may settle a check as an exception.\n"));
     }
 
     /** A chart whose legend shows, Chart.js's default. */
@@ -515,8 +524,8 @@ class AuditPages extends Tool
     protected static function warnings(string $key, Component $page): array
     {
         $warnings = [];
-        $warn = function (string $message) use (&$warnings, $key): void {
-            $warnings[] = "- `{$key}`: {$message}";
+        $warn = function (string $check, string $message) use (&$warnings, $key): void {
+            $warnings[] = "- `{$key}` `{$check}`: {$message}";
         };
 
         // Filament title-cases the model in these ("Create Supplier", "Purchase Orders"); edit and view titles name the record, so they're left alone.
@@ -526,7 +535,7 @@ class AuditPages extends Tool
 
             foreach (array_unique($titles) as $title) {
                 if (static::isTitleCase($title, $title)) {
-                    $warn("\"{$title}\" (the page title, navigation or breadcrumb) is in Title Case; add `use \\Josephdlmd\\FilamentStorybook\\Concerns\\HasSentenceCaseLabels;` inside `".class_basename($resource).'` and set its `$recordTitleAttribute`, or, for a resource whose records have no name, set the page\'s `$title` and the resource\'s `$breadcrumb` (Carbon content).');
+                    $warn('titles.title-case', "\"{$title}\" (the page title, navigation or breadcrumb) is in Title Case; add `use \\Josephdlmd\\FilamentStorybook\\Concerns\\HasSentenceCaseLabels;` inside `".class_basename($resource).'` and set its `$recordTitleAttribute`, or, for a resource whose records have no name, set the page\'s `$title` and the resource\'s `$breadcrumb` (Carbon content).');
                 }
             }
         }
@@ -539,13 +548,13 @@ class AuditPages extends Tool
             ->filter(fn ($action): bool => $action instanceof Action && $action->isVisible() && in_array($action->getColor() ?? 'primary', ['primary'], true));
 
         if ($primary->count() > 1) {
-            $warn("{$primary->count()} primary actions in the header; keep one primary and make the rest `->color('gray')` or put them in an `ActionGroup` (Carbon button).");
+            $warn('header.one-primary', "{$primary->count()} primary actions in the header; keep one primary and make the rest `->color('gray')` or put them in an `ActionGroup` (Carbon button).");
         }
 
         $shown = collect($header)->filter(fn ($action): bool => ($action instanceof Action || $action instanceof ActionGroup) && $action->isVisible());
 
         if ($shown->count() > 3) {
-            $warn("{$shown->count()} buttons in the header; show at most three and put the rest in a labelled menu, `ActionGroup::make([...])->label('More')->button()` (Carbon button: \"Any more than three actions should be grouped meaningfully using menu buttons\").");
+            $warn('header.three-buttons', "{$shown->count()} buttons in the header; show at most three and put the rest in a labelled menu, `ActionGroup::make([...])->label('More')->button()` (Carbon button: \"Any more than three actions should be grouped meaningfully using menu buttons\").");
         }
 
         if (method_exists($page, 'getTable') && $page->getTable()->getColumns() !== []) {
@@ -554,41 +563,41 @@ class AuditPages extends Tool
 
             foreach ($visible as $column) {
                 if (static::isTitleCase((string) $column->getLabel(), $column->getName())) {
-                    $warn("the column \"{$column->getLabel()}\" is in Title Case; write it in sentence case, capitalising only the first word, names and acronyms (Carbon data table).");
+                    $warn('tables.column-title-case', "the column \"{$column->getLabel()}\" is in Title Case; write it in sentence case, capitalising only the first word, names and acronyms (Carbon data table).");
                 }
 
                 if ($column->hasTooltip()) {
-                    $warn("the column `{$column->getName()}` has a tooltip, which shows on mouse hover only; put the text in the column's `description()` or on the record's page (WCAG 2.1.1; Carbon tooltip: on a trigger reached by Tab).");
+                    $warn('tables.column-tooltip', "the column `{$column->getName()}` has a tooltip, which shows on mouse hover only; put the text in the column's `description()` or on the record's page (WCAG 2.1.1; Carbon tooltip: on a trigger reached by Tab).");
                 }
 
                 if ($column instanceof TextColumn && $column->isMoney() && ! in_array($column->getAlignment(), [Alignment::End, Alignment::Right], true)) {
-                    $warn("the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (USWDS table).");
+                    $warn('tables.money-align-end', "the money column `{$column->getName()}` must be right-aligned with `->alignEnd()`, as `tables-money-column` does (USWDS table).");
                 }
             }
 
             if ($visible->count() < 3) {
-                $warn("the table shows {$visible->count()} column(s); a table needs three or more, so show these as a list of labels and values, as `records-details` does (Carbon data table: \"Tables require three or more columns\").");
+                $warn('tables.three-columns', "the table shows {$visible->count()} column(s); a table needs three or more, so show these as a list of labels and values, as `records-details` does (Carbon data table: \"Tables require three or more columns\").");
             }
 
             $toolbar = collect([...$header, ...$table->getHeaderActions(), ...$table->getToolbarActions()])->filter(fn ($action): bool => ($action instanceof Action || $action instanceof ActionGroup) && $action->isVisible());
 
             if ($toolbar->count() > 5) {
-                $warn("{$toolbar->count()} actions above the table; keep five at most and put the rest in a menu (Carbon data table: \"Include up to five actions within the table toolbar\").");
+                $warn('tables.toolbar-five-actions', "{$toolbar->count()} actions above the table; keep five at most and put the rest in a menu (Carbon data table: \"Include up to five actions within the table toolbar\").");
             }
 
             if ($table->hasReorderableColumns()) {
-                $warn('its columns reorder only by dragging in the column manager; drop `reorderableColumns()`, and let users hide columns instead, as `tables-list-table` does (WCAG 2.5.7).');
+                $warn('tables.drag-reorder-columns', 'its columns reorder only by dragging in the column manager; drop `reorderableColumns()`, and let users hide columns instead, as `tables-list-table` does (WCAG 2.5.7).');
             }
 
             foreach (collect($table->getToolbarActions())->filter(fn ($action): bool => $action instanceof BulkActionGroup) as $group) {
                 if (count($actions = $group->getFlatActions()) <= 5) {
-                    $warn('bulk actions are in a "Bulk actions" menu; with five or fewer, put them straight in `toolbarActions([...])`, so they show as buttons once a row is ticked, as `tables-bulk-actions` does (Carbon data table: "Once an item from the table is selected, the batch action bar appears at the top of the table").');
+                    $warn('tables.bulk-menu', 'bulk actions are in a "Bulk actions" menu; with five or fewer, put them straight in `toolbarActions([...])`, so they show as buttons once a row is ticked, as `tables-bulk-actions` does (Carbon data table: "Once an item from the table is selected, the batch action bar appears at the top of the table").');
                 }
             }
 
             foreach (collect($table->getRecordActions())->filter(fn ($action): bool => $action instanceof ActionGroup) as $group) {
                 if (count($actions = $group->getFlatActions()) < 3) {
-                    $warn('a row menu holds only '.count($actions).' action(s); show them inline instead (Carbon data table: "When the overflow menu contains fewer than three options, keep the actions inline").');
+                    $warn('tables.row-menu-few', 'a row menu holds only '.count($actions).' action(s); show them inline instead (Carbon data table: "When the overflow menu contains fewer than three options, keep the actions inline").');
                 }
             }
 
@@ -603,28 +612,28 @@ class AuditPages extends Tool
                 : $rows->max(fn ($record): int => $inline->filter(fn (Action $action): bool => rescue(fn (): bool => (clone $action)->record($record)->isVisible(), true, report: false))->count());
 
             if ($shown > 2) {
-                $warn("{$shown} row actions are inline; keep at most two and put the rest in an `ActionGroup` (Carbon data table, NN/g data tables).");
+                $warn('tables.row-actions-inline', "{$shown} row actions are inline; keep at most two and put the rest in an `ActionGroup` (Carbon data table, NN/g data tables).");
             }
 
             if (count($table->getFilters()) > 1 && in_array($table->getFiltersLayout(), [FiltersLayout::Dropdown, FiltersLayout::Modal, FiltersLayout::AboveContentCollapsible], true)) {
                 // The collapsible layout puts its button alone in a row above the search, with a count even when none apply.
-                $warn('several filters are hidden in a dropdown or behind a button; put them above the table, open, with `layout: FiltersLayout::AboveContent` (Carbon filtering: "horizontally at the top of the data set").');
+                $warn('tables.filters-open', 'several filters are hidden in a dropdown or behind a button; put them above the table, open, with `layout: FiltersLayout::AboveContent` (Carbon filtering: "horizontally at the top of the data set").');
             }
 
             if ($page instanceof ListRecords && blank($table->getEmptyStateDescription()) && $table->getEmptyStateActions() === []) {
-                $warn('the empty list gives no next step; add `emptyStateDescription()` and `emptyStateActions()`, as `tables-list-table` does (Carbon empty states).');
+                $warn('tables.empty-next-step', 'the empty list gives no next step; add `emptyStateDescription()` and `emptyStateActions()`, as `tables-list-table` does (Carbon empty states).');
             }
 
             $emptyActions = collect($table->getEmptyStateActions())->filter(fn ($action): bool => $action instanceof Action && $action->isVisible());
 
             if ($emptyActions->count() > 1) {
-                $warn("the empty list offers {$emptyActions->count()} actions; offer the most important one (Carbon empty states: \"Don't cover multiple options in one empty state\").");
+                $warn('tables.empty-one-action', "the empty list offers {$emptyActions->count()} actions; offer the most important one (Carbon empty states: \"Don't cover multiple options in one empty state\").");
             }
 
             $tablePrimary = collect($table->getHeaderActions())->contains(fn ($action): bool => $action instanceof Action && $action->isVisible() && ($action->getColor() ?? 'primary') === 'primary');
 
             if (($primary->isNotEmpty() || $tablePrimary) && $emptyActions->contains(fn (Action $action): bool => ($action->getColor() ?? 'primary') === 'primary' && ! $action->isOutlined())) {
-                $warn("the empty list's button is a second primary beside the page's own; make it `->outlined()` (Carbon empty states: \"using a tertiary button for the call to action\").");
+                $warn('tables.empty-outlined', "the empty list's button is a second primary beside the page's own; make it `->outlined()` (Carbon empty states: \"using a tertiary button for the call to action\").");
             }
 
             $tableActions = static::flatten([...$table->getHeaderActions(), ...$table->getRecordActions(), ...$table->getToolbarActions()]);
@@ -632,13 +641,13 @@ class AuditPages extends Tool
 
         // A row action here has no record, so a label or tooltip that types one, `fn (Account $record) => …`, is left unchecked.
         foreach (collect([...$headerActions, ...$tableActions])->filter(fn (Action $action): bool => rescue(fn (): bool => $action->isIconButton() && blank($action->getTooltip()), false, report: false))->unique(fn (Action $action): string => $action->getName()) as $action) {
-            $warn("the icon-only action `{$action->getName()}` has no tooltip; add `->tooltip('".rescue(fn (): string => (string) $action->getLabel(), '…', report: false)."')`, shown on hover and focus (Carbon tooltip: \"Every icon-only button needs a tooltip\").");
+            $warn('actions.icon-tooltip', "the icon-only action `{$action->getName()}` has no tooltip; add `->tooltip('".rescue(fn (): string => (string) $action->getLabel(), '…', report: false)."')`, shown on hover and focus (Carbon tooltip: \"Every icon-only button needs a tooltip\").");
         }
 
         // A shortcut of one character key fires while the user types or dictates (WCAG 2.1.4); Filament's turn on Ctrl, ⌘ or Alt.
         foreach (collect([...$headerActions, ...$tableActions])->unique(fn (Action $action): string => $action->getName()) as $action) {
             foreach (array_filter($action->getKeyBindings() ?? [], fn (string $binding): bool => ! preg_match('/\b(mod|ctrl|command|meta|alt|option)\+/', $binding)) as $binding) {
-                $warn("the action `{$action->getName()}` runs on the key `{$binding}` alone, which fires while the user types or dictates; add a modifier, such as `mod+{$binding}` (WCAG 2.1.4).");
+                $warn('actions.shortcut-modifier', "the action `{$action->getName()}` runs on the key `{$binding}` alone, which fires while the user types or dictates; add a modifier, such as `mod+{$binding}` (WCAG 2.1.4).");
             }
         }
 
@@ -648,11 +657,11 @@ class AuditPages extends Tool
             }
 
             if (! $action->isConfirmationRequired()) {
-                $warn("`{$action->getName()}` deletes without asking; add `->requiresConfirmation()` (WCAG 3.3.4).");
+                $warn('actions.delete-confirm', "`{$action->getName()}` deletes without asking; add `->requiresConfirmation()` (WCAG 3.3.4).");
             }
 
             if (in_array($action, $headerActions, true) && $action->isButton() && ! $action->isOutlined()) {
-                $warn("`{$action->getName()}` is a solid danger button beside other actions; make it `->outlined()` and keep solid red for the confirm button, as `actions-delete` does (Carbon button).");
+                $warn('actions.delete-outlined', "`{$action->getName()}` is a solid danger button beside other actions; make it `->outlined()` and keep solid red for the confirm button, as `actions-delete` does (Carbon button).");
             }
         }
 
@@ -663,36 +672,36 @@ class AuditPages extends Tool
             $verbs = rescue(fn (): array => $action->shouldOpenModal() ? [$label, trim($action->getModalSubmitActionLabel())] : [$label], [$label], report: false);
 
             if ($vague = collect($verbs)->first(fn (string $verb): bool => (bool) preg_match('/^(ok|okay|yes|done|submit|confirm)$/i', $verb))) {
-                $warn("`{$action->getName()}` has a button labelled \"{$vague}\"; say what it does with a verb, such as \"Approve order\" (Carbon modal and forms).");
+                $warn('actions.vague-label', "`{$action->getName()}` has a button labelled \"{$vague}\"; say what it does with a verb, such as \"Approve order\" (Carbon modal and forms).");
             }
 
             // Against the label itself, as a page title is: Filament builds "Create Sales Invoice" from a capitalised model label.
             // A label carrying data, such as "Lock December 2025" or "Open #5", names something and is left alone.
             if (static::isTitleCase($label, $label) && ! preg_match('/\d/', $label)) {
-                $warn("the action \"{$label}\" is in Title Case; write it in sentence case (Carbon button).");
+                $warn('actions.title-case', "the action \"{$label}\" is in Title Case; write it in sentence case (Carbon button).");
             }
 
             $deletes = $action instanceof DeleteAction || $action instanceof ForceDeleteAction || $action instanceof DeleteBulkAction || $action instanceof ForceDeleteBulkAction;
             $removes = $action instanceof DetachAction || $action instanceof DetachBulkAction || $action instanceof DissociateAction || $action instanceof DissociateBulkAction;
 
             if (($deletes && ! preg_match('/\bdelete\b/i', $label)) || ($removes && preg_match('/\bdelete\b/i', $label))) {
-                $warn("`{$action->getName()}` is labelled \"{$label}\", but "
+                $warn('actions.delete-or-remove', "`{$action->getName()}` is labelled \"{$label}\", but "
                     .($deletes ? 'it destroys the record, which Carbon calls Delete; keep "Delete"' : 'the record stays, which Carbon calls Remove; keep "Remove"')
                     .' (Carbon common actions).');
             }
 
             if (rescue(fn (): bool => $action->isConfirmationRequired() && $action->getModalDescription() === __('filament-actions::modal.confirmation'), false, report: false)) {
-                $warn("`{$action->getName()}` asks \"".__('filament-actions::modal.confirmation').'"; say the consequence in `modalDescription()`, such as "Its 3 payments are deleted too. This cannot be undone.", as `actions-delete` does, or drop the confirmation if the action is routine (Carbon dialogs).');
+                $warn('actions.confirm-consequence', "`{$action->getName()}` asks \"".__('filament-actions::modal.confirmation').'"; say the consequence in `modalDescription()`, such as "Its 3 payments are deleted too. This cannot be undone.", as `actions-delete` does, or drop the confirmation if the action is routine (Carbon dialogs).');
             }
         }
 
         if ($page instanceof ViewRecord) {
             if ($page->getSchema('infolist')?->getComponents() === []) {
-                $warn('it shows the record as a disabled form, which screen readers skip and which needn\'t meet contrast; give the resource an `infolist()` of read-only entries, as `records-view-page` does (Carbon read-only states, WCAG 1.4.3).');
+                $warn('records.disabled-form', 'it shows the record as a disabled form, which screen readers skip and which needn\'t meet contrast; give the resource an `infolist()` of read-only entries, as `records-view-page` does (Carbon read-only states, WCAG 1.4.3).');
             }
 
             if (count($page->getCachedRelationManagers()) > 1 || $page->hasCombinedRelationManagerTabsWithContent()) {
-                $warn('its related lists are tabs; stack each relation manager in the main column with `Livewire::make()`, as `records-view-page` does, unless they are rarely used (Carbon tabs, NN/g tabs 2024).');
+                $warn('records.related-tabs', 'its related lists are tabs; stack each relation manager in the main column with `Livewire::make()`, as `records-view-page` does, unless they are rarely used (Carbon tabs, NN/g tabs 2024).');
             }
         }
 
@@ -705,7 +714,7 @@ class AuditPages extends Tool
             && collect($fields)->every(fn ($field): bool => (bool) rescue(fn (): bool => $field->isLive(), false, report: false));
 
         if ($fields !== [] && ! $filterBar && max(array_filter(rescue(fn (): array => $page->form->getColumns(), [], report: false), 'is_int') ?: [1]) > 1) {
-            $warn('its form lays fields out in several columns; keep one column and put only fields that belong together side by side, in a `Fieldset` or `Grid`, as `forms-date.range` does (Carbon forms: "Carbon generally recommends single-column forms").');
+            $warn('forms.one-column', 'its form lays fields out in several columns; keep one column and put only fields that belong together side by side, in a `Fieldset` or `Grid`, as `forms-date.range` does (Carbon forms: "Carbon generally recommends single-column forms").');
         }
 
         // Read-only entries may sit beside their labels (a document's totals, forms-document-totals); a field the user fills in never does.
@@ -713,87 +722,87 @@ class AuditPages extends Tool
         $inline = collect($fields)->filter(fn ($field): bool => (bool) rescue(fn (): ?bool => $field->hasInlineLabel(), false, report: false) && ! static::inSectionHeading($field));
 
         if ($inline->isNotEmpty()) {
-            $warn('its fields have their labels beside them (`'.$inline->map->getName()->take(3)->implode('`, `').'`'.($inline->count() > 3 ? ', …' : '').'); put labels above their fields, without `inlineLabel()` (Carbon forms: "Top-aligned labels are Carbon\'s default").');
+            $warn('forms.inline-labels', 'its fields have their labels beside them (`'.$inline->map->getName()->take(3)->implode('`, `').'`'.($inline->count() > 3 ? ', …' : '').'); put labels above their fields, without `inlineLabel()` (Carbon forms: "Top-aligned labels are Carbon\'s default").');
         }
 
         foreach ($fields as $field) {
             $name = $field->getName();
 
             if ($field instanceof TextInput && filled($field->getPlaceholder())) {
-                $warn("the field `{$name}` uses placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).");
+                $warn('forms.placeholder', "the field `{$name}` uses placeholder(); put the example in helperText(), worded \"For example, …\" (USWDS, GOV.UK).");
             }
 
             if ($field instanceof TextInput && preg_match('/(^|_)e?mail(_|$)/i', $name) && ! $field->isEmail()) {
-                $warn("the field `{$name}` holds an email address but isn't `email()`; add it, with `maxLength(254)` and spellcheck off, as `forms-contact-details` does (GOV.UK email addresses).");
+                $warn('forms.email', "the field `{$name}` holds an email address but isn't `email()`; add it, with `maxLength(254)` and spellcheck off, as `forms-contact-details` does (GOV.UK email addresses).");
             }
 
             if ($field instanceof TextInput && preg_match('/(^|_)(phone|mobile|telephone|landline)(_|$)/i', $name) && ! $field->isTel()) {
-                $warn("the field `{$name}` holds a phone number but isn't `tel()`; add it, and store the number as +63, as `forms-contact-details.phone` does (GOV.UK telephone numbers; business standards).");
+                $warn('forms.phone', "the field `{$name}` holds a phone number but isn't `tel()`; add it, and store the number as +63, as `forms-contact-details.phone` does (GOV.UK telephone numbers; business standards).");
             }
 
             if (method_exists($field, 'isReadOnly') && $field->isReadOnly() && static::isSaved($field)) {
-                $warn("the read-only field `{$name}` is still saved, and its value can be changed in the browser; put it in a group with `->saved(false)`, as `records-locked` does, and set the value on the server (Filament docs).");
+                $warn('forms.read-only-saved', "the read-only field `{$name}` is still saved, and its value can be changed in the browser; put it in a group with `->saved(false)`, as `records-locked` does, and set the value on the server (Filament docs).");
             }
 
             $label = trim((string) $field->getLabel());
 
             if (static::isTitleCase($label, $name)) {
-                $warn("the field label \"{$label}\" is in Title Case; write it in sentence case (Carbon forms).");
+                $warn('forms.label-title-case', "the field label \"{$label}\" is in Title Case; write it in sentence case (Carbon forms).");
             }
 
             if (str_ends_with($label, ':')) {
-                $warn("the field label \"{$label}\" ends with a colon; drop it (Carbon forms).");
+                $warn('forms.label-colon', "the field label \"{$label}\" ends with a colon; drop it (Carbon forms).");
             }
 
             if (filled($field->getHintIconTooltip())) {
-                $warn("the field `{$name}` explains itself in a hint icon's tooltip, which shows on mouse hover only; put the text in `helperText()` (WCAG 2.1.1; Carbon form: the info icon \"is a button, which is in the tab order\").");
+                $warn('forms.hint-tooltip', "the field `{$name}` explains itself in a hint icon's tooltip, which shows on mouse hover only; put the text in `helperText()` (WCAG 2.1.1; Carbon form: the info icon \"is a button, which is in the tab order\").");
             }
 
             if (! $filterBar && ! $field->isRequired() && ! $field instanceof Checkbox && ! $field instanceof Toggle && ! $field instanceof Hidden && ! (method_exists($field, 'isReadOnly') && $field->isReadOnly()) && ! $field->isDisabled() && filled($label) && ! str_contains($label, '(optional)')) {
-                $warn("the optional field \"{$label}\" doesn't say so; label it \"{$label} (optional)\", and leave required fields unmarked (Carbon form: \"The pattern used should be consistent throughout your product\").");
+                $warn('forms.optional-label', "the optional field \"{$label}\" doesn't say so; label it \"{$label} (optional)\", and leave required fields unmarked (Carbon form: \"The pattern used should be consistent throughout your product\").");
             }
 
             if ($field instanceof Radio && ! $field->isRequired() && ! collect($field->getOptions())->keys()->merge(array_values($field->getOptions()))->contains(fn ($option): bool => strcasecmp((string) $option, 'none') === 0)) {
-                $warn("the radio group `{$name}` is optional but can't be cleared once picked; make it `required()` or add a \"None\" option (Carbon radio button and forms).");
+                $warn('forms.radio-clearable', "the radio group `{$name}` is optional but can't be cleared once picked; make it `required()` or add a \"None\" option (Carbon radio button and forms).");
             }
 
             // A radio group goes side by side with inline(), a checkbox list with columns(); two short radios may (GOV.UK inline radios).
             if (($field instanceof Radio && $field->isInline() && ! static::twoShortOptions($field)) || ($field instanceof CheckboxList && max(array_filter(Arr::wrap($field->getColumns()), 'is_int') ?: [1]) > 1)) {
-                $warn("the options of `{$name}` sit side by side; stack them, without `inline()` or `columns()`; only two short options may sit side by side (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\"; GOV.UK radios: inline \"only\" for two short options).");
+                $warn('forms.inline-options', "the options of `{$name}` sit side by side; stack them, without `inline()` or `columns()`; only two short options may sit side by side (Carbon checkbox and forms: \"arrange the checkbox and radio button groups vertically\"; GOV.UK radios: inline \"only\" for two short options).");
             }
 
             // Fixed options only: a relationship's count is how many records exist so far, and a record list grows (forms-record-picker).
             // Options from a closure are taken to be such a list too (a query of accounts), never a fixed set written out.
             // A select in a repeater's row stays one, since radios don't fit a table cell (forms-line-items).
             if (! $filterBar && $field instanceof Select && ! $field->hasRelationship() && ! (fn (): bool => $this->options instanceof Closure)->call($field) && ! static::inRepeater($field) && filled($options = rescue(fn (): array => $field->getOptions(), [], report: false)) && count($options) <= 5) {
-                $warn($field->isMultiple()
+                $warn('forms.few-options', $field->isMultiple()
                     ? "the select `{$name}` offers ".count($options).' options to pick several from; show them as a `CheckboxList`, as `forms-choice` does (Carbon forms: a select list for more than five options).'
                     : "the select `{$name}` offers ".count($options).' options; show them as stacked radios, as `forms-choice` does (Carbon forms: "When you have more than five options to present to the user, use a select list").');
             }
 
             // A repeater directly under a section heading that names it, named by the same words for screen readers (WAI-ARIA APG).
             if ($field->isLabelHidden() && ! static::namedBySectionHeading($field)) {
-                $warn("the field `{$name}` hides its label; keep it visible, above the field (Carbon forms).");
+                $warn('forms.hidden-label', "the field `{$name}` hides its label; keep it visible, above the field (Carbon forms).");
             }
 
             if ($field instanceof RichEditor || $field instanceof MarkdownEditor) {
-                $warn("the field `{$name}` is a rich-text or Markdown editor, whose toolbar the keyboard can't reach in Filament 5 (its buttons are `tabindex=\"-1\"`); use a `Textarea` until Filament fixes it (WCAG 2.1.1).");
+                $warn('forms.rich-editor', "the field `{$name}` is a rich-text or Markdown editor, whose toolbar the keyboard can't reach in Filament 5 (its buttons are `tabindex=\"-1\"`); use a `Textarea` until Filament fixes it (WCAG 2.1.1).");
             }
 
             if ($field instanceof Toggle) {
-                $warn("the field `{$name}` is a toggle in a form that is saved; use a `Checkbox`, as `forms-yes-or-no` does (Carbon toggle and checkbox).");
+                $warn('forms.toggle', "the field `{$name}` is a toggle in a form that is saved; use a `Checkbox`, as `forms-yes-or-no` does (Carbon toggle and checkbox).");
             }
 
             if ($field instanceof DateTimePicker && ! $field->isNative()) {
-                $warn("the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (Carbon and USWDS date pickers).");
+                $warn('forms.native-date', "the date field `{$name}` uses `native(false)`, which cannot be typed into; use the native picker, as `forms-date` does (Carbon and USWDS date pickers).");
             }
 
             if ($field instanceof Select && $field->hasRelationship() && ! $field->isSearchable()) {
-                $warn("the select `{$name}` lists other records but can't be searched, so it loads all of them; make it `searchable()` by code and name, as `forms-record-picker` does (Carbon dropdown: a combo box when the list may be very long or not predefined).");
+                $warn('forms.select-searchable', "the select `{$name}` lists other records but can't be searched, so it loads all of them; make it `searchable()` by code and name, as `forms-record-picker` does (Carbon dropdown: a combo box when the list may be very long or not predefined).");
             }
 
             if ($field instanceof Repeater && $field->isReorderableWithDragAndDrop() && ! $field->isReorderableWithButtons()) {
-                $warn("`{$name}` reorders only by dragging; add `->reorderableWithButtons()`, or `->reorderable(false)` if the order doesn't matter, as `forms-line-items` does (WCAG 2.5.7).");
+                $warn('forms.drag-reorder', "`{$name}` reorders only by dragging; add `->reorderableWithButtons()`, or `->reorderable(false)` if the order doesn't matter, as `forms-line-items` does (WCAG 2.5.7).");
             }
 
             // Wide tables show the column header in place of each field's label, so the two must read the same (WCAG 2.5.3).
@@ -805,7 +814,7 @@ class AuditPages extends Tool
                     $header = isset($columns[$index]) ? $columns[$index]->getLabel() : null;
 
                     if ($header !== $cell->getLabel()) {
-                        $warn($header === null
+                        $warn('forms.line-item-headers', $header === null
                             ? "the line-item field `{$cell->getName()}` has no column in `{$name}`, so Filament doesn't show it; add a `TableColumn` for it, as `forms-line-items` does."
                             : "the column \"{$header}\" in `{$name}` heads the field labelled \"{$cell->getLabel()}\"; make the header the field's label, word for word, as `forms-line-items` does (WCAG 2.5.3).");
                     }
@@ -816,11 +825,11 @@ class AuditPages extends Tool
             if ($field instanceof FileUpload && ! is_a($field, 'Filament\\Forms\\Components\\SpatieMediaLibraryFileUpload') && ! $field->isAvatar()
                 && ! (filled($types = $field->getAcceptedFileTypes()) && collect($types)->every(fn (string $type): bool => str_starts_with($type, 'image/')))
                 && blank($field->getFileNamesStatePath(isAbsolute: false))) {
-                $warn("the upload `{$name}` shows a file by the random name it is stored under; keep the name it was uploaded with, `storeFileNamesIn()`, as `forms-file-upload` does (Carbon file uploader).");
+                $warn('forms.upload-file-name', "the upload `{$name}` shows a file by the random name it is stored under; keep the name it was uploaded with, `storeFileNamesIn()`, as `forms-file-upload` does (Carbon file uploader).");
             }
 
             if ($field instanceof BaseFileUpload && (blank($field->getAcceptedFileTypes()) || $field->getMaxSize() === null)) {
-                $warn("the upload `{$name}` does not state its accepted types and largest size; set both and say them in `helperText()`, as `forms-file-upload` does (USWDS file input).");
+                $warn('forms.upload-limits', "the upload `{$name}` does not state its accepted types and largest size; set both and say them in `helperText()`, as `forms-file-upload` does (USWDS file input).");
             }
         }
 
@@ -828,7 +837,7 @@ class AuditPages extends Tool
 
         foreach ($layouts as $layout) {
             if ($layout instanceof Section && $layout->isCollapsible() && ! $layout->isCollapsed()) {
-                $warn("the section \"{$layout->getHeading()}\" can collapse but starts open; start it collapsed with `->collapsed()`, or don't make it collapsible (Carbon accordion: \"begin by default in the collapsed state\").");
+                $warn('layout.collapsible-open', "the section \"{$layout->getHeading()}\" can collapse but starts open; start it collapsed with `->collapsed()`, or don't make it collapsible (Carbon accordion: \"begin by default in the collapsed state\").");
             }
 
             $heading = match (true) {
@@ -838,12 +847,12 @@ class AuditPages extends Tool
             };
 
             if (filled($heading) && static::isTitleCase($heading = trim((string) $heading), $heading)) {
-                $warn("the heading \"{$heading}\" is in Title Case; write it in sentence case (Carbon content).");
+                $warn('layout.heading-title-case', "the heading \"{$heading}\" is in Title Case; write it in sentence case (Carbon content).");
             }
         }
 
         foreach (static::errorMessages($page) as $message) {
-            $warn("the error \"{$message}\" doesn't say what to do; word it like \"Enter name\" or \"Select status\" (GOV.UK error message, NN/g 2023).");
+            $warn('forms.error-wording', "the error \"{$message}\" doesn't say what to do; word it like \"Enter name\" or \"Select status\" (GOV.UK error message, NN/g 2023).");
         }
 
         return $warnings;
@@ -859,11 +868,11 @@ class AuditPages extends Tool
         $warnings = [];
 
         if ($panel->isSidebarCollapsibleOnDesktop()) {
-            $warnings[] = '- `navigation`: the sidebar shrinks to icons only, so the menu loses its words; use `->sidebarFullyCollapsibleOnDesktop()`, which hides it whole (NN/g menu design: icons support text labels, never replace them).';
+            $warnings[] = '- `navigation` `navigation.icons-only`: the sidebar shrinks to icons only, so the menu loses its words; use `->sidebarFullyCollapsibleOnDesktop()`, which hides it whole (NN/g menu design: icons support text labels, never replace them).';
         }
 
         if (! $panel->hasDarkMode()) {
-            $warnings[] = '- `navigation`: dark mode is off; keep Filament\'s light and dark modes and its theme switcher (Carbon color: switching modes "is highly encouraged").';
+            $warnings[] = '- `navigation` `navigation.dark-mode`: dark mode is off; keep Filament\'s light and dark modes and its theme switcher (Carbon color: switching modes "is highly encouraged").';
         }
 
         foreach ($panel->getNavigation() as $group) {
@@ -871,24 +880,24 @@ class AuditPages extends Tool
                 $name = trim((string) $item->getLabel());
 
                 if (preg_match('/^(Create|New|Add|Edit|Manage|View|Import|Export)\b/', $name)) {
-                    $warnings[] = "- `navigation`: \"{$name}\" names an action; name the place, such as \"Suppliers\" (Carbon UI shell header: \"Avoid using verbs as header links\").";
+                    $warnings[] = "- `navigation` `navigation.verb`: \"{$name}\" names an action; name the place, such as \"Suppliers\" (Carbon UI shell header: \"Avoid using verbs as header links\").";
                 }
 
                 if (filled($item->getBadge())) {
-                    $warnings[] = "- `navigation`: \"{$name}\" shows a count; drop `getNavigationBadge()`, since a number badge is only for new items that clear once seen (Carbon status indicators).";
+                    $warnings[] = "- `navigation` `navigation.count`: \"{$name}\" shows a count; drop `getNavigationBadge()`, since a number badge is only for new items that clear once seen (Carbon status indicators).";
                 }
             }
 
             $label = trim((string) $group->getLabel());
 
             if (static::isTitleCase($label, $label)) {
-                $warnings[] = "- `navigation`: the group \"{$label}\" is in Title Case; write it in sentence case (Carbon content).";
+                $warnings[] = "- `navigation` `navigation.group-title-case`: the group \"{$label}\" is in Title Case; write it in sentence case (Carbon content).";
             }
 
             // Inside a group, an item's children are a third level; an ungrouped item and its children are only two.
             foreach (filled($label) ? $group->getItems() : [] as $item) {
                 if (filled($item->getChildItems())) {
-                    $warnings[] = "- `navigation`: \"{$item->getLabel()}\" in \"{$label}\" has items under it, a third level; make them items of the group, or the page's own sub-navigation (Carbon UI shell left panel: no three tiers; NN/g menu design).";
+                    $warnings[] = "- `navigation` `navigation.third-level`: \"{$item->getLabel()}\" in \"{$label}\" has items under it, a third level; make them items of the group, or the page's own sub-navigation (Carbon UI shell left panel: no three tiers; NN/g menu design).";
                 }
             }
         }

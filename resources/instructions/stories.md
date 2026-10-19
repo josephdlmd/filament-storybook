@@ -43,9 +43,9 @@ A new story is one more screen in the same app, so it agrees with the patterns a
 - A heading comes from its component (`Section::make('Details')`), never from styled text.
 
 ## House rules
-The full rules, each with its source, follow these instructions. `storybook-test` and `storybook-audit` warn when one is broken. A rule is kept only when current, maintained guidance supports it.
+The full rules, each with its source, follow these instructions. `storybook-test` and `storybook-audit` fail when one is broken. A rule is kept only when current, maintained guidance supports it.
 
 ## Verify
-- Run `storybook-test` with the pattern's id. Fix every failure, warning and accessibility issue, then run it again. Repeat until it reports none.
+- Run `storybook-test` with the pattern's id. Fix every failure and accessibility issue, then run it again. Repeat until it reports none.
 - `storybook-test` checks components, not how they sit together. If you can view pages, open the preview link from `storybook-show` and look at every part of the screen, not only your component: each strip of a table (filters, toolbar, header, rows, pagination), the gaps between fields, and anything that sits alone in a row, overlaps or touches a border. Open every modal and slide-over the story has.
 - Then give the user the preview link.

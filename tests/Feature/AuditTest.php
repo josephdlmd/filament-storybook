@@ -13,60 +13,60 @@ it('audits the real resource screens against the house rules', function (): void
     $report = (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
 
     expect($report)
-        ->toStartWith('# 2 pages rendered, 0 failing, 54 warnings')
-        ->toContain('- `CreateGadget`: the upload `manual` shows a file by the random name it is stored under')
-        ->toContain('- `CreateGadget`: its fields have their labels beside them (`released_on`); put labels above their fields')
-        ->toContain('- `CreateGadget`: the select `size` offers 3 options; show them as stacked radios')
+        ->toStartWith('# 2 pages rendered, 54 failing')
+        ->toContain('- `CreateGadget` `forms.upload-file-name`: the upload `manual` shows a file by the random name it is stored under')
+        ->toContain('- `CreateGadget` `forms.inline-labels`: its fields have their labels beside them (`released_on`); put labels above their fields')
+        ->toContain('- `CreateGadget` `forms.few-options`: the select `size` offers 3 options; show them as stacked radios')
         ->not->toContain('the select `warehouse_id`')
-        ->toContain('- `CreateGadget`: the select `features` offers 2 options to pick several from; show them as a `CheckboxList`')
-        ->toContain('- `ListGadgets`: the action "Print Gadget Labels" is in Title Case')
+        ->toContain('- `CreateGadget` `forms.few-options`: the select `features` offers 2 options to pick several from; show them as a `CheckboxList`')
+        ->toContain('- `ListGadgets` `actions.title-case`: the action "Print Gadget Labels" is in Title Case')
         ->not->toContain('"Report For May 2026"')
-        ->toContain('- `ListGadgets`: the action `report` runs on the key `r` alone')
-        ->toContain('- `CreateGadget`: its form lays fields out in several columns')
+        ->toContain('- `ListGadgets` `actions.shortcut-modifier`: the action `report` runs on the key `r` alone')
+        ->toContain('- `CreateGadget` `forms.one-column`: its form lays fields out in several columns')
         ->toContain('Signed in as tester@example.com.')
-        ->toContain('- `ListGadgets`: the money column `price` must be right-aligned')
-        ->toContain('- `ListGadgets`: the column `price` has a tooltip, which shows on mouse hover only')
-        ->toContain('- `ListGadgets`: 4 buttons in the header; show at most three')
-        ->toContain('- `ListGadgets`: 7 actions above the table; keep five at most')
-        ->toContain('- `ListGadgets`: a row menu holds only 2 action(s); show them inline')
-        ->toContain('- `CreateGadget`: the section "Stock Keeping" can collapse but starts open')
-        ->toContain('- `ListGadgets`: the icon-only action `print` has no tooltip')
-        ->toContain('- `CreateGadget`: the field `serial` explains itself in a hint icon\'s tooltip')
-        ->toContain('- `CreateGadget`: the optional field "Owner" doesn\'t say so')
-        ->toContain('- `CreateGadget`: the radio group `colour` is optional but can\'t be cleared once picked')
-        ->toContain('- `CreateGadget`: the options of `colour` sit side by side')
+        ->toContain('- `ListGadgets` `tables.money-align-end`: the money column `price` must be right-aligned')
+        ->toContain('- `ListGadgets` `tables.column-tooltip`: the column `price` has a tooltip, which shows on mouse hover only')
+        ->toContain('- `ListGadgets` `header.three-buttons`: 4 buttons in the header; show at most three')
+        ->toContain('- `ListGadgets` `tables.toolbar-five-actions`: 7 actions above the table; keep five at most')
+        ->toContain('- `ListGadgets` `tables.row-menu-few`: a row menu holds only 2 action(s); show them inline')
+        ->toContain('- `CreateGadget` `layout.collapsible-open`: the section "Stock Keeping" can collapse but starts open')
+        ->toContain('- `ListGadgets` `actions.icon-tooltip`: the icon-only action `print` has no tooltip')
+        ->toContain('- `CreateGadget` `forms.hint-tooltip`: the field `serial` explains itself in a hint icon\'s tooltip')
+        ->toContain('- `CreateGadget` `forms.optional-label`: the optional field "Owner" doesn\'t say so')
+        ->toContain('- `CreateGadget` `forms.radio-clearable`: the radio group `colour` is optional but can\'t be cleared once picked')
+        ->toContain('- `CreateGadget` `forms.inline-options`: the options of `colour` sit side by side')
         ->not->toContain('the options of `finish`')
         ->not->toContain('`fitting_count`')
         ->not->toContain('the field `fittings` hides its label')
-        ->toContain('- `CreateGadget`: the options of `accessories` sit side by side')
-        ->toContain('- `CreateGadget`: the field `description` is a rich-text or Markdown editor')
-        ->toContain('- `ListGadgets`: 3 row actions are inline; keep at most two')
-        ->toContain('- `ListGadgets`: bulk actions are in a "Bulk actions" menu')
-        ->toContain('- `ListGadgets`: its columns reorder only by dragging')
-        ->toContain('- `ListGadgets`: several filters are hidden in a dropdown')
-        ->toContain('- `ListGadgets`: the empty list gives no next step')
-        ->toContain('- `CreateGadget`: the field `code` uses placeholder()')
-        ->toContain('- `CreateGadget`: the field `support_email` holds an email address but isn\'t `email()`')
-        ->toContain('- `CreateGadget`: the field `support_phone` holds a phone number but isn\'t `tel()`')
-        ->toContain('- `CreateGadget`: the field `is_active` is a toggle in a form that is saved')
-        ->toContain('- `CreateGadget`: the date field `released_on` uses `native(false)`')
-        ->toContain('- `CreateGadget`: the upload `manual` does not state its accepted types and largest size')
-        ->toContain('- `CreateGadget`: the error "Please enter the serial" doesn\'t say what to do')
-        ->toContain('- `CreateGadget`: the column "Qty" in `parts` heads the field labelled "Quantity"')
-        ->toContain('- `CreateGadget`: the field `quantity` hides its label')
-        ->toContain('- `CreateGadget`: the line-item field `note` has no column in `parts`')
-        ->toContain('- `CreateGadget`: `parts` reorders only by dragging')
-        ->toContain('- `CreateGadget`: the read-only field `sku` is still saved')
-        ->toContain('- `CreateGadget`: the select `owner_id` lists other records but can\'t be searched')
-        ->toContain('- `ListGadgets`: `ship` has a button labelled "Submit"')
-        ->toContain('- `ListGadgets`: the action "Return Gadget" is in Title Case')
-        ->toContain('- `ListGadgets`: the column "Created At" is in Title Case')
-        ->toContain('- `ListGadgets`: `archive` asks "Are you sure you would like to do this?"')
-        ->toContain('- `ListGadgets`: `delete` is labelled "Remove selected", but it destroys the record')
-        ->toContain('- `CreateGadget`: the field label "Released On" is in Title Case')
-        ->toContain('- `CreateGadget`: the field label "Code:" ends with a colon')
-        ->toContain('- `CreateGadget`: the heading "Stock Keeping" is in Title Case')
-        ->toContain('- `CreateGadget`: "Create Gadget" (the page title, navigation or breadcrumb) is in Title Case; add `use \\Josephdlmd\\FilamentStorybook\\Concerns\\HasSentenceCaseLabels;` inside `GadgetResource`')
+        ->toContain('- `CreateGadget` `forms.inline-options`: the options of `accessories` sit side by side')
+        ->toContain('- `CreateGadget` `forms.rich-editor`: the field `description` is a rich-text or Markdown editor')
+        ->toContain('- `ListGadgets` `tables.row-actions-inline`: 3 row actions are inline; keep at most two')
+        ->toContain('- `ListGadgets` `tables.bulk-menu`: bulk actions are in a "Bulk actions" menu')
+        ->toContain('- `ListGadgets` `tables.drag-reorder-columns`: its columns reorder only by dragging')
+        ->toContain('- `ListGadgets` `tables.filters-open`: several filters are hidden in a dropdown')
+        ->toContain('- `ListGadgets` `tables.empty-next-step`: the empty list gives no next step')
+        ->toContain('- `CreateGadget` `forms.placeholder`: the field `code` uses placeholder()')
+        ->toContain('- `CreateGadget` `forms.email`: the field `support_email` holds an email address but isn\'t `email()`')
+        ->toContain('- `CreateGadget` `forms.phone`: the field `support_phone` holds a phone number but isn\'t `tel()`')
+        ->toContain('- `CreateGadget` `forms.toggle`: the field `is_active` is a toggle in a form that is saved')
+        ->toContain('- `CreateGadget` `forms.native-date`: the date field `released_on` uses `native(false)`')
+        ->toContain('- `CreateGadget` `forms.upload-limits`: the upload `manual` does not state its accepted types and largest size')
+        ->toContain('- `CreateGadget` `forms.error-wording`: the error "Please enter the serial" doesn\'t say what to do')
+        ->toContain('- `CreateGadget` `forms.line-item-headers`: the column "Qty" in `parts` heads the field labelled "Quantity"')
+        ->toContain('- `CreateGadget` `forms.hidden-label`: the field `quantity` hides its label')
+        ->toContain('- `CreateGadget` `forms.line-item-headers`: the line-item field `note` has no column in `parts`')
+        ->toContain('- `CreateGadget` `forms.drag-reorder`: `parts` reorders only by dragging')
+        ->toContain('- `CreateGadget` `forms.read-only-saved`: the read-only field `sku` is still saved')
+        ->toContain('- `CreateGadget` `forms.select-searchable`: the select `owner_id` lists other records but can\'t be searched')
+        ->toContain('- `ListGadgets` `actions.vague-label`: `ship` has a button labelled "Submit"')
+        ->toContain('- `ListGadgets` `actions.title-case`: the action "Return Gadget" is in Title Case')
+        ->toContain('- `ListGadgets` `tables.column-title-case`: the column "Created At" is in Title Case')
+        ->toContain('- `ListGadgets` `actions.confirm-consequence`: `archive` asks "Are you sure you would like to do this?"')
+        ->toContain('- `ListGadgets` `actions.delete-or-remove`: `delete` is labelled "Remove selected", but it destroys the record')
+        ->toContain('- `CreateGadget` `forms.label-title-case`: the field label "Released On" is in Title Case')
+        ->toContain('- `CreateGadget` `forms.label-colon`: the field label "Code:" ends with a colon')
+        ->toContain('- `CreateGadget` `layout.heading-title-case`: the heading "Stock Keeping" is in Title Case')
+        ->toContain('- `CreateGadget` `titles.title-case`: "Create Gadget" (the page title, navigation or breadcrumb) is in Title Case; add `use \\Josephdlmd\\FilamentStorybook\\Concerns\\HasSentenceCaseLabels;` inside `GadgetResource`')
         ->not->toContain('"Gadgets"')
         // Sentence case, names, acronyms and Filament's own labels raise nothing.
         ->not->toContain('"SKU"')
@@ -84,21 +84,21 @@ it('audits the real resource screens against the house rules', function (): void
 
 it('audits the dashboard\'s widgets on a full audit', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
-        ->toContain('- `GadgetStats`: it reloads itself every 5s, and the user can\'t stop it')
-        ->toContain('- `GadgetSalesChart`: its legend hides a series on a mouse click')
-        ->toContain('- `GadgetSalesChart`: its 2 series share one colour')
-        ->toContain('- `GadgetStockChart`: it has one series but shows a legend')
-        ->not->toContain('- `GadgetStockChart`: its legend hides')
+        ->toContain('- `GadgetStats` `widgets.polling`: it reloads itself every 5s, and the user can\'t stop it')
+        ->toContain('- `GadgetSalesChart` `widgets.legend-click`: its legend hides a series on a mouse click')
+        ->toContain('- `GadgetSalesChart` `widgets.series-colours`: its 2 series share one colour')
+        ->toContain('- `GadgetStockChart` `widgets.single-legend`: it has one series but shows a legend')
+        ->not->toContain('- `GadgetStockChart` `widgets.legend-click`: its legend hides')
         ->toContain('- `OrdersPerMonthChart`')
-        ->not->toContain('- `OrdersPerMonthChart`:');
+        ->not->toContain('- `OrdersPerMonthChart` `');
 });
 
 it('audits the panel it is asked for, and warns when that panel has no StorybookPlugin', function (): void {
     expect((string) (new AuditPages)->handle(new Request(['panel' => 'shop']))->content())
-        ->toContain('- `panel`: the shop panel has no `StorybookPlugin`')
+        ->toContain('- `panel` `panel.plugin`: the shop panel has no `StorybookPlugin`')
         ->not->toContain('GadgetResource');
 
-    expect((string) (new AuditPages)->handle(new Request)->content())->not->toContain('- `panel`:');
+    expect((string) (new AuditPages)->handle(new Request)->content())->not->toContain('- `panel` `');
 
     expect((string) (new AuditPages)->handle(new Request(['panel' => 'stores']))->content())
         ->toContain('No panel "stores". The panels are: fixture, shop.');
@@ -109,10 +109,10 @@ it('treats a row of filters that apply as they change as a filter bar, and lets 
 
     expect($audit)
         ->toContain('- `GadgetReport`')
-        ->not->toContain('- `GadgetReport`: its form lays fields out in several columns')
-        ->not->toContain('- `GadgetReport`: the optional field')
-        ->not->toContain('- `GadgetReport`: the select `year`')
-        ->not->toContain('- `GadgetReport`: the action "Download Excel"');
+        ->not->toContain('- `GadgetReport` `forms.one-column`: its form lays fields out in several columns')
+        ->not->toContain('- `GadgetReport` `forms.optional-label`: the optional field')
+        ->not->toMatch('/- `GadgetReport` `[^`]+`: the select `year`/')
+        ->not->toMatch('/- `GadgetReport` `[^`]+`: the action "Download Excel"/');
 
     expect(AuditPages::isTitleCase('Download Excel', 'Download Excel'))->toBeFalse()
         ->and(AuditPages::isTitleCase('Export To Excel', 'Export To Excel'))->toBeTrue()
@@ -124,7 +124,7 @@ it('warns when global search loads a related value one result at a time, and lea
     Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5, 'owner_id' => $owner->id]);
     Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget::create(['code' => 'GAD-0002', 'name' => 'Lamp', 'price' => 45, 'owner_id' => $owner->id]);
     $audit = fn (): string => (string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content();
-    $warning = '- `GadgetResource`: global search loads `owner` one result at a time';
+    $warning = '- `GadgetResource` `search.eager-load`: global search loads `owner` one result at a time';
 
     Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadgets\GadgetResource::$ownerInSearch = true;
 
@@ -162,12 +162,12 @@ it('audits the panel\'s own pages on a full audit, following a page that sends t
 
 it('audits the panel\'s menu on a full audit: two levels at most, groups in sentence case, words always on screen', function (): void {
     expect((string) (new AuditPages)->handle(new Request)->content())
-        ->toContain('- `navigation`: the sidebar shrinks to icons only')
-        ->toContain('- `navigation`: the group "Stock Control" is in Title Case')
-        ->toContain('- `navigation`: "Export gadgets" names an action; name the place')
-        ->toContain('- `navigation`: "Export gadgets" shows a count')
-        ->toContain('- `navigation`: dark mode is off')
-        ->toContain('- `navigation`: "Gadgets" in "Stock Control" has items under it, a third level')
+        ->toContain('- `navigation` `navigation.icons-only`: the sidebar shrinks to icons only')
+        ->toContain('- `navigation` `navigation.group-title-case`: the group "Stock Control" is in Title Case')
+        ->toContain('- `navigation` `navigation.verb`: "Export gadgets" names an action; name the place')
+        ->toContain('- `navigation` `navigation.count`: "Export gadgets" shows a count')
+        ->toContain('- `navigation` `navigation.dark-mode`: dark mode is off')
+        ->toContain('- `navigation` `navigation.third-level`: "Gadgets" in "Stock Control" has items under it, a third level')
         ->not->toContain('"Help"');
 
     // A screen-by-screen audit leaves the menu alone.
@@ -186,23 +186,23 @@ it('audits edit pages against an existing record', function (): void {
     Gadget::create(['code' => 'GAD-0001', 'name' => 'Torch', 'price' => 99.5]);
 
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toStartWith('# 7 pages rendered, 0 failing, 94 warnings')
-        ->toContain('- `EditGadget`: its form lays fields out in several columns')
+        ->toStartWith('# 7 pages rendered, 94 failing')
+        ->toContain('- `EditGadget` `forms.one-column`: its form lays fields out in several columns')
         // Related lists are audited too, read from the resource, since a View page may embed them itself.
-        ->toContain('- `GadgetResource PartsRelationManager`: the column "Created At" is in Title Case')
-        ->toContain('- `GadgetResource PartsRelationManager`: the empty list offers 2 actions')
-        ->toContain('- `GadgetResource PartsRelationManager`: the table shows 2 column(s); a table needs three or more')
-        ->toContain('- `GadgetResource PartsRelationManager`: the empty list\'s button is a second primary')
-        ->toContain('- `GadgetResource PartsRelationManager`: `delete` is labelled "Remove", but it destroys the record')
-        ->toContain('- `GadgetResource PartsRelationManager`: `delete` asks "Are you sure you would like to do this?"')
+        ->toContain('- `GadgetResource PartsRelationManager` `tables.column-title-case`: the column "Created At" is in Title Case')
+        ->toContain('- `GadgetResource PartsRelationManager` `tables.empty-one-action`: the empty list offers 2 actions')
+        ->toContain('- `GadgetResource PartsRelationManager` `tables.three-columns`: the table shows 2 column(s); a table needs three or more')
+        ->toContain('- `GadgetResource PartsRelationManager` `tables.empty-outlined`: the empty list\'s button is a second primary')
+        ->toContain('- `GadgetResource PartsRelationManager` `actions.delete-or-remove`: `delete` is labelled "Remove", but it destroys the record')
+        ->toContain('- `GadgetResource PartsRelationManager` `actions.confirm-consequence`: `delete` asks "Are you sure you would like to do this?"')
         ->not->toContain('SparePartsRelationManager`:')
-        ->toContain('- `EditGadget`: `delete` is a solid danger button beside other actions')
-        ->toContain('- `EditGadget`: `delete` asks "Are you sure you would like to do this?"')
-        ->toContain('- `ViewGadget`: it shows the record as a disabled form')
-        ->toContain('- `ViewGadget`: its related lists are tabs')
+        ->toContain('- `EditGadget` `actions.delete-outlined`: `delete` is a solid danger button beside other actions')
+        ->toContain('- `EditGadget` `actions.confirm-consequence`: `delete` asks "Are you sure you would like to do this?"')
+        ->toContain('- `ViewGadget` `records.disabled-form`: it shows the record as a disabled form')
+        ->toContain('- `ViewGadget` `records.related-tabs`: its related lists are tabs')
         // The view page's disabled form isn't audited field by field; the warning above covers it.
-        ->not->toContain('- `ViewGadget`: the field')
-        ->toContain('- `EditGadget`: the field `code` uses placeholder()');
+        ->not->toMatch('/- `ViewGadget` `[^`]+`: the field/')
+        ->toContain('- `EditGadget` `forms.placeholder`: the field `code` uses placeholder()');
 });
 
 it('checks a page\'s open modals, its form showing errors and the whole page, not only its content, saving nothing', function (): void {
@@ -252,7 +252,7 @@ it('skips pages the user may not open, and pages that need route parameters, ins
 
     try {
         expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-            ->toContain('0 failing')
+            ->not->toContain('Exception')
             ->toContain('- `CreateGadget`: tester@example.com may not open it; pass "as" with a user who can.')
             ->toContain("- `ReportGadgets`: it needs route parameters the audit can't supply");
     } finally {
@@ -262,7 +262,7 @@ it('skips pages the user may not open, and pages that need route parameters, ins
 
 it('checks row actions whose label or tooltip needs the record', function (): void {
     expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
-        ->toContain('0 failing')
+        ->not->toContain('Exception')
         ->toContain('- `ListGadgets`')
         ->not->toContain('TypeError');
 });
@@ -311,11 +311,11 @@ it('returns a timed-out accessibility check as not checked, keeping the rest of 
 it('warns while Laravel\'s own error pages show, until the house ones are published', function (): void {
     withErrorPages(function (): void {
         expect((string) (new AuditPages)->handle(new Request)->content())
-            ->toContain("- `errors`: Laravel's own page still shows for 403, 404, 419, 429, 500, 503");
+            ->toContain("- `errors` `errors.published`: Laravel's own page still shows for 403, 404, 419, 429, 500, 503");
 
         $this->artisan('vendor:publish', ['--tag' => 'filament-storybook-errors']);
 
-        expect((string) (new AuditPages)->handle(new Request)->content())->not->toContain('- `errors`:')->not->toContain('errors.404');
+        expect((string) (new AuditPages)->handle(new Request)->content())->not->toContain('- `errors` `')->not->toContain('errors.404');
 
         // The page is checked whole, as the browser gets it: an image without a text alternative on it is reported.
         file_put_contents(resource_path('views/errors/404.blade.php'), '<img src="lost.png">', FILE_APPEND);
@@ -349,4 +349,42 @@ it('fails a panel that changes the locked look: its own colours, font or theme C
     } finally {
         File::delete(base_path('fs-look-theme.css'));
     }
+});
+
+it('settles only what the owner approved, by check id, target and field, and fails a stale or incomplete entry', function (): void {
+    config(['storybook-exceptions' => [
+        ['check' => 'forms.read-only-saved', 'target' => 'EditInvoice', 'field' => 'total', 'reason' => 'The total is checked again on posting.', 'approved' => 'owner, 2026-10-15'],
+        ['check' => 'forms.email', 'target' => 'EditInvoice', 'reason' => 'Fixed since.', 'approved' => 'owner, 2026-10-01'],
+        ['check' => 'forms.toggle', 'target' => 'EditInvoice'],
+        ['check' => 'story.toggle', 'target' => 'forms-x.default', 'reason' => 'A story check, for storybook-test.', 'approved' => 'owner, 2026-10-19'],
+    ]]);
+    $lines = [
+        '- `EditInvoice` `forms.read-only-saved`: the read-only field `total` is still saved.',
+        '- `EditInvoice` `forms.read-only-saved`: the read-only field `vat` is still saved.',
+        '- `ListInvoices` `forms.read-only-saved`: the read-only field `total` is still saved.',
+    ];
+
+    [$failing, $settled] = Josephdlmd\FilamentStorybook\SettledExceptions::apply($lines, stories: false, full: true);
+
+    expect($settled)->toBe(['- `EditInvoice` `forms.read-only-saved`: the read-only field `total` is still saved. Settled: The total is checked again on posting. (owner, 2026-10-15).'])
+        ->and(implode("\n", $failing))
+        ->toContain('field `vat`')->toContain('- `ListInvoices`')
+        ->toContain('- `EditInvoice` `exceptions.stale`: the settled exception for `forms.email` matches nothing')
+        ->toContain('`exceptions.incomplete`: the entry for `forms.toggle`')
+        ->not->toContain('story.toggle');
+
+    // A partial run can't tell a stale entry from one for a page it didn't open.
+    expect(implode("\n", Josephdlmd\FilamentStorybook\SettledExceptions::apply($lines, stories: false, full: false)[0]))->not->toContain('exceptions.stale');
+});
+
+it('lists settled checks apart from the failing ones in the audit', function (): void {
+    config(['storybook-exceptions' => [
+        ['check' => 'forms.upload-file-name', 'target' => 'CreateGadget', 'field' => 'manual', 'reason' => 'Manuals keep their stored name for the archive.', 'approved' => 'owner, 2026-10-19'],
+    ]]);
+
+    expect((string) (new AuditPages)->handle(new Request(['resources' => ['GadgetResource']]))->content())
+        ->toStartWith('# 2 pages rendered, 53 failing')
+        ->toContain('1 settled exceptions')
+        ->toContain("## Settled exceptions\n\n- `CreateGadget` `forms.upload-file-name`: the upload `manual`")
+        ->toContain('Settled: Manuals keep their stored name for the archive. (owner, 2026-10-19).');
 });

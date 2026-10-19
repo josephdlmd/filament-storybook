@@ -15,7 +15,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 | `Radio` | Pattern | `forms-choice`; audit and test (stacked, required or "None") |
 | `Checkbox` | Pattern | `forms-yes-or-no` |
 | `CheckboxList` | Rule | choices rule; compact CSS (4px stacks); audit (stacked) |
-| `Toggle` | Rule | only for settings that apply at once; audit warns on a saved toggle |
+| `Toggle` | Rule | only for settings that apply at once; audit fails a saved toggle |
 | `ToggleButtons` | General | the choice rules; house default (required message) |
 | `DatePicker` | Pattern | `forms-date` (typeable, min and max, width, range) |
 | `DateTimePicker` | Rule | typeable; audit (`native(false)`); a time shows its zone |

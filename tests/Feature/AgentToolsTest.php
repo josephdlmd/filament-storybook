@@ -11,47 +11,47 @@ use Laravel\Mcp\Request;
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 107 passing, 0 failing, 0 warnings, 0 accessibility issues')
+        ->toStartWith('# 107 passing, 0 failing, 0 accessibility issues, 0 settled exceptions')
         ->toContain('- `forms-money-input.required`');
 });
 
 it('passes every check on the patterns taken from the accounting app', function (): void {
     expect(testStoriesWithTheme(['ids' => ['records-previous-and-next', 'records-key-figures', 'dashboards-key-figures-and-charts', 'forms-record-picker', 'reports-sales', 'reports-collections', 'reports-receivables-ageing']]))
-        ->toStartWith('# 11 passing, 0 failing, 0 warnings, 0 accessibility issues');
+        ->toStartWith('# 11 passing, 0 failing, 0 accessibility issues, 0 settled exceptions');
 });
 
 it('names every line-item field under Filament\'s own CSS, which hides the cell labels once the table shows headers', function (): void {
     expect(testStoriesWithTheme(['ids' => ['forms-line-items']]))
-        ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues');
+        ->toStartWith('# 2 passing, 0 failing, 0 accessibility issues, 0 settled exceptions');
 });
 
 it('reports a failing story with the line to fix, so the agent can self-correct', function (): void {
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 16 passing, 3 failing, 30 warnings, 1 accessibility issues')
-        ->toContain('- `broken-story.vagueAndTitleCase`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
-        ->toContain('- `broken-story.collapsedFilters`: AboveContentCollapsible puts the filter button alone')
-        ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')
-        ->toContain('- `broken-story.nonNullableRecord`: `fn (Model $record)` gets null while the table has no rows')
-        ->toContain('- `broken-story.vagueAndTitleCase`: "Lorem ipsum" is placeholder content')
-        ->toContain('- `broken-story.vagueAndTitleCase`: a button labelled "Submit"')
-        ->toContain('- `broken-story.vagueAndTitleCase`: "Save Order" is in Title Case')
-        ->toContain('- `broken-story.vagueAndTitleCase`: a notification title has no full stop')
+        ->toStartWith('# 16 passing, 33 failing, 1 accessibility issues, 0 settled exceptions')
+        ->toContain('- `broken-story.vagueAndTitleCase` `story.shortcut-modifier`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
+        ->toContain('- `broken-story.collapsedFilters` `story.collapsed-filters`: AboveContentCollapsible puts the filter button alone')
+        ->toContain('- `broken-story.works` `story.optional-label`: the field `name` is neither required() nor labelled "(optional)"')
+        ->toContain('- `broken-story.nonNullableRecord` `story.nullable-record`: `fn (Model $record)` gets null while the table has no rows')
+        ->toContain('- `broken-story.vagueAndTitleCase` `story.sample-content`: "Lorem ipsum" is placeholder content')
+        ->toContain('- `broken-story.vagueAndTitleCase` `story.vague-label`: a button labelled "Submit"')
+        ->toContain('- `broken-story.vagueAndTitleCase` `story.title-case`: "Save Order" is in Title Case')
+        ->toContain('- `broken-story.vagueAndTitleCase` `story.notification-full-stop`: a notification title has no full stop')
         ->toContain('- `broken-story.unnamedIconButton`: [critical] button-name: Buttons must have discernible text')
-        ->toContain('- `broken-story`: add description()')
-        ->toContain('- `broken-story.works`: the field `name` has a placeholder()')
-        ->toContain('- `broken-story.floatMoney`: round() works on floats')
-        ->toContain('- `broken-story.ownSpacing`: sets its own padding or margin')
-        ->toContain('- `broken-story.ownTypeAndColour`: sets its own font size, weight or colour')
-        ->toContain('- `broken-story.hoverOnlyTooltip`: a tooltip on a column, entry or hint icon shows on mouse hover only')
-        ->toContain('- `broken-story.iconOnlyAction`: an icon-only action needs a tooltip')
-        ->toContain('- `broken-story.successCallout`: a callout is info or warning only')
-        ->toContain('- `broken-story.nestedMenus`: a menu opens inside another menu')
-        ->toContain('- `broken-story.crampedChoices`: stack radio and checkbox options, without inline()')
-        ->toContain('- `broken-story.openCollapsible`: a collapsible section starts collapsed')
-        ->toContain('- `broken-story.crampedChoices`: the wizard step "Choose the supplier now" is longer than 16 characters')
-        ->toContain('- `broken-story.throws`: add a one-line docblock')
+        ->toContain('- `broken-story` `story.description`: add description()')
+        ->toContain('- `broken-story.works` `story.placeholder`: the field `name` has a placeholder()')
+        ->toContain('- `broken-story.floatMoney` `story.float-money`: round() works on floats')
+        ->toContain('- `broken-story.ownSpacing` `story.own-spacing`: sets its own padding or margin')
+        ->toContain('- `broken-story.ownTypeAndColour` `story.own-type`: sets its own font size, weight or colour')
+        ->toContain('- `broken-story.hoverOnlyTooltip` `story.hover-tooltip`: a tooltip on a column, entry or hint icon shows on mouse hover only')
+        ->toContain('- `broken-story.iconOnlyAction` `story.icon-tooltip`: an icon-only action needs a tooltip')
+        ->toContain('- `broken-story.successCallout` `story.callout-status`: a callout is info or warning only')
+        ->toContain('- `broken-story.nestedMenus` `story.nested-menus`: a menu opens inside another menu')
+        ->toContain('- `broken-story.crampedChoices` `story.inline-options`: stack radio and checkbox options, without inline()')
+        ->toContain('- `broken-story.openCollapsible` `story.collapsible-open`: a collapsible section starts collapsed')
+        ->toContain('- `broken-story.crampedChoices` `story.wizard-step-name`: the wizard step "Choose the supplier now" is longer than 16 characters')
+        ->toContain('- `broken-story.throws` `story.docblock`: add a one-line docblock')
         ->toContain('- `broken-story.failsWhileRendering`: Error: Call to a member function upper() on string at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:54')
         ->toContain('- `broken-story.throws`: RuntimeException: Story exploded at ')
@@ -68,18 +68,18 @@ it('checks each component\'s own options, so one tooltip or one collapsed sectio
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story'], 'a11y' => false]))->content())
-        ->toContain('- `broken-story.oneTooltipForTwo`: an icon-only action needs a tooltip')
-        ->toContain('- `broken-story.oneCollapsedForTwo`: a collapsible section starts collapsed')
-        ->toContain('- `broken-story.oneCollapsedForTwo`: the field `billing_address` is neither required()')
-        ->not->toContain('- `broken-story.oneCollapsedForTwo`: the field `address` is neither');
+        ->toContain('- `broken-story.oneTooltipForTwo` `story.icon-tooltip`: an icon-only action needs a tooltip')
+        ->toContain('- `broken-story.oneCollapsedForTwo` `story.collapsible-open`: a collapsible section starts collapsed')
+        ->toContain('- `broken-story.oneCollapsedForTwo` `story.optional-label`: the field `billing_address` is neither required()')
+        ->not->toContain('- `broken-story.oneCollapsedForTwo` `story.optional-label`: the field `address` is neither');
 });
 
-it('says how to enable the accessibility check when it cannot run', function (): void {
+it('fails, saying how to enable the accessibility check, when it cannot run', function (): void {
     config(['filament-storybook.chromium' => '/nonexistent/chrome']);
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-tin']]))->content())
-        ->toStartWith('# 2 passing, 0 failing, 0 warnings, 0 accessibility issues')
-        ->toContain('Accessibility not checked (')
+        ->toStartWith('# 2 passing, 1 failing, 0 accessibility issues, 0 settled exceptions')
+        ->toContain('- `accessibility` `a11y.unchecked`: Accessibility not checked (')
         ->toContain('npx playwright-core install chromium');
 });
 
