@@ -9,9 +9,9 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | Docs page + sidebar | The **Storybook** panel page: live story beside its PHP snippet, grouped by title |
 | `components.json` manifest | `StoryRegistry::manifest()`: imports, snippets and docblocks, read by reflection |
 | `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |
-| `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule warnings, and WCAG 2.2 AA issues from axe-core |
+| `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule checks (each fails by its id unless the owner settled it), and WCAG 2.2 AA issues from axe-core |
 | `get-storybook-story-instructions` | `storybook-instructions`: the rules for writing a story and the test-and-fix loop |
-| (no equivalent) | `storybook-audit`: renders one panel at a time (`panel`, for an app with several, warning when one lacks the plugin) and its real resource pages, including a resource's custom page of one record, their related lists, the panel's own pages (following one that sends the user back to itself with a query as it opens) and the dashboard's widgets, and reads the menu, signed in as a panel user, and reports render errors, rule breaks (red delete triggers, unconfirmed deletes, Filament's "Are you sure" text, a delete called Remove or the reverse, buttons labelled OK, Yes, Done, Submit or Confirm, Title Case labels, headings and page titles, label colons, more than one primary action, more than two inline row actions, filters hidden in a dropdown, empty states with no next step, toggles in saved forms, untypeable dates, uploads without limits, error messages that don't say what to do, money not right-aligned, placeholders, hidden labels, line-item columns that don't match their fields, rows that reorder only by dragging, read-only fields that are still saved, a View page that shows a disabled form, related lists in tabs, widgets that refresh themselves, a menu deeper than two levels, Title Case menu groups, a sidebar that shrinks to icons only) and WCAG 2.2 AA issues |
+| (no equivalent) | `storybook-audit`: renders one panel at a time (`panel`, for an app with several, failing when one lacks the plugin) and its real resource pages, including a resource's custom page of one record, their related lists, the panel's own pages (following one that sends the user back to itself with a query as it opens) and the dashboard's widgets, and reads the menu, signed in as a panel user, and reports render errors, rule breaks (red delete triggers, unconfirmed deletes, Filament's "Are you sure" text, a delete called Remove or the reverse, buttons labelled OK, Yes, Done, Submit or Confirm, Title Case labels, headings and page titles, label colons, more than one primary action, more than two inline row actions, filters hidden in a dropdown, empty states with no next step, toggles in saved forms, untypeable dates, uploads without limits, error messages that don't say what to do, money not right-aligned, placeholders, hidden labels, line-item columns that don't match their fields, rows that reorder only by dragging, read-only fields that are still saved, a View page that shows a disabled form, related lists in tabs, widgets that refresh themselves, a menu deeper than two levels, Title Case menu groups, a sidebar that shrinks to icons only) and WCAG 2.2 AA issues |
 | Storybook Test | A Pest test that renders every story in CI |
 | AGENTS.md instructions | `resources/boost/guidelines/core.blade.php`, loaded by Boost |
 
@@ -70,7 +70,7 @@ Without them the tool still runs and says the check was skipped. Set `STORYBOOK_
 
 1. `storybook-list`, then `storybook-show`: the agent copies an approved snippet and passes only the arguments its API section shows.
 2. No pattern fits: `storybook-instructions`, then it writes a story in `app/Stories`.
-3. `storybook-test` for stories and `storybook-audit` for the screens built from them: failures, house-rule warnings and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
+3. `storybook-test` for stories and `storybook-audit` for the screens built from them: failures, failed house-rule checks and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
 
 ## Write a story
 
@@ -117,6 +117,20 @@ public function default(Table $table): Table
 Storybook supplies the workshop, not the rules: a design system's guidelines say what good looks like, with their evidence, and Storybook hosts them beside the code. Here that is **[docs/rules.md](docs/rules.md)**: every rule the patterns and tools apply, with its source and date, how to do it in Filament, and how it is checked, plus the rules that were dropped and why.
 
 The base design system is **Carbon** (IBM's system for enterprise products). Form wording and error messages follow **GOV.UK**, and **WCAG 2.2 AA** always wins. A rule that follows Carbon needs no further evidence; anything beyond or against Carbon carries its own current source, and the rulebook lists where we differ from Carbon and why. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook-instructions` gives agents the whole rulebook.
+
+### Strict mode and settled exceptions
+
+Every finding fails: a render error, a broken house rule (each named by its check id, such as `forms.read-only-saved`) and an accessibility issue. There is no warning tier and no setting to turn it off. Where the owner decides a screen keeps something a check flags, the app lists it in `config/storybook-exceptions.php`; the tools then show it under "Settled exceptions" instead of failing:
+
+```php
+<?php
+
+return [
+    ['check' => 'forms.read-only-saved', 'target' => 'EditInvoice', 'field' => 'total', 'reason' => 'The total is checked again on posting.', 'approved' => 'owner, 2026-10-15'],
+];
+```
+
+`target` is the page or story key the report names, and `field` (optional) the field or column the finding is about. An entry missing its reason or approval fails, and so, on a full run, does one that no longer matches anything. Accessibility issues can't be settled. Agents are told never to add an entry themselves.
 
 ### Adding to the standards
 

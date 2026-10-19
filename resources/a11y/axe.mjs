@@ -26,8 +26,13 @@ const browser = await chromium.launch({ executablePath: process.env.STORYBOOK_CH
 const page = await browser.newPage();
 const results = {};
 
-// Elements cut off at the right at 320px wide, unless they sit in a box that scrolls (a data table may; WCAG 1.4.10).
+// Elements cut off at the right at 320px wide, unless they sit in a box that scrolls or are a table, which may scroll
+// sideways (WCAG 1.4.10: two-dimensional content is excepted).
 const reflow = () => [...document.querySelectorAll('main *, body > *')].filter((element) => {
+    if (element.closest('table')) {
+        return false;
+    }
+
     const box = element.getBoundingClientRect();
 
     // A dropdown's panel is closed until the script opens it, and then placed to fit the screen.
