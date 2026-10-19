@@ -31,3 +31,8 @@ it('refuses a boost.json that isn\'t valid JSON, rather than rewriting it with o
     expect(implode(' ', InstallCommand::unmetRequirements(boost: true, pest: true, npm: true, defaultPanel: true, boostJson: false)))
         ->toContain('Fix boost.json: it isn\'t valid JSON');
 });
+
+it('refuses an app without Filament\'s Compact theme, which the locked look is built on', function (): void {
+    expect(implode(' ', InstallCommand::unmetRequirements(boost: true, pest: true, npm: true, defaultPanel: true, compactTheme: false)))
+        ->toContain('composer require filament/compact-theme');
+});

@@ -8,8 +8,8 @@ use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Laravel\Mcp\Request;
 use Livewire\Livewire;
 
-it('loads the house CSS and script the patterns depend on, on every panel page', function (): void {
-    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->reject->isLoadedOnRequest()->map->getId()->values()->all())->toBe(['house'])
+it('loads the house and compact CSS and the script the patterns depend on, on every panel page', function (): void {
+    expect(collect(Filament\Support\Facades\FilamentAsset::getStyles(['josephdlmd/filament-storybook']))->reject->isLoadedOnRequest()->map->getId()->values()->all())->toBe(['house', 'compact'])
         ->and(collect(Filament\Support\Facades\FilamentAsset::getScripts(['josephdlmd/filament-storybook']))->map->getId()->values()->all())->toBe(['house']);
 
     // Copyable values become buttons the keyboard can use, and copying is announced (WCAG 2.1.1, 4.1.3).
@@ -42,29 +42,20 @@ it('warns 2 minutes before an idle session ends, with a button to stay logged in
     $this->get('/fixture/storybook?component=forms-money-input')->assertDontSee('Stay logged in');
 });
 
-it('makes tables, or the whole app, compact with Carbon\'s small sizes, only on a panel that asks for it', function (): void {
-    $page = fn () => $this->get('/fixture/storybook?component=tables-list-table')->assertOk();
+it('makes every panel compact with Carbon\'s small sizes and Filament\'s blue primary, the locked look', function (): void {
+    $this->get('/fixture/storybook?component=tables-list-table')->assertOk()->assertSee('compact.css', false);
 
-    $page()->assertDontSee('compact-tables.css', false);
-
-    Filament\Facades\Filament::getPanel('fixture')->getPlugin('filament-storybook')->compactTables();
-
-    $page()->assertSee('compact-tables.css', false)->assertDontSee('compact.css', false);
-
-    Filament\Facades\Filament::getPanel('fixture')->getPlugin('filament-storybook')->compactTables(false)->compact();
-
-    // compact() brings the compact tables with it.
-    $page()->assertSee('compact-tables.css', false)->assertSee('compact.css', false);
+    expect(Filament\Facades\Filament::getPanel('fixture')->getColors())->toBe(['primary' => Filament\Support\Colors\Color::Blue])
+        ->and(Filament\Facades\Filament::getPanel('fixture')->hasCustomFontFamily())->toBeFalse();
 
     // Rows of 40px and tighter stacks still leave every checkbox, radio and action its WCAG 2.2 target size.
     expect(testStoriesWithTheme(['ids' => ['tables-list-table', 'records-related-records', 'tables-money-column', 'tables-status-badge', 'forms-choice', 'forms-record-form', 'forms-yes-or-no']]))
         ->toContain('0 failing, 0 warnings, 0 accessibility issues');
 });
 
-it('starts confirmations on the left and narrows the menu under compact(), as in Carbon', function (): void {
-    expect(Filament\Actions\DeleteAction::make()->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Center);
+it('starts confirmations on the left and narrows the menu, as in Carbon', function (): void {
 
-    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->compact()->register($panel = Filament\Panel::make()->id('compact'));
+    Josephdlmd\FilamentStorybook\StorybookPlugin::make()->register($panel = Filament\Panel::make()->id('compact'));
     $delete = Filament\Actions\DeleteAction::make();
 
     expect($delete->getModalAlignment())->toBe(Filament\Support\Enums\Alignment::Start)
@@ -72,7 +63,7 @@ it('starts confirmations on the left and narrows the menu under compact(), as in
 });
 
 it('keeps the compact and house selectors on classes Filament still uses, so an upgrade can\'t undo them silently', function (): void {
-    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact-tables.css').file_get_contents(__DIR__.'/../../resources/css/compact.css').file_get_contents(__DIR__.'/../../resources/css/house.css'), $classes);
+    preg_match_all('/\.(fi-[\w-]+)/', file_get_contents(__DIR__.'/../../resources/css/compact.css').file_get_contents(__DIR__.'/../../resources/css/house.css'), $classes);
     // A page's own class (fi-resource-view-record-page) is set in PHP and styled by no theme rule.
     $theme = file_get_contents(__DIR__.'/../../vendor/filament/filament/dist/theme.css').file_get_contents(__DIR__.'/../../vendor/filament/filament/src/Resources/Pages/ViewRecord.php');
 

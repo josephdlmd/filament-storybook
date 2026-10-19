@@ -29,6 +29,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Panel;
+use Filament\Support\Colors\Color;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
@@ -55,6 +56,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Josephdlmd\FilamentStorybook\Accessibility;
@@ -126,6 +128,8 @@ class AuditPages extends Tool
         // A panel without the plugin misses the house settings made per panel, though the app-wide defaults still reach it.
         if (! $panel->hasPlugin('filament-storybook')) {
             $warnings[] = "- `panel`: the {$panel->getId()} panel has no `StorybookPlugin`, so it lacks the house settings made per panel: the idle-session warning (WCAG 2.2.1), the unsaved-changes alert and full-width pages (Carbon 2x grid); add `->plugin(StorybookPlugin::make())` to it, with the same options as the other panels.";
+        } else {
+            $failing = static::lookFailures($panel);
         }
 
         // Renders one page and files it under passing, failing or skipped. A page that sends the user back to itself as it
@@ -307,6 +311,46 @@ class AuditPages extends Tool
     }
 
     /** A chart whose legend shows, Chart.js's default. */
+    /**
+     * The look is locked (docs/rules.md, The look): the plugin sets the colours, Inter stays, and the theme is the package's.
+     *
+     * @return list<string>
+     */
+    public static function lookFailures(Panel $panel): array
+    {
+        $failures = [];
+
+        if ($panel->getColors() !== ['primary' => Color::Blue]) {
+            $failures[] = '- `look`: the panel sets its own colours; remove `->colors()`, since the look is locked and `StorybookPlugin` sets them (docs/rules.md, The look).';
+        }
+
+        if ($panel->hasCustomFontFamily()) {
+            $failures[] = '- `look`: the panel sets its own font; remove `->font()`, since the look keeps Filament\'s Inter (docs/rules.md, The look).';
+        }
+
+        $themes = array_filter((array) $panel->getViteTheme(), fn (string $path): bool => str_ends_with($path, '.css'));
+        $import = "@import '../../../../vendor/josephdlmd/filament-storybook/resources/css/theme.css';";
+
+        if ($themes === []) {
+            $failures[] = "- `look`: the panel has no theme, so it lacks Filament's Compact theme; make `resources/css/filament/{$panel->getId()}/theme.css` with `{$import}` and its `@source` lines, and set `->viteTheme()` to it (docs/rules.md, The look).";
+        }
+
+        foreach ($themes as $theme) {
+            // Only the package's theme and the @source lines that tell Tailwind where the app's classes are.
+            $statements = collect(explode(';', (string) preg_replace('#/\*.*?\*/#s', '', (string) rescue(fn (): string => File::get(base_path($theme)), '', report: false))))
+                ->map(fn (string $statement): string => trim($statement))
+                ->filter();
+            $package = fn (string $statement): bool => preg_match('#^@import\s+[\'"](\.\./)+vendor/josephdlmd/filament-storybook/resources/css/theme\.css[\'"]$#', $statement) === 1;
+            $own = $statements->reject(fn (string $statement): bool => str_starts_with($statement, '@source') || $package($statement));
+
+            if ($own->isNotEmpty() || ! $statements->contains($package)) {
+                $failures[] = "- `look`: `{$theme}` ".($own->isNotEmpty() ? 'carries CSS of its own ('.Str::limit($own->first(), 60).')' : 'doesn\'t import the package theme').", but the look is locked; make it `{$import}` plus its `@source` lines only (docs/rules.md, The look).";
+            }
+        }
+
+        return $failures;
+    }
+
     protected static function showsLegend(string $widget): bool
     {
         $options = rescue(fn (): mixed => (new ReflectionMethod($widget, 'getOptions'))->invoke(new $widget), false, report: false) ?? [];

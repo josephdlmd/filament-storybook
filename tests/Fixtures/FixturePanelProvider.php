@@ -27,6 +27,8 @@ class FixturePanelProvider extends PanelProvider
             ->profile()
             ->routes(fn () => \Illuminate\Support\Facades\Route::get('invitation/{user}', \Josephdlmd\FilamentStorybook\Stories\Invitations\AcceptInvitation::class)->name('invitation'))
             ->plugin(StorybookPlugin::make())
+            // From the test app's base path; tests/Pest.php serves it as Filament's compiled theme, since there is no Vite build.
+            ->viteTheme('../../../../tests/Fixtures/theme.css')
             ->resources([GadgetResource::class])
             ->pages([GadgetOverview::class, GadgetReport::class])
             ->widgets([GadgetStats::class, GadgetSalesChart::class, GadgetStockChart::class, \Josephdlmd\FilamentStorybook\Stories\Widgets\OrdersPerMonthChart::class])

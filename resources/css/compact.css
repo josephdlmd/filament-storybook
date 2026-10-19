@@ -1,9 +1,69 @@
 /*
- * Compact, for data-dense apps (StorybookPlugin::make()->compact()): Carbon's small sizes where Filament, or its
- * Compact theme, is looser. Tables come from compact-tables.css, which compact() loads too. Each value is from the
- * component's Carbon specification page (Sep 2026); docs/rules.md has the list. These selectors follow Filament's
- * classes, and tests/Feature/StorybookTest.php fails if Filament renames one.
+ * Compact, the only density (docs/rules.md, Compact): Carbon's small sizes where Filament, or its Compact theme, is
+ * looser. Each value is from the component's Carbon specification page (Sep 2026); docs/rules.md has the list. These
+ * selectors follow Filament's classes, and tests/Feature/HouseDefaultsTest.php fails if Filament renames one.
  */
+
+/* Tables: Carbon data table's medium size, 40px plus Filament's 1px divider, with the same 14px text (owner, 2026-10-11).
+   The header row matches the rows, as Carbon asks; the strips above and below the table hold 32px controls with 8px around
+   them. Filament has no setting for any of it; it pads each part instead. */
+/* Header and rows: Filament pads each cell's content, by column type. */
+.fi-ta-table > thead > tr > th,
+.fi-ta-table > tbody > tr > td:is(.fi-ta-selection-cell, :has(.fi-ta-actions), :has(.fi-ta-record-checkbox)) {
+    padding-block: 0.625rem;
+}
+
+.fi-ta-table > tbody > tr > td :is(.fi-ta-text, .fi-ta-icon, .fi-ta-image, .fi-ta-color, .fi-ta-toggle, .fi-ta-checkbox):not(.fi-inline) {
+    padding-block: 0.5rem;
+}
+
+/* A toggle sat on the text's baseline, 3px taller than itself, which made its row 43px. */
+.fi-ta-table > tbody > tr > td .fi-ta-toggle > .fi-toggle {
+    vertical-align: top;
+}
+
+/* An editable cell's 32px field has 4px above and below, like a line item, so its row stays 40px. */
+.fi-ta-table > tbody > tr > td :is(.fi-ta-select, .fi-ta-text-input):not(.fi-inline) {
+    padding-block: 0.25rem;
+}
+
+/* The strips around the table: the toolbar (search, bulk actions, column picker), a header holding only actions (a
+   related list's New button) and the pagination. Their controls are Carbon's small 32px, with its $spacing-03 (8px)
+   above and below (Carbon data table style, archived; owner, 2026-10-11, after 4px looked cramped). The filters
+   above the table are a form and keep the theme's spacing. */
+.fi-ta-header-toolbar,
+.fi-ta-header:not(:has(.fi-ta-header-heading)),
+.fi-pagination {
+    padding-block: 0.5rem;
+}
+
+/* Filament pulls a header's actions 4px into its padding to line up with its heading; with no heading, that ate the gaps. */
+.fi-ta-header:not(:has(.fi-ta-header-heading)) > .fi-ta-actions {
+    margin-block: 0;
+}
+
+.fi-ta-header-toolbar > * {
+    min-height: 2rem;
+}
+
+/* 32px: a field's 24px line, a button's 20px. */
+:is(.fi-ta-header-toolbar, .fi-pagination) :is(.fi-input, .fi-select-input) {
+    padding-block: 0.25rem;
+}
+
+:is(.fi-ta-header-toolbar, .fi-ta-header) .fi-btn {
+    padding-block: 0.375rem;
+}
+
+.fi-ta-header-toolbar .fi-icon-btn {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Every row is at least 40px, also when it holds only a badge. */
+.fi-ta-table > tbody > tr > td {
+    height: 2.5rem;
+}
 
 /* Menu and page sub-navigation: 32px items and group headings, with no gap between items (Carbon UI shell left panel). */
 .fi-sidebar-group-items {
@@ -100,6 +160,15 @@
        Filament table under compact tables. */
     .fi-in-table-repeatable > table > :is(thead, tbody) > tr > :is(th, td) {
         padding-block: 0.625rem;
+    }
+
+    /* Columns 16px apart, Carbon data table's minimum; the Compact theme's 10px each side puts them 20px apart. */
+    .fi-in-table-repeatable > table > :is(thead, tbody) > tr > :is(th, td):not(:first-child) {
+        padding-inline-start: 0.5rem;
+    }
+
+    .fi-in-table-repeatable > table > :is(thead, tbody) > tr > :is(th, td):not(:last-child) {
+        padding-inline-end: 0.5rem;
     }
 }
 

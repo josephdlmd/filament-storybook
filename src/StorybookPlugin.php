@@ -40,6 +40,7 @@ use Filament\Notifications\Notification;
 use Filament\Panel;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Schema;
+use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\IconPosition;
 use Filament\Pages\Enums\SubNavigationPosition;
@@ -61,12 +62,6 @@ use Josephdlmd\FilamentStorybook\Pages\Storybook;
 
 class StorybookPlugin implements Plugin
 {
-    protected bool $houseDefaults = true;
-
-    protected bool $compactTables = false;
-
-    protected bool $compact = false;
-
     protected bool $rowContextMenus = true;
 
     public static function make(): static
@@ -77,46 +72,6 @@ class StorybookPlugin implements Plugin
     public function getId(): string
     {
         return 'filament-storybook';
-    }
-
-    /** Filament defaults that break a sourced rule (docs/rules.md), corrected app-wide. */
-    public function houseDefaults(bool $condition = true): static
-    {
-        $this->houseDefaults = $condition;
-
-        return $this;
-    }
-
-    /**
-     * Carbon data table's medium rows (40px, the same 14px text) and its small toolbar and pagination, for an app
-     * whose screens are data-dense. Off by default: Filament's rows break no rule.
-     */
-    public function compactTables(bool $condition = true): static
-    {
-        $this->compactTables = $condition;
-
-        return $this;
-    }
-
-    public function hasCompactTables(): bool
-    {
-        return $this->compactTables || $this->compact;
-    }
-
-    /**
-     * Carbon's small sizes across the app, for a data-dense app: compact tables, plus 32px menu items and tighter
-     * stacks of fields, radios and checkboxes. Off by default, like compactTables().
-     */
-    public function compact(bool $condition = true): static
-    {
-        $this->compact = $condition;
-
-        return $this;
-    }
-
-    public function hasCompact(): bool
-    {
-        return $this->compact;
     }
 
     /**
@@ -137,48 +92,43 @@ class StorybookPlugin implements Plugin
         // The house script reads this before opening a row's menu on a right-click.
         $panel->renderHook(PanelsRenderHook::BODY_START, fn (): string => $this->rowContextMenus ? '' : '<script>window.fsRowContextMenus = false</script>');
 
-        $panel->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => collect(['compact-tables' => $this->hasCompactTables(), 'compact' => $this->hasCompact()])
-            ->filter()
-            ->map(fn (bool $on, string $id): string => '<link rel="stylesheet" href="'.e(FilamentAsset::getStyleHref($id, 'josephdlmd/filament-storybook')).'">')
-            ->implode(''));
+        // The locked look (docs/rules.md, The look): Filament's blue as primary, with its zinc greys and Inter left as they are.
+        $panel->colors(['primary' => Color::Blue]);
 
-        if ($this->compact) {
-            // The menu is 256px wide (Carbon UI shell left panel); Filament's is 320px. A width the app sets wins.
-            if ($panel->getSidebarWidth() === '20rem') {
-                $panel->sidebarWidth('16rem');
-            }
-
-            // Carbon's modal starts on the left, like every form modal; Filament centres a confirmation round a 48px
-            // icon, which compact.css hides. An action that sets its own alignment keeps it.
-            Action::configureUsing(fn (Action $action): Action => $action->modalAlignment(Alignment::Start));
-
-            // A menu opens 4px from its button (Carbon popover).
-            ActionGroup::configureUsing(fn (ActionGroup $group): ActionGroup => $group->dropdownOffset(4));
+        // Compact (docs/rules.md, Compact): the menu is 256px wide (Carbon UI shell left panel); Filament's is 320px. A width
+        // the app sets wins.
+        if ($panel->getSidebarWidth() === '20rem') {
+            $panel->sidebarWidth('16rem');
         }
 
-        if ($this->houseDefaults) {
-            // Leaving a form with unsaved changes asks first (Carbon global header: "If state or progress will be lost, inform users").
-            if (! $panel->hasUnsavedChangesAlerts()) {
-                $panel->unsavedChangesAlerts();
-            }
+        // Carbon's modal starts on the left, like every form modal; Filament centres a confirmation round a 48px icon, which
+        // compact.css hides. An action that sets its own alignment keeps it.
+        Action::configureUsing(fn (Action $action): Action => $action->modalAlignment(Alignment::Start));
 
-            // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.
-            $panel->maxContentWidth($panel->getMaxContentWidth() ?? Width::Full);
+        // A menu opens 4px from its button (Carbon popover).
+        ActionGroup::configureUsing(fn (ActionGroup $group): ActionGroup => $group->dropdownOffset(4));
 
-            // A page's own navigation, such as a cluster's settings pages, is tabs at the top (Carbon UI shell left panel: "use tabs
-            // within the page"); Filament puts it beside the page. Filament's getter never says whether the app set one, so ask its property.
-            if ((fn (): mixed => $this->subNavigationPosition)->call($panel) === null) {
-                $panel->subNavigationPosition(SubNavigationPosition::Top);
-            }
-
-            // An idle session warns 2 minutes before it ends, with a button to stay logged in (WCAG 2.2.1: warned, "at least 20
-            // seconds to extend"; NIST SP 800-63B-4: prompt "two minutes before"). Lifetimes over 20 hours are exempt.
-            $panel->renderHook(PanelsRenderHook::BODY_END, fn (): string => filament()->auth()->check() && config('session.lifetime') * 60 <= 20 * 3600
-                ? view('filament-storybook::session-warning', ['lifetime' => config('session.lifetime') * 60, 'warning' => 120])->render()
-                : '');
-
-            static::applyHouseDefaults();
+        // Leaving a form with unsaved changes asks first (Carbon global header: "If state or progress will be lost, inform users").
+        if (! $panel->hasUnsavedChangesAlerts()) {
+            $panel->unsavedChangesAlerts();
         }
+
+        // Lists and record pages use the full width (Carbon 2x grid); Filament stops at 80rem. A width the app sets wins.
+        $panel->maxContentWidth($panel->getMaxContentWidth() ?? Width::Full);
+
+        // A page's own navigation, such as a cluster's settings pages, is tabs at the top (Carbon UI shell left panel: "use tabs
+        // within the page"); Filament puts it beside the page. Filament's getter never says whether the app set one, so ask its property.
+        if ((fn (): mixed => $this->subNavigationPosition)->call($panel) === null) {
+            $panel->subNavigationPosition(SubNavigationPosition::Top);
+        }
+
+        // An idle session warns 2 minutes before it ends, with a button to stay logged in (WCAG 2.2.1: warned, "at least 20
+        // seconds to extend"; NIST SP 800-63B-4: prompt "two minutes before"). Lifetimes over 20 hours are exempt.
+        $panel->renderHook(PanelsRenderHook::BODY_END, fn (): string => filament()->auth()->check() && config('session.lifetime') * 60 <= 20 * 3600
+            ? view('filament-storybook::session-warning', ['lifetime' => config('session.lifetime') * 60, 'warning' => 120])->render()
+            : '');
+
+        static::applyHouseDefaults();
     }
 
     public function boot(Panel $panel): void {}

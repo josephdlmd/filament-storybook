@@ -29,7 +29,7 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
     expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
-        ->toStartWith('# 16 passing, 3 failing, 30 warnings, 2 accessibility issues')
+        ->toStartWith('# 16 passing, 3 failing, 30 warnings, 1 accessibility issues')
         ->toContain('- `broken-story.vagueAndTitleCase`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
         ->toContain('- `broken-story.collapsedFilters`: AboveContentCollapsible puts the filter button alone')
         ->toContain('- `broken-story.works`: the field `name` is neither required() nor labelled "(optional)"')
@@ -124,6 +124,7 @@ it('joins the Boost MCP server when laravel/mcp is installed', function (): void
 
 it('reads the theme from Vite\'s dev server while `npm run dev` runs, then deletes its copy', function (): void {
     file_put_contents(public_path('hot'), 'http://dev.test:5173');
+    $this->app->instance(Illuminate\Foundation\Vite::class, new Illuminate\Foundation\Vite);
     Josephdlmd\FilamentStorybook\Pages\Storybook::panel()->viteTheme('resources/css/theme.css');
     Illuminate\Support\Facades\Http::fake(['dev.test:5173/*' => Illuminate\Support\Facades\Http::response('.fi-btn { min-height: 2rem }')]);
     Illuminate\Support\Facades\Process::fake(['*' => Illuminate\Support\Facades\Process::result('{}')]);
