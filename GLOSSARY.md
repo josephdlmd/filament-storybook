@@ -16,6 +16,10 @@ _Avoid_: Compact mode, dense mode, data-dense theme
 Filament defaults the package corrects app-wide because they break a rule.
 _Avoid_: Overrides, tweaks
 
+**App screen**:
+A Livewire + Flux screen outside a panel, under `/app`. The same rules apply as in a panel; only the components differ.
+_Avoid_: Front end, Flux page, public page
+
 **Rule**:
 A UI requirement with a current source under the rules policy.
 _Avoid_: Guideline, preference, standard (a standard may also be a business fact)
