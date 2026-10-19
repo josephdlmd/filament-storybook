@@ -13,6 +13,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
@@ -38,9 +39,12 @@ class CollectionsReportStories extends Stories
         return [CollectionsReportExporter::class, ReportExporter::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No collections in this range')
+            ->emptyStateDescription('Posted collections dated in the range appear here; change the dates or the customer to see others.')
             ->query(Payment::query()->where('status', DocumentStatus::Posted)->with('salesInvoice.customer'))
             ->columns([
                 TextColumn::make('number')

@@ -10,6 +10,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Invitations\AcceptInvitation;
 use Josephdlmd\FilamentStorybook\Stories\Invitations\UserInvitation;
@@ -76,9 +77,12 @@ class InviteUserStories extends Stories
     }
 
     /** The Users list: who is still invited, with sending again and withdrawing. */
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function list(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No users yet')
+            ->emptyStateDescription('Invite someone to give them access to the app.')
             ->columns([
                 TextColumn::make('name')
                     ->searchable()

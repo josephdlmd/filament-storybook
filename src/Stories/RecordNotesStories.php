@@ -9,6 +9,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\RecordNote;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
@@ -31,6 +33,8 @@ class RecordNotesStories extends Stories
     }
 
     /** A record's notes on its View page, oldest first, with New note, Edit and Delete. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function default(Table $table): Table
     {
         $note = [

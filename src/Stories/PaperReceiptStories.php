@@ -6,6 +6,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\Record;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
 
@@ -43,6 +45,8 @@ class PaperReceiptStories extends Stories
     }
 
     /** A collection's details in the paper receipt's order, each one copyable. */
+    #[Record]
+    #[States('loading', 'error', 'forbidden')]
     public function default(Schema $schema): Schema
     {
         return $schema

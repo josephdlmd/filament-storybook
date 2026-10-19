@@ -16,6 +16,8 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\Record;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Item;
 
@@ -124,6 +126,8 @@ class FormContainerStories extends Stories
     }
 
     /** A linear task of three or more steps: a wizard on its own page, each step named for what it does, ending with the answers to check. */
+    #[Record]
+    #[States('loading', 'error', 'forbidden')]
     public function wizard(Schema $schema): Schema
     {
         // On a resource, the supplier's name comes from its record; the terms are the field's own options.

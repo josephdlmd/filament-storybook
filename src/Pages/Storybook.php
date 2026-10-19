@@ -10,6 +10,8 @@ use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
@@ -96,10 +98,16 @@ class Storybook extends Page
             ...array_map(fn (array $story): Section => Section::make($story['label'])
                 ->description($story['description'] ? static::prose($story['description']) : null)
                 ->schema([
-                    $story['kind'] === null
-                        ? Callout::make('Not a story')->description('Declare a Filament component, column or action as the return type.')->warning()
-                        : Livewire::make(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story['name']])
+                    match (true) {
+                        $story['kind'] === null => Callout::make('Not a story')->description('Declare a Filament component, column or action as the return type.')->warning(),
+                        count($story['states']) === 1 => Livewire::make(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story['name']])
                             ->key("{$manifest['id']}.{$story['name']}"),
+                        // A screen's states, one tab each, as the canvas switches them.
+                        default => Tabs::make('States')->tabs(array_map(fn (string $state): Tab => Tab::make(Str::ucfirst($state))->schema([
+                            Livewire::make(StoryCanvas::class, ['stories' => $stories::class, 'story' => $story['name'], 'state' => $state])
+                                ->key("{$manifest['id']}.{$story['name']}.{$state}"),
+                        ]), $story['states'])),
+                    },
                     // shortcut: plain <pre> because CodeEntry needs phiki/phiki; switch if apps install it. It scrolls, so the keyboard can reach it.
                     // currentColor tints keep the box readable in light and dark mode without a stylesheet.
                     Html::make(new HtmlString('<pre tabindex="0" style="overflow-x: auto; font-size: 0.875rem; padding: 0.75rem 1rem; border-radius: 0.5rem; background: color-mix(in oklab, currentColor 4%, transparent); border: 1px solid color-mix(in oklab, currentColor 12%, transparent);"><code>'.e($story['snippet']).'</code></pre>')),

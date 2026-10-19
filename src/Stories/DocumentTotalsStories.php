@@ -19,6 +19,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Number;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentTotals;
 use Josephdlmd\FilamentStorybook\Stories\Documents\WithholdingCode;
@@ -50,6 +51,7 @@ class DocumentTotalsStories extends Stories
     }
 
     /** An invoice's lines with the totals under them, worked out as the user types. */
+    #[Section]
     public function default(Schema $schema): Schema
     {
         return $schema

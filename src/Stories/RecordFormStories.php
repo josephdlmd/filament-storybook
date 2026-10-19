@@ -6,6 +6,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
+use Josephdlmd\FilamentStorybook\Attributes\Record;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class RecordFormStories extends Stories
@@ -25,6 +27,8 @@ class RecordFormStories extends Stories
         return [1 => ['name' => 'Abra Medical Supply', 'tin' => '123-456-789-000', 'credit_limit' => 250000, 'payment_terms' => 'net_30']];
     }
 
+    #[Record]
+    #[States('loading', 'error', 'forbidden')]
     public function default(Schema $schema): Schema
     {
         return $schema

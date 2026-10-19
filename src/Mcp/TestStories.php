@@ -64,16 +64,41 @@ class TestStories extends Tool
                     continue;
                 }
 
-                try {
-                    $rendered["{$id}.{$name}"] = (string) Livewire::mount(StoryCanvas::class, ['stories' => $stories::class, 'story' => $name]);
-                    $passing[] = "{$id}.{$name}";
-                } catch (Throwable $e) {
-                    // Render errors arrive wrapped in view exceptions; the innermost one names the actual mistake.
-                    while ($e->getPrevious() !== null) {
-                        $e = $e->getPrevious();
+                // A screen owes its states (GLOSSARY.md, State); each one it shows is rendered and checked like the story itself.
+                $states = Stories::states($story);
+
+                if ($unknown = array_diff($states, Stories::STATES)) {
+                    $warnings[] = "`{$id}.{$name}` `story.states-unknown`: there is no state ".implode(' or ', $unknown).'; the states are '.implode(', ', Stories::STATES).'.';
+                }
+
+                if ($missing = array_diff(Stories::owedStates($story), $states)) {
+                    $warnings[] = "`{$id}.{$name}` `story.states-missing`: as a screen it owes the ".implode(', ', $missing).' states; show them with `#[States(...)]`, or mark it `#[Record]` (one record\'s page or form, which has no empty state) or `#[Section]` (a part of a screen, which owes only what it declares).';
+                }
+
+                foreach (array_intersect($states, Stories::STATES) as $state) {
+                    $key = $state === 'populated' ? "{$id}.{$name}" : "{$id}.{$name}, {$state}";
+
+                    try {
+                        $rendered[$key] = (string) Livewire::mount(StoryCanvas::class, ['stories' => $stories::class, 'story' => $name, 'state' => $state]);
+                        $passing[] = $key;
+                    } catch (Throwable $e) {
+                        // Render errors arrive wrapped in view exceptions; the innermost one names the actual mistake.
+                        while ($e->getPrevious() !== null) {
+                            $e = $e->getPrevious();
+                        }
+
+                        $failing[$key] = class_basename($e).': '.$e->getMessage().' at '.static::location($e, $stories);
+
+                        continue;
                     }
 
-                    $failing["{$id}.{$name}"] = class_basename($e).': '.$e->getMessage().' at '.static::location($e, $stories);
+                    if ($state === 'loading' && ! str_contains($rendered[$key], 'aria-busy="true"')) {
+                        $warnings[] = "`{$key}` `story.loading-busy`: nothing is marked busy while it loads; defer the table or schema, `->deferLoading()`, so Filament shows its loading state (Carbon loading).";
+                    }
+
+                    if ($state === 'empty' && str_contains($rendered[$key], 'fi-ta-empty-state') && ! str_contains($rendered[$key], 'fi-ta-empty-state-description')) {
+                        $warnings[] = "`{$key}` `story.empty-state`: the empty list gives no next step; add `emptyStateDescription()` saying what will appear and how to add it, as `tables-list-table` does (Carbon empty states).";
+                    }
                 }
             }
         }

@@ -13,6 +13,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Customer;
 
@@ -42,9 +43,12 @@ class ArchiveStories extends Stories
         ];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No customers yet')
+            ->emptyStateDescription('Create a customer to start selling to them.')
             ->columns([
                 TextColumn::make('code')
                     ->searchable()

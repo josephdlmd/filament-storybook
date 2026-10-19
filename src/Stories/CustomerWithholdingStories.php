@@ -12,6 +12,8 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Payment;
 use Josephdlmd\FilamentStorybook\Stories\Documents\PrintedDocument;
@@ -38,12 +40,15 @@ class CustomerWithholdingStories extends Stories
         return [CustomerWithholding::class, SawtExporter::class, ReportExporter::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         // The filter's quarter, or the one just ended.
         $quarter = fn (?array $data): string => $data['quarter'] ?? null ?: SupplierWithholding::lastQuarter();
 
         return $table
+            ->emptyStateHeading('No tax withheld in this quarter')
+            ->emptyStateDescription('Payments whose customer withheld tax appear here, in the quarter they were paid.')
             ->query(Payment::query())
             ->columns([
                 TextColumn::make('tin')
@@ -111,6 +116,8 @@ class CustomerWithholdingStories extends Stories
     }
 
     /** The 2307s still to collect: posted payments whose 2307 hasn't arrived, oldest first. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function awaiting(Table $table): Table
     {
         return $table

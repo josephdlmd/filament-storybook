@@ -10,6 +10,8 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class RelatedRecordsStories extends Stories
@@ -33,6 +35,8 @@ class RelatedRecordsStories extends Stories
     }
 
     /** Records that belong only to this one: New, Edit and Delete. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function default(Table $table): Table
     {
         return $table
@@ -56,9 +60,13 @@ class RelatedRecordsStories extends Stories
     }
 
     /** Records that exist on their own: Add and Remove, and the record stays. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function linked(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No contacts yet')
+            ->emptyStateDescription('Add the people you deal with at this customer.')
             ->modelLabel('user')
             ->recordTitleAttribute('name')
             ->columns([

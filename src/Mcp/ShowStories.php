@@ -43,6 +43,7 @@ class ShowStories extends Tool
 
         foreach ($manifest['stories'] as $story) {
             $text .= "\n## {$story['label']}\n\n".($story['description'] ? "{$story['description']}\n\n" : '')
+                .(count($story['states']) > 1 ? 'States: '.implode(', ', $story['states']).".\n\n" : '')
                 ."```php\n{$story['snippet']}\n```\n";
         }
 

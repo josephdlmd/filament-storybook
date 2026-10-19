@@ -5,6 +5,8 @@ namespace Josephdlmd\FilamentStorybook\Stories;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Josephdlmd\FilamentStorybook\Attributes\Section;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\SalesInvoice;
 
@@ -21,6 +23,8 @@ class RecordHistoryStories extends Stories
     }
 
     /** A document's history on its View page, oldest first. */
+    #[Section]
+    #[States('loading', 'empty')]
     public function default(Table $table): Table
     {
         return $table

@@ -14,6 +14,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Josephdlmd\FilamentStorybook\Attributes\States;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\Documents\Customer;
 use Josephdlmd\FilamentStorybook\Stories\Documents\DocumentStatus;
@@ -40,9 +41,12 @@ class SalesReportStories extends Stories
         return [SalesReportExporter::class, ReportExporter::class, PrintedDocument::class];
     }
 
+    #[States('loading', 'empty', 'error', 'forbidden')]
     public function default(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No sales in this range')
+            ->emptyStateDescription('Posted invoices dated in the range appear here; change the dates or the customer to see others.')
             ->query(SalesInvoice::query()->where('status', DocumentStatus::Posted))
             ->columns([
                 TextColumn::make('number')

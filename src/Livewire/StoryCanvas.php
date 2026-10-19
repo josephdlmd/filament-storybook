@@ -16,6 +16,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,7 @@ use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use ReflectionClass;
+use ReflectionParameter;
 
 /**
  * Renders one story in its own Livewire component, so stories never share state:
@@ -32,14 +34,22 @@ use ReflectionClass;
 class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 {
     use InteractsWithActions;
-    use InteractsWithSchemas;
-    use InteractsWithTable;
+    use InteractsWithSchemas {
+        loadDeferredSchema as protected loadDeferredSchemaNow;
+    }
+    use InteractsWithTable {
+        loadTable as protected loadTableNow;
+    }
 
     #[Locked]
     public string $stories;
 
     #[Locked]
     public string $story;
+
+    /** Which of Stories::STATES the story is shown in; the canvas switches it, so the story keeps one snippet. */
+    #[Locked]
+    public string $state = 'populated';
 
     /** @var array<string, mixed>|null */
     public ?array $data = [];
@@ -64,7 +74,23 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
     public function mount(): void
     {
         // Entries and fields show the first sample record.
-        $this->form->fill(Arr::first($this->instance()->records()) ?? []);
+        $this->form->fill($this->state === 'empty' ? [] : Arr::first($this->instance()->records()) ?? []);
+    }
+
+    /** Loading holds: the table stays deferred, so its busy indicator shows. */
+    public function loadTable(): void
+    {
+        if ($this->state !== 'loading') {
+            $this->loadTableNow();
+        }
+    }
+
+    /** Loading holds for a deferred schema too (Filament's internal loader, which the canvas only delays). */
+    public function loadDeferredSchema(string $schemaKey): void
+    {
+        if ($this->state !== 'loading') {
+            $this->loadDeferredSchemaNow($schemaKey);
+        }
     }
 
     public function form(Schema $schema): Schema
@@ -75,7 +101,7 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         return match ($this->kind()) {
             'component' => $schema->components([$this->build()]),
             'action' => $schema->components([Actions::make([$this->build()])->key('story')]),
-            'schema' => $this->build($schema),
+            'schema' => $this->build($schema)->deferLoading($this->state === 'loading'),
             default => $schema,
         };
     }
@@ -93,11 +119,18 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
 
         $table->paginated(false);
 
-        return match ($this->kind()) {
+        $table = match ($this->kind()) {
             'column' => $table->columns([$this->build()]),
             'table' => $this->build($table),
             default => $table,
         };
+
+        // Empty: no rows, from the story's query or its sample rows. Loading: deferred, and held by loadTable().
+        if ($this->state === 'empty') {
+            $table->hasQuery() ? $table->modifyQueryUsing(fn (Builder $query): Builder => $query->whereRaw('1 = 0')) : $table->records(fn (): array => []);
+        }
+
+        return $table->deferLoading($this->state === 'loading');
     }
 
     /** The canvas has no Edit page for `EditAction` to open, as a resource page does. */
@@ -112,9 +145,10 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         return fn (): Response => Response::allow();
     }
 
+    /** Empty is a new record with nothing yet, so its notes, history and related lists are empty too. */
     protected function record(): Model
     {
-        return $this->model(Arr::first($this->instance()->records()) ?? []);
+        return $this->model($this->state === 'empty' ? [] : Arr::first($this->instance()->records()) ?? []);
     }
 
     /** @param  array<string, mixed>  $attributes */
@@ -154,8 +188,15 @@ class StoryCanvas extends Component implements HasActions, HasSchemas, HasTable
         return app(StoryRegistry::class)->findByClass($this->stories) ?? abort(404);
     }
 
+    /** A story that takes `$state` shows the states the canvas can't make by itself, such as a dashboard with nothing yet. */
     protected function build(mixed ...$arguments): mixed
     {
+        $story = $this->instance()->stories()[$this->story];
+
+        if (collect($story->getParameters())->contains(fn (ReflectionParameter $parameter): bool => $parameter->getName() === 'state')) {
+            $arguments['state'] = $this->state;
+        }
+
         return $this->instance()->{$this->story}(...$arguments);
     }
 
