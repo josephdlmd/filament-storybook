@@ -40,6 +40,18 @@ _Avoid_: Component (that is Filament's or Flux's building block), template, reci
 One rendering of a pattern, or of an app's own screen, in the gallery. Shared stories come with the package; an app's stories stay in that app and only combine approved parts.
 _Avoid_: Example, demo
 
+**Screen**:
+A pattern for a whole page (a list, report, dashboard, wizard or settings page). A screen story owes every state, except that a record screen (one record's page or form) has no empty state.
+_Avoid_: Page, view, layout (that is a design registry id)
+
+**Section**:
+A part of a screen that holds its own data (history, notes, related records). It shows only the states it has.
+_Avoid_: Panel (that is Filament's app area), widget, block
+
+**State**:
+One of the five conditions a screen is shown in: loading, empty, populated, error, forbidden. "No results" after a search or filter is part of empty, and "can view but not change" is populated with actions hidden.
+_Avoid_: Variant, mode, interaction state
+
 **Snippet**:
 The code of a story that an agent copies into a screen and configures. It sets up native components and copies no component code, so a screen built from it still uses the design system by version.
 _Avoid_: Template, boilerplate
