@@ -12,6 +12,22 @@ use Illuminate\Support\Facades\Schema;
  */
 class SampleDatabase
 {
+    /** @var list<array{class-string, string}> What an add-on adds to the sample tables and rows, run once they exist. */
+    protected static array $extensions = [];
+
+    /**
+     * Adds columns and rows to the sample tables, from an add-on's service provider (filament-storybook-ph adds VAT and
+     * withholding), as a static method taking the schema builder and the connection. Adding the same one again does nothing.
+     *
+     * @param  array{class-string, string}  $extension
+     */
+    public static function extend(array $extension): void
+    {
+        if (! in_array($extension, static::$extensions, true)) {
+            static::$extensions[] = $extension;
+        }
+    }
+
     public static function boot(): void
     {
         // shortcut: the rows are built once per PHP process; a long-lived worker (Octane) that reconnects between requests would lose them.
@@ -28,7 +44,6 @@ class SampleDatabase
             $table->string('code');
             $table->string('name');
             $table->decimal('credit_limit', 15, 2)->nullable();
-            $table->string('tin')->nullable();
             $table->softDeletes();
         });
 
@@ -49,20 +64,8 @@ class SampleDatabase
             $table->foreignId('customer_id')->nullable();
             $table->date('invoice_date')->nullable();
             $table->date('due_date')->nullable();
-            $table->decimal('vatable_sales', 15, 2)->default(0);
-            $table->decimal('vat', 15, 2)->default(0);
-            $table->decimal('zero_rated_sales', 15, 2)->default(0);
-            $table->decimal('exempt_sales', 15, 2)->default(0);
             $table->decimal('total', 15, 2)->default(0);
             $table->decimal('balance_due', 15, 2)->default(0);
-        });
-
-        $schema->create('withholding_codes', function (Blueprint $table): void {
-            $table->string('code')->primary();
-            $table->string('description');
-            $table->decimal('rate', 5, 2);
-            $table->string('kind');
-            $table->string('withheld_by');
         });
 
         $schema->create('items', function (Blueprint $table): void {
@@ -118,16 +121,9 @@ class SampleDatabase
             $table->string('supplier');
             $table->date('order_date');
             $table->date('due_date')->nullable();
-            $table->decimal('vatable_purchases', 15, 2)->default(0);
-            $table->decimal('vat', 15, 2)->default(0);
             $table->decimal('total', 15, 2)->default(0);
             $table->decimal('balance_due', 15, 2)->default(0);
-            // The withholding, worked out once when the supplier's invoice is recorded (business standards).
-            $table->string('supplier_tin')->nullable();
             $table->string('supplier_address')->nullable();
-            $table->string('withholding_code')->nullable();
-            $table->date('invoice_recorded_on')->nullable();
-            $table->decimal('tax_withheld', 15, 2)->default(0);
         });
 
         $schema->create('payments', function (Blueprint $table): void {
@@ -137,13 +133,7 @@ class SampleDatabase
             $table->string('status');
             $table->date('paid_on')->nullable();
             $table->decimal('amount', 15, 2)->default(0);
-            $table->decimal('tax_withheld', 15, 2)->default(0);
-            $table->decimal('vat_withheld', 15, 2)->default(0);
             $table->string('reference')->nullable();
-            // As on the customer's 2307: the VAT-exclusive amount withheld on, the income tax's ATC, and when it arrived.
-            $table->decimal('income_payment', 15, 2)->default(0);
-            $table->string('tax_atc')->nullable();
-            $table->date('received_2307_on')->nullable();
         });
 
         DB::connection('storybook')->table('customers')->insert([
@@ -165,20 +155,13 @@ class SampleDatabase
         ]);
 
         // The reports' figures: amounts, dates and balances on the posted invoices, and a few more of them.
-        $invoice = fn (int $customer, string $date, string $due, string $vatable, string $vat, string $exempt, string $total, string $balance): array => ['customer_id' => $customer, 'invoice_date' => $date, 'due_date' => $due, 'vatable_sales' => $vatable, 'vat' => $vat, 'exempt_sales' => $exempt, 'total' => $total, 'balance_due' => $balance];
-        DB::connection('storybook')->table('sales_invoices')->where('number', '001232')->update($invoice(3, '2026-10-11', '2026-11-10', '3058.93', '367.07', '2900.00', '6326.00', '0.00'));
-        DB::connection('storybook')->table('sales_invoices')->where('number', '001234')->update($invoice(2, '2026-10-14', '2026-11-13', '3003.31', '360.40', '0.00', '3363.71', '3363.71'));
+        $invoice = fn (int $customer, string $date, string $due, string $total, string $balance): array => ['customer_id' => $customer, 'invoice_date' => $date, 'due_date' => $due, 'total' => $total, 'balance_due' => $balance];
+        DB::connection('storybook')->table('sales_invoices')->where('number', '001232')->update($invoice(3, '2026-10-11', '2026-11-10', '6326.00', '0.00'));
+        DB::connection('storybook')->table('sales_invoices')->where('number', '001234')->update($invoice(2, '2026-10-14', '2026-11-13', '3363.71', '3363.71'));
         DB::connection('storybook')->table('sales_invoices')->insert([
-            ['number' => '000901', 'status' => 'posted', ...$invoice(1, '2026-06-01', '2026-07-01', '4464.29', '535.71', '0.00', '5000.00', '5000.00')],
-            ['number' => '000902', 'status' => 'posted', ...$invoice(1, '2026-08-20', '2026-09-19', '795.09', '95.41', '0.00', '890.50', '890.50')],
-            ['number' => '000903', 'status' => 'posted', ...$invoice(3, '2026-09-25', '2026-10-25', '10000.00', '1200.00', '0.00', '11200.00', '11200.00')],
-        ]);
-
-        // Only the codes the business standards name; the CPA confirms the rest.
-        DB::connection('storybook')->table('withholding_codes')->insert([
-            ['code' => 'WC158', 'description' => 'Goods bought by a top withholding agent', 'rate' => '1.00', 'kind' => 'income', 'withheld_by' => 'us'],
-            ['code' => 'WC160', 'description' => 'Services bought by a top withholding agent', 'rate' => '2.00', 'kind' => 'income', 'withheld_by' => 'us'],
-            ['code' => 'WV010', 'description' => 'VAT withheld by a government office', 'rate' => '5.00', 'kind' => 'vat', 'withheld_by' => 'customer'],
+            ['number' => '000901', 'status' => 'posted', ...$invoice(1, '2026-06-01', '2026-07-01', '5000.00', '5000.00')],
+            ['number' => '000902', 'status' => 'posted', ...$invoice(1, '2026-08-20', '2026-09-19', '890.50', '890.50')],
+            ['number' => '000903', 'status' => 'posted', ...$invoice(3, '2026-09-25', '2026-10-25', '11200.00', '11200.00')],
         ]);
 
         DB::connection('storybook')->table('items')->insert([
@@ -214,27 +197,25 @@ class SampleDatabase
             ['number' => 'SO-000011', 'customer_id' => 1, 'status' => 'posted', 'total' => '200000.00', 'invoiced_total' => '0.00'],
         ]);
 
-        $benguet = ['supplier_tin' => '234-567-890-000', 'supplier_address' => '8 Session Road, Baguio City 2600', 'withholding_code' => 'WC158'];
+        $benguet = ['supplier' => 'Benguet Trading', 'supplier_address' => '8 Session Road, Baguio City 2600'];
         DB::connection('storybook')->table('purchase_orders')->insert([
-            ['number' => 'PO-000041', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-09-28', 'due_date' => '2026-10-28', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '0.00', ...$benguet, 'invoice_recorded_on' => '2026-09-30', 'tax_withheld' => '47.30'],
-            ['number' => 'PO-000042', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-10-11', 'due_date' => '2026-11-10', 'vatable_purchases' => '4730.36', 'vat' => '567.64', 'total' => '5298.00', 'balance_due' => '5298.00', ...$benguet, 'invoice_recorded_on' => '2026-10-12', 'tax_withheld' => '47.30'],
-            ['number' => 'PO-000043', 'status' => 'posted', 'supplier' => 'Luzon Medical Gases', 'order_date' => '2026-08-15', 'due_date' => '2026-09-14', 'vatable_purchases' => '12500.00', 'vat' => '1500.00', 'total' => '14000.00', 'balance_due' => '7000.00', 'supplier_tin' => '345-678-901-000', 'supplier_address' => '21 MacArthur Highway, Valenzuela City 1440', 'withholding_code' => 'WC158', 'invoice_recorded_on' => '2026-08-20', 'tax_withheld' => '125.00'],
-            ['number' => 'PO-000039', 'status' => 'posted', 'supplier' => 'Benguet Trading', 'order_date' => '2026-07-10', 'due_date' => '2026-08-09', 'vatable_purchases' => '2232.14', 'vat' => '267.86', 'total' => '2500.00', 'balance_due' => '0.00', ...$benguet, 'invoice_recorded_on' => '2026-07-15', 'tax_withheld' => '22.32'],
+            ['number' => 'PO-000041', 'status' => 'posted', ...$benguet, 'order_date' => '2026-09-28', 'due_date' => '2026-10-28', 'total' => '5298.00', 'balance_due' => '0.00'],
+            ['number' => 'PO-000042', 'status' => 'posted', ...$benguet, 'order_date' => '2026-10-11', 'due_date' => '2026-11-10', 'total' => '5298.00', 'balance_due' => '5298.00'],
+            ['number' => 'PO-000043', 'status' => 'posted', 'supplier' => 'Luzon Medical Gases', 'supplier_address' => '21 MacArthur Highway, Valenzuela City 1440', 'order_date' => '2026-08-15', 'due_date' => '2026-09-14', 'total' => '14000.00', 'balance_due' => '7000.00'],
+            ['number' => 'PO-000039', 'status' => 'posted', ...$benguet, 'order_date' => '2026-07-10', 'due_date' => '2026-08-09', 'total' => '2500.00', 'balance_due' => '0.00'],
         ]);
 
-        // Invoice 001232 has a live payment; 001234 has only a void one.
+        // Invoice 001232 has a live payment; 001234 has only a void one, for the void tests. Each amount is what it settles.
         DB::connection('storybook')->table('payments')->insert([
-            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted', 'paid_on' => '2026-11-08', 'amount' => '6298.69', 'tax_withheld' => '27.31', 'vat_withheld' => '0.00', 'reference' => 'Check 0047731', 'income_payment' => '2731.00', 'tax_atc' => 'WC158', 'received_2307_on' => null],
-            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void', 'paid_on' => '2026-11-09', 'amount' => '3363.71', 'tax_withheld' => '0.00', 'vat_withheld' => '0.00', 'reference' => 'Cash', 'income_payment' => '0.00', 'tax_atc' => null, 'received_2307_on' => null],
-            // Customer withholding for the SAWT: Abra's 2307 for July and Cebu's for October are in; Abra's for October isn't yet.
-            // Invoice 001234 keeps only its void payment, for the void tests.
-            ['sales_invoice_id' => 5, 'number' => '004530', 'status' => 'posted', 'paid_on' => '2026-07-15', 'amount' => '4955.36', 'tax_withheld' => '44.64', 'vat_withheld' => '0.00', 'reference' => 'Check 0045120', 'income_payment' => '4464.00', 'tax_atc' => 'WC158', 'received_2307_on' => '2026-08-10'],
-            ['sales_invoice_id' => 7, 'number' => '004531', 'status' => 'posted', 'paid_on' => '2026-10-02', 'amount' => '3183.51', 'tax_withheld' => '30.03', 'vat_withheld' => '150.17', 'reference' => 'Check 0071214', 'income_payment' => '3003.31', 'tax_atc' => 'WC158', 'received_2307_on' => '2026-10-20'],
-            ['sales_invoice_id' => 6, 'number' => '004532', 'status' => 'posted', 'paid_on' => '2026-10-09', 'amount' => '882.55', 'tax_withheld' => '7.95', 'vat_withheld' => '0.00', 'reference' => 'Check 0045198', 'income_payment' => '795.09', 'tax_atc' => 'WC158', 'received_2307_on' => null],
+            ['sales_invoice_id' => 2, 'number' => '004516', 'status' => 'posted', 'paid_on' => '2026-11-08', 'amount' => '6326.00', 'reference' => 'Check 0047731'],
+            ['sales_invoice_id' => 3, 'number' => '004517', 'status' => 'void', 'paid_on' => '2026-11-09', 'amount' => '3363.71', 'reference' => 'Cash'],
+            ['sales_invoice_id' => 5, 'number' => '004530', 'status' => 'posted', 'paid_on' => '2026-07-15', 'amount' => '5000.00', 'reference' => 'Check 0045120'],
+            ['sales_invoice_id' => 7, 'number' => '004531', 'status' => 'posted', 'paid_on' => '2026-10-02', 'amount' => '3363.71', 'reference' => 'Check 0071214'],
+            ['sales_invoice_id' => 6, 'number' => '004532', 'status' => 'posted', 'paid_on' => '2026-10-09', 'amount' => '890.50', 'reference' => 'Check 0045198'],
         ]);
 
-        foreach (['C-0001' => '234-567-890-000', 'C-0002' => '345-678-901-000', 'C-0003' => '987-654-321-000'] as $code => $tin) {
-            DB::connection('storybook')->table('customers')->where('code', $code)->update(['tin' => $tin]);
+        foreach (static::$extensions as [$class, $method]) {
+            $class::$method($schema, DB::connection('storybook'));
         }
     }
 }

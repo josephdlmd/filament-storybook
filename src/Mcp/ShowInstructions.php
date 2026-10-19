@@ -2,6 +2,7 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
+use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -18,6 +19,7 @@ class ShowInstructions extends Tool
     {
         return Response::text(file_get_contents(__DIR__.'/../../resources/instructions/stories.md')
             ."\n---\n\n".file_get_contents(__DIR__.'/../../docs/filament-coverage.md')
-            ."\n---\n\n".file_get_contents(__DIR__.'/../../docs/rules.md'));
+            ."\n---\n\n".file_get_contents(__DIR__.'/../../docs/rules.md')
+            .implode('', array_map(fn (string $path): string => "\n---\n\n".file_get_contents($path), app(StoryRegistry::class)->rules())));
     }
 }

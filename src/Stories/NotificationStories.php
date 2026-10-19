@@ -42,7 +42,7 @@ class NotificationStories extends Stories
             ->action(fn () => Notification::make()
                 ->warning()
                 ->title('Abra Medical Supply saved')
-                ->body('It has no TIN yet. Add one before you record its invoices.')
+                ->body('It has no email address yet. Add one before you email it documents.')
                 ->send());
     }
 

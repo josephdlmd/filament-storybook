@@ -23,10 +23,6 @@ class PurchasesReportExporter extends ReportExporter
             ExportColumn::make('order_date')
                 ->label('Date'),
             ExportColumn::make('supplier'),
-            ExportColumn::make('vatable_purchases')
-                ->label('VATable purchases'),
-            ExportColumn::make('vat')
-                ->label('VAT'),
             ExportColumn::make('total'),
         ];
     }

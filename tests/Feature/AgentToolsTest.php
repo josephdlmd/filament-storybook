@@ -11,7 +11,7 @@ use Laravel\Mcp\Request;
 
 it('reports every story passing', function (): void {
     expect(testStoriesWithTheme())
-        ->toStartWith('# 209 passing, 0 failing, 0 accessibility issues, 0 settled exceptions')
+        ->toStartWith('# 187 passing, 0 failing, 0 accessibility issues, 0 settled exceptions')
         ->toContain('- `forms-money-input.required`');
 });
 
@@ -78,8 +78,8 @@ it('checks each component\'s own options, so one tooltip or one collapsed sectio
 it('fails, saying how to enable the accessibility check, when it cannot run', function (): void {
     config(['filament-storybook.chromium' => '/nonexistent/chrome']);
 
-    expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-tin']]))->content())
-        ->toStartWith('# 2 passing, 1 failing, 0 accessibility issues, 0 settled exceptions')
+    expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-percentage']]))->content())
+        ->toStartWith('# 1 passing, 1 failing, 0 accessibility issues, 0 settled exceptions')
         ->toContain('- `accessibility` `a11y.unchecked`: Accessibility not checked (')
         ->toContain('npx playwright-core install chromium');
 });
@@ -144,3 +144,30 @@ it('reads the theme from Vite\'s dev server while `npm run dev` runs, then delet
         return $theme !== null && ! file_exists($theme);
     });
 });
+
+it('lets an add-on add its rules and sample columns, once each', function (): void {
+    $rules = tempnam(sys_get_temp_dir(), 'rules');
+    file_put_contents($rules, '# An add-on\'s rules');
+    app(StoryRegistry::class)->addRules($rules)->addRules($rules);
+
+    expect(substr_count((string) (new Josephdlmd\FilamentStorybook\Mcp\ShowInstructions)->handle(new Request)->content(), '# An add-on\'s rules'))->toBe(1);
+
+    unlink($rules);
+
+    // Added twice, it runs once when the tables are made (a second run would add the column again and fail).
+    Josephdlmd\FilamentStorybook\Stories\Documents\SampleDatabase::boot();
+    Josephdlmd\FilamentStorybook\Stories\Documents\SampleDatabase::extend([SampleColumns::class, 'extend']);
+    Josephdlmd\FilamentStorybook\Stories\Documents\SampleDatabase::extend([SampleColumns::class, 'extend']);
+    Illuminate\Support\Facades\Schema::connection('storybook')->dropAllTables();
+    Josephdlmd\FilamentStorybook\Stories\Documents\SampleDatabase::boot();
+
+    expect(Illuminate\Support\Facades\Schema::connection('storybook')->hasColumn('customers', 'nickname'))->toBeTrue();
+});
+
+class SampleColumns
+{
+    public static function extend(Illuminate\Database\Schema\Builder $schema): void
+    {
+        $schema->table('customers', fn (Illuminate\Database\Schema\Blueprint $table) => $table->string('nickname')->nullable());
+    }
+}

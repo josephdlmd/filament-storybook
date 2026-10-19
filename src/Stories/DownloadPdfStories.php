@@ -19,7 +19,7 @@ class DownloadPdfStories extends Stories
 
     public function description(): string
     {
-        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, tin, vat). Sales invoices and collection receipts are written by hand on BIR pre-printed forms, which are the official copies. A sales invoice\'s printout is titled "Sales invoice (copy)", with the form\'s serial, and not valid for claim of input tax; it is kept on file and may be emailed to the customer (`actions-email-document`). A collection is written onto its paper receipt from `records-paper-receipt`; what the customer gets by email is a payment acknowledgement, "Payment received (copy)", not an official receipt (`paymentAcknowledgement`). A statement of account lists a customer\'s open invoices with their ageing (`statementOfAccount`); a supplier statement lists what is owed to one supplier the same way, kept on file to check against the statement the supplier sends, never emailed (`supplierStatement`, `actions-download-supplier-statement`). Business standards from the owner (2026-10-11 and 2026-10-12). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
+        return 'Printing a document, or keeping it on file, as a PDF: a gray "Download PDF" button among the View page\'s header actions, shown once the document is posted (a draft isn\'t printed). Every document uses the one shared layout, `filament-storybook::documents.print`, filled from a data array (the other stories show it for a sales invoice copy, a purchase order and a payment voucher; a receiving report is like the order with received quantities). `PrintedDocument` in the examples makes the PDF with spatie/laravel-pdf: A4, tagged so screen readers can read its headings and tables, and titled with its number. The app needs spatie/laravel-pdf with its Browsershot driver (spatie/browsershot and puppeteer), and its own details in `config/company.php` (name, address, and the email address documents are sent from). A sales invoice written on a pre-printed form prints as "Sales invoice (copy)", with the form\'s serial; it is kept on file and may be emailed to the customer (`actions-email-document`). What a customer gets by email for a collection is a payment acknowledgement, "Payment received (copy)" (`paymentAcknowledgement`). An app that keeps Philippine books prints TINs, VAT, the tax withheld and BIR\'s wording with filament-storybook-ph (`actions-download-pdf-with-tax-details`). A statement of account lists a customer\'s open invoices with their ageing (`statementOfAccount`); a supplier statement lists what is owed to one supplier the same way, kept on file to check against the statement the supplier sends, never emailed (`supplierStatement`, `actions-download-supplier-statement`). Business standards from the owner (2026-10-11 and 2026-10-12). Basis: Carbon action labels (archived: Download "transfers a file from a remote to local"); Carbon button (Sep 2026: one primary action, the rest secondary); W3C WCAG 2.2 PDF techniques (PDF6 table headers, PDF9 headings, PDF16 language, PDF18 title: a tagged PDF); WCAG 1.4.3 (4.5:1 text); USWDS table (numbers right-aligned).';
     }
 
     public function examples(): array
@@ -35,15 +35,11 @@ class DownloadPdfStories extends Stories
             'invoice_date' => '2026-10-11',
             'terms' => '30 days',
             'due_date' => '2026-11-10',
-            'customer' => ['name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
+            'customer' => ['name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000'],
             'lines' => [
-                ['description' => 'Nitrile examination gloves, medium, box of 100', 'vat_class' => 'vatable', 'quantity' => '12', 'unit_price' => '285.5'],
-                ['description' => 'Insulin pens, 3 mL, pack of 5', 'vat_class' => 'exempt', 'quantity' => '2', 'unit_price' => '1450'],
+                ['description' => 'Nitrile examination gloves, medium, box of 100', 'quantity' => '12', 'unit_price' => '285.5'],
+                ['description' => 'Insulin pens, 3 mL, pack of 5', 'quantity' => '2', 'unit_price' => '1450'],
             ],
-            'vatable_sales' => '3058.93',
-            'vat' => '367.07',
-            'zero_rated_sales' => '0.00',
-            'exempt_sales' => '2900.00',
             'total' => '6326.00',
             'notes' => null,
         ]];
@@ -59,7 +55,7 @@ class DownloadPdfStories extends Stories
             ->action(fn (Model $record): StreamedResponse => PrintedDocument::download(PrintedDocument::salesInvoice($record)));
     }
 
-    /** The printed copy of a sales invoice, whose official copy is the BIR form it was written on. */
+    /** The printed copy of a sales invoice, under the serial of the form it was written on. */
     public function salesInvoiceCopy(): View
     {
         return View::make('filament-storybook::documents.document')
@@ -67,23 +63,21 @@ class DownloadPdfStories extends Stories
                 'title' => 'Sales invoice (copy)',
                 'number_label' => 'No.',
                 'number' => '001232',
-                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Sold to', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100'],
+                'party' => ['label' => 'Sold to', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000'],
                 'details' => ['Date' => 'Oct 11, 2026', 'Terms' => '30 days', 'Due date' => 'Nov 10, 2026'],
                 'columns' => [
                     'description' => ['label' => 'Description'],
                     'quantity' => ['label' => 'Quantity', 'format' => 'quantity'],
                     'unit_price' => ['label' => 'Unit price', 'format' => 'unit price'],
-                    'vat' => ['label' => 'VAT'],
                     'amount' => ['label' => 'Amount', 'format' => 'money'],
                 ],
                 'lines' => [
-                    ['description' => 'Nitrile examination gloves, medium, box of 100', 'quantity' => '12', 'unit_price' => '285.50', 'vat' => '12%', 'amount' => '3426.00'],
-                    ['description' => 'Insulin pens, 3 mL, pack of 5', 'quantity' => '2', 'unit_price' => '1450.00', 'vat' => 'Exempt', 'amount' => '2900.00'],
+                    ['description' => 'Nitrile examination gloves, medium, box of 100', 'quantity' => '12', 'unit_price' => '285.50', 'amount' => '3426.00'],
+                    ['description' => 'Insulin pens, 3 mL, pack of 5', 'quantity' => '2', 'unit_price' => '1450.00', 'amount' => '2900.00'],
                 ],
-                'totals' => ['VATable sales' => '3058.93', 'VAT (12%)' => '367.07', 'Zero-rated sales' => '0.00', 'VAT-exempt sales' => '2900.00', 'Total amount due' => '6326.00'],
+                'totals' => ['Total amount due' => '6326.00'],
                 'signatures' => ['Prepared by', 'Received by'],
-                'statement' => 'THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX',
             ]]);
     }
 
@@ -95,8 +89,8 @@ class DownloadPdfStories extends Stories
                 'title' => 'Purchase order',
                 'number_label' => 'No.',
                 'number' => 'PO-000042',
-                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Supplier', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600', 'tin' => '234-567-890-000'],
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100'],
+                'party' => ['label' => 'Supplier', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600'],
                 'details' => ['Date' => 'Oct 11, 2026', 'Deliver by' => 'Oct 18, 2026', 'Deliver to' => 'Main warehouse'],
                 'columns' => [
                     'description' => ['label' => 'Description'],
@@ -108,12 +102,12 @@ class DownloadPdfStories extends Stories
                     ['description' => 'Isopropyl alcohol 70%, 500 mL', 'quantity' => '48', 'unit_price' => '62.50', 'amount' => '3000.00'],
                     ['description' => 'Cotton balls, 300 g', 'quantity' => '24', 'unit_price' => '95.75', 'amount' => '2298.00'],
                 ],
-                'totals' => ['VATable purchases' => '4730.36', 'VAT (12%)' => '567.64', 'Total' => '5298.00'],
+                'totals' => ['Total' => '5298.00'],
                 'signatures' => ['Prepared by', 'Approved by'],
             ]]);
     }
 
-    /** A payment voucher: what is paid to a supplier against which orders, the tax withheld, and the signatures that approve it. */
+    /** A payment voucher: what is paid to a supplier against which orders, and the signatures that approve it. */
     public function paymentVoucher(): View
     {
         return View::make('filament-storybook::documents.document')
@@ -121,8 +115,8 @@ class DownloadPdfStories extends Stories
                 'title' => 'Payment voucher',
                 'number_label' => 'No.',
                 'number' => 'PV-000087',
-                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Paid to', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600', 'tin' => '234-567-890-000'],
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100'],
+                'party' => ['label' => 'Paid to', 'name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600'],
                 'details' => ['Date' => 'Oct 25, 2026', 'Paid by' => 'Check 0051177'],
                 'columns' => [
                     'order' => ['label' => 'Purchase order'],
@@ -130,13 +124,13 @@ class DownloadPdfStories extends Stories
                     'amount' => ['label' => 'Amount paid', 'format' => 'money'],
                 ],
                 'lines' => [
-                    ['order' => 'PO-000042', 'invoice' => 'BT-20931', 'amount' => '5250.70'],
+                    ['order' => 'PO-000042', 'invoice' => 'BT-20931', 'amount' => '5298.00'],
                 ],
-                'totals' => ['Invoice total' => '5298.00', 'Tax withheld (WC158, 1%)' => '47.30', 'Amount paid' => '5250.70'],
+                'totals' => ['Amount paid' => '5298.00'],
                 'signatures' => ['Prepared by', 'Approved by', 'Received by'],
             ]]);
     }
-    /** What a customer gets by email for a collection: an acknowledgement under the receipt form's serial, not an official receipt. */
+    /** What a customer gets by email for a collection: an acknowledgement under the receipt form's serial. */
     public function paymentAcknowledgement(): View
     {
         return View::make('filament-storybook::documents.document')
@@ -144,8 +138,8 @@ class DownloadPdfStories extends Stories
                 'title' => 'Payment received (copy)',
                 'number_label' => 'Receipt No.',
                 'number' => '000387',
-                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Received from', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100'],
+                'party' => ['label' => 'Received from', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000'],
                 'details' => ['Date received' => 'Nov 8, 2026', 'Reference' => 'Check 0047731'],
                 'columns' => [
                     'invoice' => ['label' => 'Invoice'],
@@ -154,8 +148,7 @@ class DownloadPdfStories extends Stories
                 'lines' => [
                     ['invoice' => '001232', 'amount' => '6326.00'],
                 ],
-                'totals' => ['Amount received' => '6298.69', 'Income tax withheld' => '27.31', 'Total settled' => '6326.00'],
-                'statement' => 'THIS IS NOT AN OFFICIAL RECEIPT',
+                'totals' => ['Amount received' => '6326.00'],
             ]]);
     }
 
@@ -167,8 +160,8 @@ class DownloadPdfStories extends Stories
                 'title' => 'Statement of account',
                 'number_label' => 'As of',
                 'number' => 'Nov 30, 2026',
-                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Customer', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000', 'tin' => '987-654-321-000'],
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100'],
+                'party' => ['label' => 'Customer', 'name' => 'Cebu Diagnostics Laboratory', 'address' => '45 Osmeña Boulevard, Cebu City 6000'],
                 'details' => [],
                 'columns' => [
                     'invoice' => ['label' => 'Invoice'],
@@ -194,8 +187,8 @@ class DownloadPdfStories extends Stories
                 'title' => 'Supplier statement',
                 'number_label' => 'As of',
                 'number' => 'Oct 12, 2026',
-                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100', 'tin' => '123-456-789-000', 'vat' => 'VAT-registered'],
-                'party' => ['label' => 'Supplier', 'name' => 'Luzon Medical Gases', 'address' => '3 MacArthur Highway, San Fernando, Pampanga 2000', 'tin' => '345-678-901-000'],
+                'company' => ['name' => 'Sample Medical Trading Corporation', 'address' => '12 Rizal Avenue, Quezon City 1100'],
+                'party' => ['label' => 'Supplier', 'name' => 'Luzon Medical Gases', 'address' => '3 MacArthur Highway, San Fernando, Pampanga 2000'],
                 'details' => [],
                 'columns' => [
                     'number' => ['label' => 'Order'],

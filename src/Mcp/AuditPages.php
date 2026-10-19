@@ -742,7 +742,7 @@ class AuditPages extends Tool
             }
 
             if ($field instanceof TextInput && preg_match('/(^|_)(phone|mobile|telephone|landline)(_|$)/i', $name) && ! $field->isTel()) {
-                $warn('forms.phone', "the field `{$name}` holds a phone number but isn't `tel()`; add it, and store the number as +63, as `forms-contact-details.phone` does (GOV.UK telephone numbers; business standards).");
+                $warn('forms.phone', "the field `{$name}` holds a phone number but isn't `tel()`; add it, as `forms-contact-details.phone` does (GOV.UK telephone numbers; business standards).");
             }
 
             if (method_exists($field, 'isReadOnly') && $field->isReadOnly() && static::isSaved($field)) {

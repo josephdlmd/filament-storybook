@@ -36,7 +36,7 @@ class Fulfilment
     }
 
     /**
-     * The next document's lines: each line of the one before with its description, VAT class and unit price, the
+     * The next document's lines: each line of the one before with its description and unit price (and any tax class the app keeps on a line), the
      * quantity given for it, and the line it came from. A line given 0 is left out. Refuse a quantity over what is left
      * before calling this, inside the transaction that saves the next document, with the source's lines locked.
      *
@@ -50,7 +50,6 @@ class Fulfilment
             ->map(fn (mixed $line): array => [
                 'source_line_id' => data_get($line, 'id'),
                 'description' => data_get($line, 'description'),
-                'vat_class' => data_get($line, 'vat_class'),
                 'unit_price' => data_get($line, 'unit_price'),
                 'quantity' => (string) ($quantities[data_get($line, 'id')] ?? '0'),
             ])

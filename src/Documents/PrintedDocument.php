@@ -11,10 +11,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * A document as a PDF to print, file or send: the shared layout `filament-storybook::documents.print` on A4, tagged so
  * screen readers can read it and titled with its number. Needs spatie/laravel-pdf with its Browsershot driver
- * (spatie/browsershot, and puppeteer from npm). Copy it into the app, with a mapping like `salesInvoice()` per document.
+ * (spatie/browsershot, and puppeteer from npm). Call it from the package, or extend it with a mapping like
+ * `salesInvoice()` per document of the app's; filament-storybook-ph extends it with TINs, VAT and BIR's wording.
  */
 class PrintedDocument
 {
+    /**
+     * The company at the top of every document, from `config/company.php`, with any lines an add-on prints under it.
+     *
+     * @return array{name: string, address: string, lines: list<string>}
+     */
+    public static function company(): array
+    {
+        return ['name' => (string) config('company.name'), 'address' => (string) config('company.address'), 'lines' => []];
+    }
+
     /** @param  array<string, mixed>  $document  The layout's data, as the `actions-download-pdf` stories show. */
     public static function download(array $document): StreamedResponse
     {
@@ -42,8 +53,7 @@ class PrintedDocument
     }
 
     /**
-     * A sales invoice's printed copy. The official invoice is the BIR pre-printed form it was written on, so the copy
-     * says so and carries the form's serial.
+     * A sales invoice's printed copy, under the serial of the invoice form it was written on.
      *
      * @return array<string, mixed>
      */
@@ -53,12 +63,11 @@ class PrintedDocument
             'title' => 'Sales invoice (copy)',
             'number_label' => 'No.',
             'number' => $invoice->number,
-            'company' => config('company'),
+            'company' => static::company(),
             'party' => [
                 'label' => 'Sold to',
                 'name' => data_get($invoice, 'customer.name'),
                 'address' => data_get($invoice, 'customer.address'),
-                'tin' => data_get($invoice, 'customer.tin'),
             ],
             // A missing value leaves its line out; Carbon would read a missing date as today. Dates read as on screen, in Filament's format.
             'details' => array_filter([
@@ -70,27 +79,18 @@ class PrintedDocument
                 'description' => ['label' => 'Description'],
                 'quantity' => ['label' => 'Quantity', 'format' => 'quantity'],
                 'unit_price' => ['label' => 'Unit price', 'format' => 'unit price'],
-                'vat' => ['label' => 'VAT'],
                 'amount' => ['label' => 'Amount', 'format' => 'money'],
             ],
             'lines' => collect(data_get($invoice, 'lines'))->map(fn (mixed $line): array => [
                 'description' => data_get($line, 'description'),
                 'quantity' => data_get($line, 'quantity'),
                 'unit_price' => data_get($line, 'unit_price'),
-                'vat' => DocumentTotals::VAT_CLASSES[data_get($line, 'vat_class')] ?? null,
                 'amount' => DocumentTotals::lineTotal(data_get($line, 'quantity'), data_get($line, 'unit_price')),
             ])->all(),
-            // The stored totals, worked out with DocumentTotals when the invoice was saved.
-            'totals' => [
-                'VATable sales' => $invoice->vatable_sales,
-                'VAT (12%)' => $invoice->vat,
-                'Zero-rated sales' => $invoice->zero_rated_sales,
-                'VAT-exempt sales' => $invoice->exempt_sales,
-                'Total amount due' => $invoice->total,
-            ],
+            // The stored total, worked out with DocumentTotals when the invoice was saved.
+            'totals' => ['Total amount due' => $invoice->total],
             'notes' => $invoice->notes,
             'signatures' => ['Prepared by', 'Received by'],
-            'statement' => 'THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX',
         ];
     }
     /** The ageing buckets of a statement and the ageing report, by days past the due date (owner's business standard), keyed as the report's query names them. */
@@ -124,13 +124,13 @@ class PrintedDocument
      */
     public static function statementOfAccount(Model $customer, iterable $invoices, ?Carbon $asOf = null): array
     {
-        return static::openItems('Statement of account', ['label' => 'Customer', 'name' => $customer->name, 'address' => $customer->address, 'tin' => $customer->tin], 'Invoice', $invoices, 'invoice_date', $asOf);
+        return static::openItems('Statement of account', ['label' => 'Customer', 'name' => $customer->name, 'address' => $customer->address], 'Invoice', $invoices, 'invoice_date', $asOf);
     }
 
     /**
      * What we owe one supplier, to check against the statement the supplier sends; kept on file, never emailed: every
      * posted purchase order with a balance due, with how many days it is past due, then the balance in each ageing bucket
-     * and the total due (owner's business standards). The supplier is a name, or a model with `name`, `address` and `tin`.
+     * and the total due (owner's business standards). The supplier is a name, or a model with `name` and `address`.
      *
      * @param  iterable<Model>  $orders  The supplier's posted orders with a balance due, oldest due first.
      * @return array<string, mixed>
@@ -139,7 +139,7 @@ class PrintedDocument
     {
         $party = is_string($supplier)
             ? ['label' => 'Supplier', 'name' => $supplier]
-            : ['label' => 'Supplier', 'name' => $supplier->name, 'address' => $supplier->address, 'tin' => $supplier->tin];
+            : ['label' => 'Supplier', 'name' => $supplier->name, 'address' => $supplier->address];
 
         return static::openItems('Supplier statement', $party, 'Order', $orders, 'order_date', $asOf);
     }
@@ -179,7 +179,7 @@ class PrintedDocument
             'title' => $title,
             'number_label' => 'As of',
             'number' => $asOf->translatedFormat($format),
-            'company' => config('company'),
+            'company' => static::company(),
             'party' => $party,
             'details' => [],
             'columns' => [
@@ -195,25 +195,22 @@ class PrintedDocument
     }
 
     /**
-     * What is emailed for a collection: an acknowledgement of the payment, under the serial of the BIR receipt form it was
+     * What is emailed for a collection: an acknowledgement of the payment, under the serial of the receipt form it was
      * written on, which stays the official receipt (owner's business standards).
      *
      * @return array<string, mixed>
      */
     public static function paymentAcknowledgement(Model $payment): array
     {
-        $settled = bcadd(bcadd((string) $payment->amount, (string) ($payment->tax_withheld ?? '0'), 2), (string) ($payment->vat_withheld ?? '0'), 2);
-
         return [
             'title' => 'Payment received (copy)',
             'number_label' => 'Receipt No.',
             'number' => $payment->number,
-            'company' => config('company'),
+            'company' => static::company(),
             'party' => [
                 'label' => 'Received from',
                 'name' => data_get($payment, 'salesInvoice.customer.name'),
                 'address' => data_get($payment, 'salesInvoice.customer.address'),
-                'tin' => data_get($payment, 'salesInvoice.customer.tin'),
             ],
             'details' => array_filter([
                 'Date received' => $payment->paid_on ? Carbon::parse($payment->paid_on)->translatedFormat(Schema::make()->getDefaultDateDisplayFormat()) : null,
@@ -223,14 +220,8 @@ class PrintedDocument
                 'invoice' => ['label' => 'Invoice'],
                 'amount' => ['label' => 'Amount settled', 'format' => 'money'],
             ],
-            'lines' => [['invoice' => data_get($payment, 'salesInvoice.number'), 'amount' => $settled]],
-            // Withholding shows only when there is some.
-            'totals' => array_filter([
-                'Amount received' => $payment->amount,
-                'Income tax withheld' => $payment->tax_withheld,
-                'VAT withheld' => $payment->vat_withheld,
-            ], fn (mixed $amount): bool => (float) $amount !== 0.0) + ['Total settled' => $settled],
-            'statement' => 'THIS IS NOT AN OFFICIAL RECEIPT',
+            'lines' => [['invoice' => data_get($payment, 'salesInvoice.number'), 'amount' => $payment->amount]],
+            'totals' => ['Amount received' => $payment->amount],
         ];
     }
     /**
@@ -251,7 +242,7 @@ class PrintedDocument
             'title' => $title,
             'number_label' => 'Printed',
             'number' => today()->translatedFormat(Schema::make()->getDefaultDateDisplayFormat()),
-            'company' => config('company'),
+            'company' => static::company(),
             'details' => $details,
             'columns' => $columns,
             'lines' => $lines->all(),
@@ -271,48 +262,5 @@ class PrintedDocument
             filled($until) => "Up to {$date($until)}",
             default => 'All dates',
         };
-    }
-
-    /**
-     * What a supplier's BIR Form 2307 for one quarter says, for staff to copy onto BIR's form, which stays the
-     * certificate the payor signs: the payee, the period, and for each ATC the income payments of each month of the
-     * quarter, their total and the tax withheld (owner's business standards: one 2307 per supplier per quarter).
-     *
-     * @param  iterable<Model|array<string, mixed>>  $rows  One per ATC, as `SupplierWithholding::quarterQuery()` gives them.
-     * @return array<string, mixed>
-     */
-    public static function form2307Details(string $payee, ?string $tin, ?string $address, Carbon $quarterStart, iterable $rows): array
-    {
-        // Database sums can come back as floats; each is turned back into its exact 2-decimal string first.
-        $amount = fn (mixed $value): string => number_format((float) $value, 2, '.', '');
-        $lines = collect($rows)->map(fn (mixed $row): array => [
-            'atc' => data_get($row, 'withholding_code'),
-            'month_1' => $amount(data_get($row, 'month_1')),
-            'month_2' => $amount(data_get($row, 'month_2')),
-            'month_3' => $amount(data_get($row, 'month_3')),
-            'income_payment' => $amount(data_get($row, 'income_payment')),
-            'tax_withheld' => $amount(data_get($row, 'tax_withheld')),
-        ]);
-        $sum = fn (string $key): string => $lines->reduce(fn (string $sum, array $line): string => bcadd($sum, $line[$key], 2), '0.00');
-
-        return [
-            'title' => 'Form 2307 details',
-            'number_label' => 'Period',
-            'number' => static::period($quarterStart->toDateString(), $quarterStart->copy()->addMonths(2)->endOfMonth()->toDateString()),
-            'company' => config('company'),
-            'party' => ['label' => 'Payee', 'name' => $payee, 'address' => $address, 'tin' => $tin],
-            'details' => [],
-            'columns' => [
-                'atc' => ['label' => 'ATC'],
-                'month_1' => ['label' => '1st month', 'format' => 'money'],
-                'month_2' => ['label' => '2nd month', 'format' => 'money'],
-                'month_3' => ['label' => '3rd month', 'format' => 'money'],
-                'income_payment' => ['label' => 'Total', 'format' => 'money'],
-                'tax_withheld' => ['label' => 'Tax withheld', 'format' => 'money'],
-            ],
-            'lines' => $lines->all(),
-            'totals' => ['Total income payments' => $sum('income_payment'), 'Total tax withheld' => $sum('tax_withheld')],
-            'notes' => 'For copying onto BIR Form 2307, which the payor signs and gives the payee. This page is not the certificate.',
-        ];
     }
 }

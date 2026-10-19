@@ -16,13 +16,9 @@ class SupplierExporter extends ReportExporter
     public static function getColumns(): array
     {
         return [
+            ExportColumn::make('code'),
             ExportColumn::make('name'),
-            ExportColumn::make('tin')
-                ->label('TIN'),
             ExportColumn::make('credit_limit'),
-            // A related record's value, by dot notation: the same code the import reads.
-            ExportColumn::make('withholdingCode.code')
-                ->label('ATC'),
         ];
     }
 }

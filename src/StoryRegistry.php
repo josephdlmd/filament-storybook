@@ -14,6 +14,23 @@ use ReflectionParameter;
  */
 class StoryRegistry
 {
+    /** @var list<string> Rules docs an add-on adds (filament-storybook-ph's), which storybook-instructions returns after the package's. */
+    protected array $rules = [];
+
+    /** Adds an add-on's rules doc, from its service provider. */
+    public function addRules(string $path): static
+    {
+        $this->rules = array_values(array_unique([...$this->rules, $path]));
+
+        return $this;
+    }
+
+    /** @return list<string> */
+    public function rules(): array
+    {
+        return $this->rules;
+    }
+
     /** @var array<string, string> directory => namespace */
     protected array $paths = [];
 

@@ -31,7 +31,7 @@ class CollectionsReportStories extends Stories
 
     public function description(): string
     {
-        return 'The payments received in a date range, by the serial of the receipt each was written on: the cash or check received, the income tax and VAT the customer withheld, with a totals row. A voided payment is left out. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
+        return 'The payments received in a date range, by the serial of the receipt each was written on: the cash or check received, with a totals row; an app that keeps Philippine books adds what the customer withheld with filament-storybook-ph (`reports-collections-with-withholding`). A voided payment is left out. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
     }
 
     public function examples(): array
@@ -62,16 +62,6 @@ class CollectionsReportStories extends Stories
                     ->url(fn (?Payment $record): ?string => $record?->salesInvoice ? '#'.$record->salesInvoice->number : null),
                 TextColumn::make('amount')
                     ->label('Amount received')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
-                TextColumn::make('tax_withheld')
-                    ->label('Income tax withheld')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
-                TextColumn::make('vat_withheld')
-                    ->label('VAT withheld')
                     ->money('PHP')
                     ->alignEnd()
                     ->summarize(Sum::make()->money('PHP')->label('Total')),
@@ -115,8 +105,6 @@ class CollectionsReportStories extends Stories
                             'salesInvoice.customer.name' => ['label' => 'Customer'],
                             'salesInvoice.number' => ['label' => 'Invoice'],
                             'amount' => ['label' => 'Amount received', 'format' => 'money'],
-                            'tax_withheld' => ['label' => 'Income tax withheld', 'format' => 'money'],
-                            'vat_withheld' => ['label' => 'VAT withheld', 'format' => 'money'],
                         ],
                         $livewire->getFilteredSortedTableQuery()->get(),
                     ))),

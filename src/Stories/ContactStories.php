@@ -2,10 +2,8 @@
 
 namespace Josephdlmd\FilamentStorybook\Stories;
 
-use Closure;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Fieldset;
-use Josephdlmd\FilamentStorybook\Contacts\PhoneNumber;
 use Josephdlmd\FilamentStorybook\Stories;
 
 class ContactStories extends Stories
@@ -17,12 +15,7 @@ class ContactStories extends Stories
 
     public function description(): string
     {
-        return 'A customer\'s, supplier\'s or contact\'s email address, phone number and address. **Email:** `type="email"` (`email()`), spellcheck off, up to 254 characters, wide enough to show about 30, typed once, never twice to confirm. **Phone:** `type="tel"` (`tel()`), any spaces, dashes or brackets and with or without +63 accepted, checked and stored as +63 917 123 4567 by `PhoneNumber` (copy it into the app). **Address:** separate fields, since every address is Philippine: street address, barangay (optional), city or municipality, province (optional, as Metro Manila has none) and a 4-digit ZIP code, each as wide as its content; for a billing and a delivery address, prefix the field names. These fields are about someone else, so they set no `autocomplete`, or the browser would offer the user\'s own details (WCAG 1.3.5 is about the user). Basis: GOV.UK email addresses, telephone numbers and addresses patterns (2026), and GOV.UK text input (fixed widths: "phone number inputs should be phone number-sized"); the formats (Philippine numbers stored as +63, Philippine address fields) are the owner\'s business standards (2026-10-12).';
-    }
-
-    public function examples(): array
-    {
-        return [PhoneNumber::class];
+        return 'A customer\'s, supplier\'s or contact\'s email address, phone number and address. **Email:** `type="email"` (`email()`), spellcheck off, up to 254 characters, wide enough to show about 30, typed once, never twice to confirm. **Phone:** `type="tel"` (`tel()`), any spaces, dashes or brackets accepted; an app that keeps Philippine numbers checks and stores them as +63 with filament-storybook-ph (`forms-philippine-phone-number`). **Address:** separate fields, since every address is Philippine: street address, barangay (optional), city or municipality, province (optional, as Metro Manila has none) and a 4-digit ZIP code, each as wide as its content; for a billing and a delivery address, prefix the field names. These fields are about someone else, so they set no `autocomplete`, or the browser would offer the user\'s own details (WCAG 1.3.5 is about the user). Basis: GOV.UK email addresses, telephone numbers and addresses patterns (2026), and GOV.UK text input (fixed widths: "phone number inputs should be phone number-sized"); the Philippine address fields are the owner\'s business standards (2026-10-12).';
     }
 
     public function records(): array
@@ -41,19 +34,13 @@ class ContactStories extends Stories
             ->required();
     }
 
-    /** A phone number: typed any way, stored as +63. */
+    /** A phone number, typed any way: spaces, dashes and brackets are fine. */
     public function phone(): TextInput
     {
         return TextInput::make('phone')
             ->label('Phone number')
             ->tel()
-            ->rules([fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
-                if (filled($value) && PhoneNumber::format($value) === null) {
-                    $fail('Enter a phone number, like 0917 123 4567 or (02) 8123 4567');
-                }
-            }])
-            ->dehydrateStateUsing(fn (?string $state): ?string => PhoneNumber::format($state))
-            ->helperText('For example, 0917 123 4567')
+            ->maxLength(30)
             ->maxWidth('xs')
             ->required()
             ->validationMessages([

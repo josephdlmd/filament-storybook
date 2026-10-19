@@ -8,7 +8,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 
 | Component | Status | Guidance |
 |---|---|---|
-| `TextInput` | Pattern | `forms-record-form`, `forms-tin`, `forms-contact-details`, `forms-percentage`, `forms-money-input`, `forms-quantity`, `forms-unit-cost`, `forms-settings-page`; house defaults (numeric as text, no asterisk, browser validation off); house script (units named); audit (email and phone fields) |
+| `TextInput` | Pattern | `forms-record-form`, `forms-contact-details`, `forms-percentage`, `forms-money-input`, `forms-quantity`, `forms-unit-cost`, `forms-settings-page`; house defaults (numeric as text, no asterisk, browser validation off); house script (units named); audit (email and phone fields) |
 | `Textarea` | Pattern | `forms-record-form`; house CSS (vertical resize) |
 | `Select` | Pattern | `forms-choice.manyOptions`, `forms-record-picker`; audit (searchable relationship) |
 | `MorphToSelect` | General | the select rules (`forms-choice`, `forms-record-picker`) |
@@ -39,7 +39,7 @@ Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by
 
 | Component | Status | Guidance |
 |---|---|---|
-| `TextEntry` | Pattern | `records-details`, `records-view-page`, `records-paper-receipt`, `forms-document-totals`; read-only rules; house script (copyable) |
+| `TextEntry` | Pattern | `records-details`, `records-view-page`, `forms-document-totals`; read-only rules; house script (copyable) |
 | `RepeatableEntry` (and its `TableColumn`) | Pattern | `records-view-page` (read-only tables); compact CSS |
 | `IconEntry` | Rule | an icon alone only for yes or no; otherwise a badge with its word |
 | `ImageEntry` | Rule | empty alt text beside text that names it; `->alt()` when it carries information |
