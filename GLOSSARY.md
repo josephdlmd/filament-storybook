@@ -29,7 +29,7 @@ A fact the owner states about the business (a format, a term, a convention) that
 _Avoid_: House rule
 
 **PH add-on**:
-The separate package of Philippine accounting patterns (BIR forms, withholding, VAT, TIN). Core holds UI patterns and accounting patterns any country could use.
+The separate package of Philippine accounting patterns (BIR forms, withholding, VAT, TIN), installed only by apps that keep Philippine books. Its patterns add to core's patterns rather than copying them. Core holds UI patterns and accounting patterns any country could use.
 _Avoid_: PH module, localisation, plugin
 
 **Pattern**:
