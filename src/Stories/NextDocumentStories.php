@@ -36,9 +36,9 @@ class NextDocumentStories extends Stories
     {
         return [
             1 => ['status' => DocumentStatus::Posted, 'number' => 'SO-000012', 'delivery_status' => 'Partly delivered', 'invoice_id' => null, 'lines' => [
-                ['id' => 1, 'description' => 'Nitrile examination gloves, medium, box of 100', 'vat_class' => 'vatable', 'quantity' => '100', 'delivered' => '40', 'unit_price' => '285.50'],
+                ['id' => 1, 'description' => 'Nitrile examination gloves, medium, box of 100', 'quantity' => '100', 'delivered' => '40', 'unit_price' => '285.50'],
                 ['id' => 2, 'description' => 'Insulin pens, 3 mL, pack of 5', 'vat_class' => 'exempt', 'quantity' => '20', 'delivered' => '20', 'unit_price' => '1450.00'],
-                ['id' => 3, 'description' => 'Isopropyl alcohol 70%, 500 mL', 'vat_class' => 'vatable', 'quantity' => '12.5', 'delivered' => '0', 'unit_price' => '89.2857'],
+                ['id' => 3, 'description' => 'Isopropyl alcohol 70%, 500 mL', 'quantity' => '12.5', 'delivered' => '0', 'unit_price' => '89.2857'],
             ]],
             2 => ['delivery_status' => 'Not delivered'],
             3 => ['delivery_status' => 'Delivered'],

@@ -40,7 +40,6 @@ class RecordViewPageStories extends Stories
             'status' => DocumentStatus::Posted,
             'payment_status' => PaymentStatus::PartlyPaid,
             'supplier' => 'Abra Medical Supply',
-            'supplier_tin' => '123-456-789-000',
             'order_date' => '2026-10-02',
             'supplier_invoice_number' => '20391',
             'due_date' => null,
@@ -112,8 +111,6 @@ class RecordViewPageStories extends Stories
                                 TextEntry::make('payment_status')
                                     ->badge(),
                                 TextEntry::make('supplier'),
-                                TextEntry::make('supplier_tin')
-                                    ->label('Supplier TIN'),
                                 TextEntry::make('order_date')
                                     ->date(),
                                 TextEntry::make('supplier_invoice_number')

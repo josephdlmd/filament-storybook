@@ -28,14 +28,6 @@ class SalesReportExporter extends ReportExporter
                 ->label('Date'),
             ExportColumn::make('customer.name')
                 ->label('Customer'),
-            ExportColumn::make('vatable_sales')
-                ->label('VATable sales'),
-            ExportColumn::make('vat')
-                ->label('VAT'),
-            ExportColumn::make('zero_rated_sales')
-                ->label('Zero-rated sales'),
-            ExportColumn::make('exempt_sales')
-                ->label('VAT-exempt sales'),
             ExportColumn::make('total')
                 ->label('Total'),
         ];

@@ -33,7 +33,7 @@ class SalesReportStories extends Stories
 
     public function description(): string
     {
-        return 'The sales report, and the pattern every report follows: a page of its own under a "Reports" menu group, open to roles with the "view reports" permission (`canAccess()`), holding a table of the posted documents in a date range. The filters sit above the table and apply as they change (`tables-list-table`): the date range, and the customer. Money is right-aligned, with the VAT-exclusive amounts, the VAT and the total in their own columns, and a totals row under them that adds every row the filters keep. Two gray buttons take it out: "Download PDF", the shared document layout with the filters as its details, and "Export", Filament\'s CSV or Excel file, made in the background and offered in a notification (`tables-import-and-export`). Each row opens what it sums up: a document\'s number its View page (`->url()` on the column), a customer\'s name their own rows in the report it comes from. Make the page a Filament page with `InteractsWithTable`, whose table is this one, and give it `#[Url] public ?array $tableFilters = null;` (Livewire\'s `Url` attribute), so a link opens it filtered, such as `SalesReport::getUrl([\'tableFilters\' => [\'customer\' => [\'value\' => $customer->getKey()]]])`; the filters in the link win over those the session kept. Copy `SalesReportExporter`. The other reports (`reports-collections`, `reports-receivables-ageing`, `reports-purchases-and-payables`) are built the same way. Basis: the owner\'s business standards (2026-10-12: the four reports, VAT-exclusive amounts, VAT and totals shown apart, on screen, PDF and Excel or CSV, a "view reports" permission); USWDS table (right-align numbers); Carbon data table (Sep 2026: the toolbar holds "global table actions such as … exporting"); Carbon filtering; Carbon dashboards ("financial reports with roll up and drill down capabilities").';
+        return 'The sales report, and the pattern every report follows: a page of its own under a "Reports" menu group, open to roles with the "view reports" permission (`canAccess()`), holding a table of the posted documents in a date range. The filters sit above the table and apply as they change (`tables-list-table`): the date range, and the customer. Money is right-aligned, each amount in its own column, with a totals row under them that adds every row the filters keep; an app that keeps Philippine books shows the VAT apart with filament-storybook-ph (`reports-sales-with-vat`). Two gray buttons take it out: "Download PDF", the shared document layout with the filters as its details, and "Export", Filament\'s CSV or Excel file, made in the background and offered in a notification (`tables-import-and-export`). Each row opens what it sums up: a document\'s number its View page (`->url()` on the column), a customer\'s name their own rows in the report it comes from. Make the page a Filament page with `InteractsWithTable`, whose table is this one, and give it `#[Url] public ?array $tableFilters = null;` (Livewire\'s `Url` attribute), so a link opens it filtered, such as `SalesReport::getUrl([\'tableFilters\' => [\'customer\' => [\'value\' => $customer->getKey()]]])`; the filters in the link win over those the session kept. Copy `SalesReportExporter`. The other reports (`reports-collections`, `reports-receivables-ageing`, `reports-purchases-and-payables`) are built the same way. Basis: the owner\'s business standards (2026-10-12: the four reports, on screen, PDF and Excel or CSV, a "view reports" permission); USWDS table (right-align numbers); Carbon data table (Sep 2026: the toolbar holds "global table actions such as … exporting"); Carbon filtering; Carbon dashboards ("financial reports with roll up and drill down capabilities").';
     }
 
     public function examples(): array
@@ -61,26 +61,6 @@ class SalesReportStories extends Stories
                 TextColumn::make('customer.name')
                     ->label('Customer')
                     ->searchable(),
-                TextColumn::make('vatable_sales')
-                    ->label('VATable sales')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
-                TextColumn::make('vat')
-                    ->label('VAT')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
-                TextColumn::make('zero_rated_sales')
-                    ->label('Zero-rated sales')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
-                TextColumn::make('exempt_sales')
-                    ->label('VAT-exempt sales')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
                 TextColumn::make('total')
                     ->money('PHP')
                     ->alignEnd()
@@ -131,10 +111,6 @@ class SalesReportStories extends Stories
                             'number' => ['label' => 'Invoice'],
                             'invoice_date' => ['label' => 'Date', 'format' => 'date'],
                             'customer.name' => ['label' => 'Customer'],
-                            'vatable_sales' => ['label' => 'VATable sales', 'format' => 'money'],
-                            'vat' => ['label' => 'VAT', 'format' => 'money'],
-                            'zero_rated_sales' => ['label' => 'Zero-rated sales', 'format' => 'money'],
-                            'exempt_sales' => ['label' => 'VAT-exempt sales', 'format' => 'money'],
                             'total' => ['label' => 'Total', 'format' => 'money'],
                         ],
                         // Every row the filters keep, not only the page on screen.

@@ -1,8 +1,9 @@
 {{--
     A printed document: the shared layout for sales invoice copies, purchase orders, receiving reports and payments.
-    `$document` holds: title, number_label, number, company (name, address, tin, vat), party (label, name, address, tin; none on a report),
+    `$document` holds: title, number_label, number, company (name, address, lines), party (label, name, address, lines; none on a report),
     details (label => value), columns (key => [label, format: text|date|quantity|money|unit price]), lines (rows keyed like columns),
-    totals (label => amount; the last is the total), notes, signatures (labels) and statement (BIR's wording, if any).
+    totals (label => amount; the last is the total), notes, signatures (labels) and statement (a line the law asks for, if any).
+    `lines` are what an add-on prints under a name and address, such as filament-storybook-ph's TIN and VAT registration.
 --}}
 @php
     $format = fn (mixed $value, string $as = 'text'): string => match (true) {
@@ -51,7 +52,9 @@
         <div>
             <p class="fs-document__company">{{ $document['company']['name'] }}</p>
             <p>{{ $document['company']['address'] }}</p>
-            <p>TIN {{ $document['company']['tin'] }}, {{ $document['company']['vat'] }}</p>
+            @foreach ($document['company']['lines'] ?? [] as $line)
+                <p>{{ $line }}</p>
+            @endforeach
         </div>
         <div class="fs-document__title">
             <h1>{{ $document['title'] }}</h1>
@@ -68,9 +71,9 @@
                 @if (filled($document['party']['address'] ?? null))
                     <p>{{ $document['party']['address'] }}</p>
                 @endif
-                @if (filled($document['party']['tin'] ?? null))
-                    <p>TIN {{ $document['party']['tin'] }}</p>
-                @endif
+                @foreach ($document['party']['lines'] ?? [] as $line)
+                    <p>{{ $line }}</p>
+                @endforeach
             </section>
         @endif
 

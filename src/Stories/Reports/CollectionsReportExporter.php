@@ -28,10 +28,6 @@ class CollectionsReportExporter extends ReportExporter
                 ->label('Invoice'),
             ExportColumn::make('amount')
                 ->label('Amount received'),
-            ExportColumn::make('tax_withheld')
-                ->label('Income tax withheld'),
-            ExportColumn::make('vat_withheld')
-                ->label('VAT withheld'),
         ];
     }
 }

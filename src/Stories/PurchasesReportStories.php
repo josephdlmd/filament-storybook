@@ -33,7 +33,7 @@ class PurchasesReportStories extends Stories
 
     public function description(): string
     {
-        return 'What was bought in a date range (`default`): each posted purchase order with its supplier, the VAT-exclusive amount, the VAT and the total, with a totals row. And what is still owed (`payables`): each order with a balance, its due date and how many days it is past due, oldest first. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
+        return 'What was bought in a date range (`default`): each posted purchase order with its supplier and its total, with a totals row; an app that keeps Philippine books adds the VAT with filament-storybook-ph (`reports-purchases-and-payables-with-vat`). And what is still owed (`payables`): each order with a balance, its due date and how many days it is past due, oldest first. Built as `reports-sales` is, with its "Download PDF" and "Export" buttons. Basis: the owner\'s business standards (2026-10-12); USWDS table (right-align numbers).';
     }
 
     public function examples(): array
@@ -58,16 +58,6 @@ class PurchasesReportStories extends Stories
                     ->sortable(),
                 TextColumn::make('supplier')
                     ->searchable(),
-                TextColumn::make('vatable_purchases')
-                    ->label('VATable purchases')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
-                TextColumn::make('vat')
-                    ->label('VAT')
-                    ->money('PHP')
-                    ->alignEnd()
-                    ->summarize(Sum::make()->money('PHP')->label('Total')),
                 TextColumn::make('total')
                     ->money('PHP')
                     ->alignEnd()
@@ -110,8 +100,6 @@ class PurchasesReportStories extends Stories
                             'number' => ['label' => 'Order'],
                             'order_date' => ['label' => 'Date', 'format' => 'date'],
                             'supplier' => ['label' => 'Supplier'],
-                            'vatable_purchases' => ['label' => 'VATable purchases', 'format' => 'money'],
-                            'vat' => ['label' => 'VAT', 'format' => 'money'],
                             'total' => ['label' => 'Total', 'format' => 'money'],
                         ],
                         $livewire->getFilteredSortedTableQuery()->get(),

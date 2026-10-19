@@ -29,7 +29,7 @@ class SupplierStatementStories extends Stories
 
     public function records(): array
     {
-        return [1 => ['name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600', 'tin' => '234-567-890-000']];
+        return [1 => ['name' => 'Benguet Trading', 'address' => '8 Session Road, Baguio City 2600']];
     }
 
     public function default(): Action

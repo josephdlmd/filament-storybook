@@ -51,8 +51,8 @@ class ShowStories extends Tool
         foreach ($stories->examples() as $class) {
             $reflection = new ReflectionClass($class);
 
-            // A class a rule or business standard fixes lives outside Stories\: apps call or extend it, never copy it.
-            if (! str_starts_with($class, 'Josephdlmd\\FilamentStorybook\\Stories\\')) {
+            // A class a rule or business standard fixes lives outside a Stories namespace: apps call or extend it, never copy it.
+            if (! str_contains($class, '\\Stories\\')) {
                 $methods = collect($reflection->getMethods(ReflectionMethod::IS_PUBLIC))
                     ->filter(fn (ReflectionMethod $method): bool => $method->getDeclaringClass()->getName() === $class && ! $method->isConstructor() && ! $method->isInternal())
                     ->map(fn (ReflectionMethod $method): string => (($description = (string) strtok(StoryRegistry::docblock($method), "\n")) ? "// {$description}\n" : '')
