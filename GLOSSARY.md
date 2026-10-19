@@ -60,3 +60,11 @@ _Avoid_: Template, boilerplate
 A request to add something the design system lacks (a component, a pattern, a change to a rule). The owner approves it, and a release ships it before any app uses it.
 _Avoid_: Feature request, exception
 
+
+**Check**:
+One rule the test or audit verifies automatically. Every check either passes or fails; none is advisory.
+_Avoid_: Warning, lint, suggestion
+
+**Settled exception**:
+A place where an app breaks a check because the owner accepted it, recorded with the reason and the owner's approval. It is listed but does not fail. Accessibility checks have none, and an exception that no longer matches anything fails.
+_Avoid_: Override, waiver, ignore
