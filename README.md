@@ -65,7 +65,7 @@ npm install --save-dev playwright-core axe-core
 npx playwright-core install chromium
 ```
 
-Without them the tool still runs and says the check was skipped. Set `STORYBOOK_CHROMIUM` to use another Chromium binary.
+Without them, `storybook-test` and `storybook-audit` fail with `a11y.unchecked`: strict mode has no skipped checks. Set `STORYBOOK_CHROMIUM` to use another Chromium binary.
 
 ## The agent loop
 
