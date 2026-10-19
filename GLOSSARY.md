@@ -20,6 +20,10 @@ _Avoid_: Overrides, tweaks
 One area of an app at its own address, with its own sign-in, users and menu. An app has one panel for its staff, divided into departments by menu groups and roles, and a separate panel only for outside users or a really different way of working. Every panel has the same Look and the same rules.
 _Avoid_: Portal, admin, backend, External UI
 
+**Outside user**:
+A person outside the company who signs in to a separate panel on behalf of exactly one customer or supplier, and sees only that record's documents. Staff invite them; nobody signs themselves up. One customer or supplier can have several.
+_Avoid_: Portal user, client user, guest
+
 **Rule**:
 A UI requirement with a current source under the rules policy.
 _Avoid_: Guideline, preference, standard (a standard may also be a business fact)
