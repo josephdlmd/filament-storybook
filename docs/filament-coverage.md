@@ -1,6 +1,6 @@
 # Filament coverage
 
-Every component Filament 5 ships, checked against `docs/rules.md`, the patterns in `src/Stories`, the house defaults, the compact CSS and the checks in `storybook-test` and `storybook-audit`, on 2026-10-11. `docs/carbon-coverage.md` asks whether we follow each Carbon page; this asks the other way: whether an agent using any Filament component finds guidance for it.
+Every component Filament 5 ships, checked against `docs/rules.md`, the patterns in `src/Stories`, the house defaults, the compact CSS and the checks in `storybook:test` and `storybook-audit`, on 2026-10-11. `docs/carbon-coverage.md` asks whether we follow each Carbon page; this asks the other way: whether an agent using any Filament component finds guidance for it.
 
 Status: **Pattern** (a story shows it), **Rule** (a rule covers it by name or by what it does), **General** (no rule of its own, but general rules apply, named in the row), **Gap** (no guidance), **Not applicable** (the policy rules it out, or it isn't for business screens).
 

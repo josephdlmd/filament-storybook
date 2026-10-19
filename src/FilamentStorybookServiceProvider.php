@@ -7,6 +7,10 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;
 use Josephdlmd\FilamentStorybook\Commands\InstallCommand;
+use Josephdlmd\FilamentStorybook\Commands\InstructionsCommand;
+use Josephdlmd\FilamentStorybook\Commands\ListCommand;
+use Josephdlmd\FilamentStorybook\Commands\ShowCommand;
+use Josephdlmd\FilamentStorybook\Commands\TestCommand;
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
 use Josephdlmd\FilamentStorybook\Mcp\ListStories;
@@ -33,7 +37,8 @@ class FilamentStorybookServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'filament-storybook');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([InstallCommand::class]);
+            // The agent commands: agents run them through Bash, in the checkout they work in.
+            $this->commands([InstallCommand::class, ListCommand::class, ShowCommand::class, InstructionsCommand::class, TestCommand::class]);
 
             // The error pages (feedback-error-pages): each holds only its words and includes the package's layout.
             $this->publishes([__DIR__.'/../stubs/errors' => resource_path('views/errors')], 'filament-storybook-errors');
@@ -48,7 +53,7 @@ class FilamentStorybookServiceProvider extends ServiceProvider
             Css::make('compact', __DIR__.'/../resources/css/compact.css'),
         ], 'josephdlmd/filament-storybook');
 
-        // Boost is a dev dependency, so the tools join its MCP server only where it is installed.
+        // Boost is a dev dependency, so the tools join its MCP server only where it is installed. A fallback for one release.
         if (class_exists(Tool::class)) {
             config(['boost.mcp.tools.include' => [
                 ...config('boost.mcp.tools.include', []),

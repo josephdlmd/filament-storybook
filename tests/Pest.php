@@ -1,10 +1,9 @@
 <?php
 
-use Josephdlmd\FilamentStorybook\Mcp\TestStories;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
 use Josephdlmd\FilamentStorybook\Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
-use Laravel\Mcp\Request;
 
 uses(TestCase::class)
     ->beforeEach(function (): void {
@@ -21,15 +20,23 @@ uses(TestCase::class)
     })
     ->in('Feature');
 
-/** Runs storybook-test under Filament's compiled theme, which apps load; the tests have no published one, and unstyled buttons fail WCAG 2.2's target size. */
-function testStoriesWithTheme(array $arguments = []): string
+/** Runs an agent command, `php artisan storybook:<command>`, checks its exit code and returns its output. */
+function storybook(string $command, array $arguments = [], int $exit = 0): string
+{
+    expect(Artisan::call("storybook:{$command}", $arguments))->toBe($exit);
+
+    return Artisan::output();
+}
+
+/** Runs storybook:test under Filament's compiled theme, which apps load; the tests have no published one, and unstyled buttons fail WCAG 2.2's target size. */
+function testStoriesWithTheme(array $arguments = [], int $exit = 0): string
 {
     $theme = public_path('css/filament/filament/app.css');
     @mkdir(dirname($theme), recursive: true);
     copy(__DIR__.'/../vendor/filament/filament/dist/theme.css', $theme);
 
     try {
-        return (string) (new TestStories)->handle(new Request($arguments))->content();
+        return storybook('test', $arguments, $exit);
     } finally {
         unlink($theme);
     }

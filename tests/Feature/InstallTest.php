@@ -16,6 +16,11 @@ it('installs into an app that meets the standard, and changing nothing on a seco
         ->and(InstallCommand::addGitignoreLine("/vendor\n"))->toBe("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n")
         ->and(InstallCommand::addGitignoreLine("/vendor\n/public/css/josephdlmd\n"))->toBe("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n")
         ->and(InstallCommand::addGitignoreLine("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n"))->toBe("/vendor\n/public/css/josephdlmd\n/public/js/josephdlmd\n");
+
+    $settings = InstallCommand::addAgentCommands('{"permissions": {"allow": ["Bash(composer check)"]}, "model": "opus"}');
+    expect(json_decode($settings, true))->toBe(['permissions' => ['allow' => ['Bash(composer check)', 'Bash(php artisan storybook:*)']], 'model' => 'opus'])
+        ->and(InstallCommand::addAgentCommands($settings))->toBe($settings)
+        ->and(json_decode(InstallCommand::addAgentCommands('{}'), true))->toBe(['permissions' => ['allow' => ['Bash(php artisan storybook:*)']]]);
 });
 
 it('refuses an app that does not meet the standard, saying what to change', function (): void {
@@ -27,9 +32,12 @@ it('refuses an app that does not meet the standard, saying what to change', func
     $this->artisan('storybook:install')->assertExitCode(1);
 });
 
-it('refuses a boost.json that isn\'t valid JSON, rather than rewriting it with only this package', function (): void {
+it('refuses a boost.json or .claude/settings.json that isn\'t valid JSON, rather than rewriting it with only this package', function (): void {
     expect(implode(' ', InstallCommand::unmetRequirements(boost: true, pest: true, npm: true, defaultPanel: true, boostJson: false)))
         ->toContain('Fix boost.json: it isn\'t valid JSON');
+
+    expect(implode(' ', InstallCommand::unmetRequirements(boost: true, pest: true, npm: true, defaultPanel: true, claudeSettings: false)))
+        ->toContain('Fix .claude/settings.json: it isn\'t valid JSON');
 });
 
 it('refuses an app without Filament\'s Compact theme, which the locked look is built on', function (): void {

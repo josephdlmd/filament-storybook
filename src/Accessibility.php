@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Josephdlmd\FilamentStorybook\Pages\Storybook;
 
-/** WCAG 2.2 AA checks with axe-core in headless Chromium, shared by storybook-test and storybook-audit. */
+/** WCAG 2.2 AA checks with axe-core in headless Chromium, shared by storybook:test and storybook-audit. */
 class Accessibility
 {
     /**

@@ -35,7 +35,7 @@ it('gives agents the storybook tools through Boost', function () {
 
 // Strict mode: every finding fails, accessibility included, unless the owner settled it in config/storybook-exceptions.php.
 // The report is the failure message, so it says what to fix.
-it('passes storybook-test', function () {
+it('passes storybook:test', function () {
     expect((string) (new Mcp\TestStories)->handle(new Request)->content())->toContain(' 0 failing, 0 accessibility issues');
 });
 

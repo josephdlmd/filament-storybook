@@ -59,7 +59,7 @@ These are business facts, so the owner is the source. Record the answers under "
 Follow `AGENTS.md`:
 
 - Give each rule a basis from the live Carbon pages, using the archived snapshot only where they are silent.
-- Each pattern passes `storybook-test` with 0 failing and 0 accessibility issues, and is looked at in the browser.
+- Each pattern passes `storybook:test` with 0 failing and 0 accessibility issues, and is looked at in the browser.
 - Add checks only where they are reliable, with the Gadgets fixture breaking each one.
 - Run `eval/run.sh` with a prompt such as "Add sales invoices with customers, line items, VAT, posting, cancelling and payments".
 - Release, then update `filament-starter` in a PR that waits for the owner.

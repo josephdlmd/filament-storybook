@@ -4,14 +4,14 @@ A story is one approved way to configure a Filament component. Agents copy it, s
 
 ## Before you write
 - Start from the Screen: every page is one of the shared Screens (a list, a record's View page, a create or edit form, with the wizard as its long form, a report, a dashboard, a settings page, sign-in). Pick it first, then fill it with the piece patterns (fields, columns, actions). A page no Screen covers becomes a new shared Screen, never an app's own.
-- Call `storybook-list`. If a pattern already covers the need, reuse it; do not add a near-duplicate.
-- Call the package's classes that a rule fixes (`DocumentTotals`, `DocumentNumber`, `DocumentStatus`, `PaymentStatus`, `PhoneNumber`, `PrintedDocument`; extend `ReportExporter`): `storybook-show` prints their signatures. Copy only the example classes it prints in full (models, importers, exporters, widgets).
-- Check the method signatures in `storybook-show`'s API section. Never guess an argument.
+- Run `php artisan storybook:list`. If a pattern already covers the need, reuse it; do not add a near-duplicate.
+- Call the package's classes that a rule fixes (`DocumentTotals`, `DocumentNumber`, `DocumentStatus`, `PaymentStatus`, `PhoneNumber`, `PrintedDocument`; extend `ReportExporter`): `storybook:show` prints their signatures. Copy only the example classes it prints in full (models, importers, exporters, widgets).
+- Check the method signatures in `storybook:show`'s API section. Never guess an argument.
 
 ## Choosing the component
 - Pick the component by the job, with the rules: up to five choices are radios and more are a searchable select, a yes or no saved with the form is a checkbox, a state the user acts on is a badge with its word.
 - Find each component you use in the coverage table below ("Filament coverage") and follow what its row names. **Pattern:** copy that pattern's configuration. **Rule:** apply the rule. **General:** only the general rules named there apply; say so to the user. **Not applicable:** don't use it.
-- Build from native Filament in this order: (1) its components (fields, columns, entries, actions, and layout such as Section, Grid, Flex, Callout and Empty state); (2) schema prime components (Text, Icon, Image, UnorderedList) composed with that layout, with no class or view of your own. Never a custom component in an app: no subclass of a field, column, entry or layout component, no widget with its own Blade view, no Blade component; `storybook-test` and `storybook-audit` fail them. A real gap in the coverage table goes to the owner as an extension proposal, and the package ships it.
+- Build from native Filament in this order: (1) its components (fields, columns, entries, actions, and layout such as Section, Grid, Flex, Callout and Empty state); (2) schema prime components (Text, Icon, Image, UnorderedList) composed with that layout, with no class or view of your own. Never a custom component in an app: no subclass of a field, column, entry or layout component, no widget with its own Blade view, no Blade component; `storybook:test` and `storybook-audit` fail them. A real gap in the coverage table goes to the owner as an extension proposal, and the package ships it.
 - When no row covers what you need, or a rule would be a guess, say so instead of inventing one. A UI rule needs a current source; a business fact comes from the owner.
 
 ## Fit the other patterns
@@ -32,11 +32,11 @@ A new story is one more screen in the same app, so it agrees with the patterns a
 ## The stories
 - One public method per state the pattern really has: `default`, then variants such as `required`, `disabled`, `withHelperText`, `manyOptions`. Name them by scenario, in camelCase.
 - Put a one-line docblock on every variant saying what is different and why.
-- A story that takes a `Table` or `Schema` is a screen, and owes all five states (loading, empty, populated, error, forbidden): declare the four besides populated with `#[States('loading', 'empty', 'error', 'forbidden')]`, and the canvas shows each from the one snippet. One record's page or form is `#[Record]` and has no empty state; a part of a screen that holds its own data (notes, history, related records, a widget) is `#[Section]` and declares only the states it has. An empty table says what goes there and the next step, in `emptyStateHeading()` and `emptyStateDescription()`. A state the canvas can't make by itself, such as a dashboard with nothing yet, comes from a `string $state` parameter on the story. `storybook-test` fails a screen missing a state.
+- A story that takes a `Table` or `Schema` is a screen, and owes all five states (loading, empty, populated, error, forbidden): declare the four besides populated with `#[States('loading', 'empty', 'error', 'forbidden')]`, and the canvas shows each from the one snippet. One record's page or form is `#[Record]` and has no empty state; a part of a screen that holds its own data (notes, history, related records, a widget) is `#[Section]` and declares only the states it has. An empty table says what goes there and the next step, in `emptyStateHeading()` and `emptyStateDescription()`. A state the canvas can't make by itself, such as a dashboard with nothing yet, comes from a `string $state` parameter on the story. `storybook:test` fails a screen missing a state.
 - Columns and entries need sample data. Return rows from `records()`, keyed by record id, covering the edge cases: a negative amount, an empty value, a long label.
 - The canvas gives every story an unsaved record made from the first sample row, so a condition on `$record` (`fn (?Model $record): bool => …`) works as it does in a resource.
 - In a table story, type the record in a row action's closures nullable, `fn (?Order $record)`: a table calls them without a record while it has no rows.
-- A pattern that needs a class besides its stories lists it in `examples()`. An example to adapt (an importer, a widget, a model) lives under the `Stories` namespace, and `storybook-show` prints its source to copy; a class a rule or business standard fixes lives outside it (`Documents`, `Contacts`, `Reports`), and `storybook-show` prints its signatures for apps to call.
+- A pattern that needs a class besides its stories lists it in `examples()`. An example to adapt (an importer, a widget, a model) lives under the `Stories` namespace, and `storybook:show` prints its source to copy; a class a rule or business standard fixes lives outside it (`Documents`, `Contacts`, `Reports`), and `storybook:show` prints its signatures for apps to call.
 - Keep stories pure. Do not query the database, read the session or call external services; sample data goes in `records()`. A field on a relationship, such as a customer select, needs the record's real model: return its class from `model()`, as `forms-record-picker` does.
 - Use realistic content from a real task ("Order PO-000042", "Abra Medical Supply"), never lorem ipsum or "Option 1", "Section 1": placeholder wording can make a pattern look clear when it isn't. One component per story, so the snippet copies cleanly; put variants in their own stories.
 - Use the field names and labels a real screen would use, in sentence case, so the snippet pastes into a resource unchanged. A button's label is a verb ("Approve order"), never OK, Done or Submit.
@@ -47,9 +47,9 @@ A new story is one more screen in the same app, so it agrees with the patterns a
 - A heading comes from its component (`Section::make('Details')`), never from styled text.
 
 ## House rules
-The full rules, each with its source, follow these instructions. `storybook-test` and `storybook-audit` fail when one is broken. A rule is kept only when current, maintained guidance supports it.
+The full rules, each with its source, follow these instructions. `storybook:test` and `storybook-audit` fail when one is broken. A rule is kept only when current, maintained guidance supports it.
 
 ## Verify
-- Run `storybook-test` with the pattern's id. Fix every failure and accessibility issue, then run it again. Repeat until it reports none.
-- `storybook-test` checks components, not how they sit together. If you can view pages, open the preview link from `storybook-show` and look at every part of the screen, not only your component: each strip of a table (filters, toolbar, header, rows, pagination), the gaps between fields, and anything that sits alone in a row, overlaps or touches a border. Open every modal and slide-over the story has.
+- Run `php artisan storybook:test` with the pattern's id. Fix every failure and accessibility issue, then run it again. Repeat until it reports none.
+- `storybook:test` checks components, not how they sit together. If you can view pages, open the preview link from `storybook:show` and look at every part of the screen, not only your component: each strip of a table (filters, toolbar, header, rows, pagination), the gaps between fields, and anything that sits alone in a row, overlaps or touches a border. Open every modal and slide-over the story has.
 - Then give the user the preview link.

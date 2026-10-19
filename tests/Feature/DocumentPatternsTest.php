@@ -2,7 +2,6 @@
 
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
 use Josephdlmd\FilamentStorybook\Mcp\AuditPages;
-use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\Gadget;
@@ -36,7 +35,7 @@ it('imports a CSV row with the form\'s checks, errors and stored formats, and sh
         ->and(fn () => $import(['code' => 'SUP-0002', 'name' => 'Benguet Trading', 'credit_limit' => '1.234']))
         ->toThrow(Illuminate\Validation\ValidationException::class, 'Enter the credit limit with at most 2 decimal places');
 
-    expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-import-and-export']))->content())
+    expect(storybook('show', ['ids' => ['tables-import-and-export']]))
         ->toContain('## SupplierImporter')
         ->toContain('public function resolveRecord(): Supplier');
 });

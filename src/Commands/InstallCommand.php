@@ -23,6 +23,7 @@ class InstallCommand extends Command
             ->first(fn (string $path): bool => str_contains(File::get($path), '->default()'));
 
         $boostJson = File::exists(base_path('boost.json')) ? File::get(base_path('boost.json')) : '{}';
+        $settings = File::exists(base_path('.claude/settings.json')) ? File::get(base_path('.claude/settings.json')) : '{}';
 
         $unmet = static::unmetRequirements(
             boost: class_exists(\Laravel\Boost\Mcp\ToolRegistry::class),
@@ -31,6 +32,7 @@ class InstallCommand extends Command
             defaultPanel: $provider !== null && preg_match('/^\s*->id\([^)]*\)$/m', File::get($provider)) === 1,
             // Rewriting a file that doesn't decode would keep only this package.
             boostJson: blank($boostJson) || json_validate($boostJson),
+            claudeSettings: blank($settings) || json_validate($settings),
             compactTheme: class_exists(\Filament\CompactTheme\CompactThemePlugin::class),
         );
 
@@ -48,6 +50,10 @@ class InstallCommand extends Command
         File::put(base_path('boost.json'), static::addBoostPackage($boostJson));
         $this->components->task('Boost guideline and tools', fn (): bool => $this->callSilently('boost:update') === 0);
 
+        File::ensureDirectoryExists(base_path('.claude'));
+        File::put(base_path('.claude/settings.json'), static::addAgentCommands($settings));
+        $this->components->task('Agents may run php artisan storybook:* without asking');
+
         File::ensureDirectoryExists(base_path('tests/Feature'));
         File::copy(__DIR__.'/../../stubs/StoriesTest.php', base_path('tests/Feature/StoriesTest.php'));
         $this->components->task('tests/Feature/StoriesTest.php');
@@ -64,7 +70,7 @@ class InstallCommand extends Command
         $this->components->bulletList([
             'Once per machine: npx playwright-core install chromium',
             'Make each panel\'s theme.css the package theme plus its @source lines: @import \'../../../../vendor/josephdlmd/filament-storybook/resources/css/theme.css\'; then npm run build.',
-            'Run the tests. StoriesTest now runs storybook-test and storybook-audit in strict mode: fix what they report. Required-field errors now read "Enter name" and delete buttons are outlined; update tests that expect Laravel\'s "The name field is required."',
+            'Run the tests. StoriesTest now runs storybook:test and storybook-audit in strict mode: fix what they report. Required-field errors now read "Enter name" and delete buttons are outlined; update tests that expect Laravel\'s "The name field is required."',
             'Restart your coding agent and ask it to run storybook-audit; fix what it reports.',
         ]);
 
@@ -76,7 +82,7 @@ class InstallCommand extends Command
      *
      * @return list<string>
      */
-    public static function unmetRequirements(bool $boost, bool $pest, bool $npm, bool $defaultPanel, bool $boostJson = true, bool $compactTheme = true): array
+    public static function unmetRequirements(bool $boost, bool $pest, bool $npm, bool $defaultPanel, bool $boostJson = true, bool $compactTheme = true, bool $claudeSettings = true): array
     {
         return array_values(array_filter([
             $boost ? null : 'Laravel Boost: composer require laravel/boost --dev, then php artisan boost:install',
@@ -84,6 +90,7 @@ class InstallCommand extends Command
             $npm ? null : 'npm: a package.json at the project root (the Vite setup Laravel ships with)',
             $defaultPanel ? null : 'A default Filament panel in app/Providers/Filament with ->default() and its ->id(...) on a line of its own',
             $boostJson ? null : 'Fix boost.json: it isn\'t valid JSON',
+            $claudeSettings ? null : 'Fix .claude/settings.json: it isn\'t valid JSON',
             $compactTheme ? null : 'Filament\'s Compact theme, which the look is built on: buy a licence, then composer require filament/compact-theme through Filament\'s Composer repository',
         ]));
     }
@@ -102,6 +109,15 @@ class InstallCommand extends Command
     {
         $config = json_decode($json, true) ?: [];
         $config['packages'] = array_values(array_unique([...($config['packages'] ?? []), 'josephdlmd/filament-storybook']));
+
+        return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
+    }
+
+    /** Agents run the agent commands through Bash; allowing them spares a permission prompt for each one. */
+    public static function addAgentCommands(string $json): string
+    {
+        $config = json_decode($json, true) ?: [];
+        $config['permissions']['allow'] = array_values(array_unique([...($config['permissions']['allow'] ?? []), 'Bash(php artisan storybook:*)']));
 
         return json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
     }

@@ -35,7 +35,7 @@ abstract class Stories
     }
 
     /**
-     * Classes the pattern needs besides its stories, such as an importer; storybook-show prints their source to copy.
+     * Classes the pattern needs besides its stories, such as an importer; storybook:show prints their source to copy.
      *
      * @return list<class-string>
      */

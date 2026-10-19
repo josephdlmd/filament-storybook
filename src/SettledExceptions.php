@@ -22,7 +22,7 @@ class SettledExceptions
      */
     public static function apply(array $lines, bool $stories, bool $full): array
     {
-        // storybook-test's checks are story.*; storybook-audit's are the rest.
+        // storybook:test's checks are story.*; storybook-audit's are the rest.
         [$entries, $incomplete] = collect((array) config('storybook-exceptions', []))
             ->filter(fn (mixed $entry): bool => is_array($entry) && str_starts_with((string) ($entry['check'] ?? ''), 'story.') === $stories)
             ->partition(fn (array $entry): bool => filled($entry['target'] ?? null) && filled($entry['reason'] ?? null) && filled($entry['approved'] ?? null));

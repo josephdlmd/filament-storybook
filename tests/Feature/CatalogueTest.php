@@ -1,8 +1,6 @@
 <?php
 
 use Josephdlmd\FilamentStorybook\Livewire\StoryCanvas;
-use Josephdlmd\FilamentStorybook\Mcp\ListStories;
-use Josephdlmd\FilamentStorybook\Mcp\ShowStories;
 use Josephdlmd\FilamentStorybook\Stories;
 use Josephdlmd\FilamentStorybook\Stories\ChoiceStories;
 use Josephdlmd\FilamentStorybook\Stories\DashboardStories;
@@ -14,7 +12,6 @@ use Josephdlmd\FilamentStorybook\Stories\RecordFormStories;
 use Josephdlmd\FilamentStorybook\Stories\StatusBadgeStories;
 use Josephdlmd\FilamentStorybook\StoryRegistry;
 use Josephdlmd\FilamentStorybook\Tests\Fixtures\User;
-use Laravel\Mcp\Request;
 use Livewire\Livewire;
 
 it('discovers the shipped stories, sorted by title', function (): void {
@@ -86,18 +83,21 @@ it('titles the page without its group and shows code in descriptions as code', f
 });
 
 it('lists the patterns for agents', function (): void {
-    expect((string) (new ListStories)->handle(new Request)->content())
+    expect(storybook('list'))
         ->toContain('`forms-money-input` Forms/Money input: Every peso amount a user types: pesos and centavos, at most 2 decimal places')
         ->toContain('(stories: default, required)');
 });
 
 it('shows a pattern for agents with imports, snippets and a preview link', function (): void {
-    expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-money-column']))->content())
+    expect(storybook('show', ['ids' => ['tables-money-column']]))
         ->toContain('use Filament\Tables\Columns\TextColumn;')
         ->toContain("TextColumn::make('amount')")
         ->toContain('/fixture/storybook?component=tables-money-column');
 
-    expect((new ShowStories)->handle(new Request(['id' => 'nope']))->isError())->toBeTrue();
+    // Several at once, so an agent looks up a screen's patterns in one call.
+    expect(storybook('show', ['ids' => ['tables-money-column', 'tables-status-badge']]))
+        ->toContain("# Tables/Money column\n")
+        ->toContain("# Tables/Status badge\n");
 });
 
 it('gives agents the real signatures of the methods a pattern uses', function (): void {
@@ -106,7 +106,7 @@ it('gives agents the real signatures of the methods a pattern uses', function ()
     expect($api->keys()->all())->toBe(['TextColumn::make', 'TextColumn::badge'])
         ->and($api['TextColumn::badge'])->toBe('badge(Closure|bool $condition = true): static');
 
-    expect((string) (new ShowStories)->handle(new Request(['id' => 'tables-status-badge']))->content())
+    expect(storybook('show', ['ids' => ['tables-status-badge']]))
         ->toContain("## API")
         ->toContain('TextColumn::badge(Closure|bool $condition = true): static')
         // A class a rule fixes is called from the package, by its signatures, not copied as source.
@@ -143,7 +143,8 @@ it('renders a screen story as the resource would, with its sample rows', functio
 });
 
 it('tells an agent the valid ids instead of letting it guess', function (): void {
-    expect((string) (new ShowStories)->handle(new Request(['id' => 'nope']))->content())
+    expect(storybook('show', ['ids' => ['tables-money-column', 'nope']], exit: 1))
+        ->toStartWith('No pattern "nope". ')
         ->toContain('Valid ids: actions-adjust-stock, actions-approve-and-reject, actions-archive, actions-create-next-document, actions-credit-limit, actions-delete, actions-download-pdf, actions-download-supplier-statement, actions-email-document, actions-invite-a-user, actions-record-payment, actions-void, dashboards-key-figures-and-charts, feedback-error-pages, feedback-notifications, forms-choice, forms-contact-details, forms-date, forms-document-totals, forms-file-upload, forms-form-container, forms-line-items, forms-money-input, forms-percentage, forms-quantity, forms-record-form, forms-record-picker, forms-settings-page, forms-sign-in, forms-unit-cost, forms-yes-or-no, records-details, records-document-lifecycle, records-history, records-key-figures, records-locked, records-notes, records-previous-and-next, records-related-records, records-stock, records-view-page, reports-collections, reports-purchases-and-payables, reports-receivables-ageing, reports-sales, tables-bulk-actions, tables-import-and-export, tables-list-table, tables-money-column, tables-status-badge');
 });
 

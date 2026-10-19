@@ -2,30 +2,24 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
-use Illuminate\Support\Str;
-use Josephdlmd\FilamentStorybook\Stories;
-use Josephdlmd\FilamentStorybook\StoryRegistry;
+use Illuminate\Support\Facades\Artisan;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
+/** The MCP fallback for `php artisan storybook:list`, kept for one release while apps move to the command. */
 #[IsReadOnly]
 class ListStories extends Tool
 {
     protected string $name = 'storybook-list';
 
-    protected string $description = 'List this app\'s approved Filament UI patterns (stories). Call this before building any Filament form, table, infolist or action, and reuse a matching pattern via storybook-show instead of writing your own.';
+    protected string $description = 'Fallback for `php artisan storybook:list`: run the command instead.';
 
     public function handle(Request $request): Response
     {
-        $lines = collect(app(StoryRegistry::class)->all())
-            ->map(fn (Stories $stories, string $id): string => "- `{$id}` {$stories->title()}: ".(Str::before((string) strtok($stories->description(), "\n"), ' Basis:') ?: 'no description')
-                .' (stories: '.implode(', ', array_keys($stories->stories())).')')
-            ->values();
+        $code = Artisan::call('storybook:list');
 
-        return Response::text($lines->isEmpty()
-            ? 'No stories yet. Add a class extending '.Stories::class.' to app/Stories.'
-            : $lines->implode("\n"));
+        return $code === 0 ? Response::text(Artisan::output()) : Response::error(Artisan::output());
     }
 }

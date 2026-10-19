@@ -2,24 +2,24 @@
 
 namespace Josephdlmd\FilamentStorybook\Mcp;
 
-use Josephdlmd\FilamentStorybook\StoryRegistry;
+use Illuminate\Support\Facades\Artisan;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
+/** The MCP fallback for `php artisan storybook:instructions`, kept for one release while apps move to the command. */
 #[IsReadOnly]
 class ShowInstructions extends Tool
 {
     protected string $name = 'storybook-instructions';
 
-    protected string $description = 'How to write a Filament story, the guidance for every Filament component (which pattern or rule covers it), and every UI rule with its source (forms, feedback and dialogs, tables, layout, accessibility, sign-in). Call it before adding or changing a story, before using a Filament component no pattern shows, and when unsure how a screen should behave.';
+    protected string $description = 'Fallback for `php artisan storybook:instructions`: run the command instead.';
 
     public function handle(Request $request): Response
     {
-        return Response::text(file_get_contents(__DIR__.'/../../resources/instructions/stories.md')
-            ."\n---\n\n".file_get_contents(__DIR__.'/../../docs/filament-coverage.md')
-            ."\n---\n\n".file_get_contents(__DIR__.'/../../docs/rules.md')
-            .implode('', array_map(fn (string $path): string => "\n---\n\n".file_get_contents($path), app(StoryRegistry::class)->rules())));
+        $code = Artisan::call('storybook:instructions');
+
+        return $code === 0 ? Response::text(Artisan::output()) : Response::error(Artisan::output());
     }
 }

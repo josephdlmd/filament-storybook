@@ -28,7 +28,7 @@ it('names every line-item field under Filament\'s own CSS, which hides the cell 
 it('reports a failing story with the line to fix, so the agent can self-correct', function (): void {
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
-    expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story']]))->content())
+    expect(storybook('test', ['ids' => ['broken-story']], exit: 1))
         ->toStartWith('# 16 passing, 38 failing, 1 accessibility issues, 0 settled exceptions')
         ->toContain('- `broken-story.nestedMenus` `story.states-missing`: as a screen it owes the loading, empty, error, forbidden states')
         ->toContain('- `broken-story.vagueAndTitleCase` `story.shortcut-modifier`: a keyboard shortcut needs Ctrl, ⌘ or Alt')
@@ -59,16 +59,16 @@ it('reports a failing story with the line to fix, so the agent can self-correct'
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:38')
         ->toContain('- `broken-story.untyped`: Not a story: return a Filament component, table column or action, or take and return a Table or Schema, at ')
         ->toContain('tests/Fixtures/Stories/BrokenStories.php:41')
-        ->toContain('run storybook-test again until every story passes')
+        ->toContain('run `php artisan storybook:test` again until every story passes')
         ->toContain('- `broken-story.works`');
 
-    expect((new TestStories)->handle(new Request(['ids' => ['nope']]))->isError())->toBeTrue();
+    expect(storybook('test', ['ids' => ['nope']], exit: 1))->toStartWith('Unknown pattern ids: nope. Valid ids: ');
 });
 
 it('checks each component\'s own options, so one tooltip or one collapsed section doesn\'t cover the others', function (): void {
     app(StoryRegistry::class)->discover(__DIR__.'/../Fixtures/Stories', 'Josephdlmd\FilamentStorybook\Tests\Fixtures\Stories');
 
-    expect((string) (new TestStories)->handle(new Request(['ids' => ['broken-story'], 'a11y' => false]))->content())
+    expect(storybook('test', ['ids' => ['broken-story'], '--no-a11y' => true], exit: 1))
         ->toContain('- `broken-story.oneTooltipForTwo` `story.icon-tooltip`: an icon-only action needs a tooltip')
         ->toContain('- `broken-story.oneCollapsedForTwo` `story.collapsible-open`: a collapsible section starts collapsed')
         ->toContain('- `broken-story.oneCollapsedForTwo` `story.optional-label`: the field `billing_address` is neither required()')
@@ -78,18 +78,18 @@ it('checks each component\'s own options, so one tooltip or one collapsed sectio
 it('fails, saying how to enable the accessibility check, when it cannot run', function (): void {
     config(['filament-storybook.chromium' => '/nonexistent/chrome']);
 
-    expect((string) (new TestStories)->handle(new Request(['ids' => ['forms-percentage']]))->content())
+    expect(storybook('test', ['ids' => ['forms-percentage']], exit: 1))
         ->toStartWith('# 1 passing, 1 failing, 0 accessibility issues, 0 settled exceptions')
         ->toContain('- `accessibility` `a11y.unchecked`: Accessibility not checked (')
         ->toContain('npx playwright-core install chromium');
 });
 
 it('gives agents the story-writing rules', function (): void {
-    expect((string) (new ShowInstructions)->handle(new Request)->content())
+    expect(storybook('instructions'))
         ->toContain('# Writing Filament stories')
         ->toContain('## Choosing the component')
         ->toContain('## Fit the other patterns')
-        ->toContain('Run `storybook-test`')
+        ->toContain('Run `php artisan storybook:test`')
         ->toContain('# Filament coverage')
         ->toContain('| `KeyValue` |')
         ->toContain('## Business standards (from the owner)');
@@ -123,6 +123,14 @@ it('joins the Boost MCP server when laravel/mcp is installed', function (): void
         ->toBe(['storybook-list', 'storybook-show', 'storybook-test', 'storybook-instructions', 'storybook-audit']);
 });
 
+it('keeps the MCP tools for one release, as a fallback that runs the commands', function (): void {
+    expect((string) (new ListStories)->handle(new Request)->content())->toBe(storybook('list'))
+        ->and((string) (new ShowStories)->handle(new Request(['id' => 'forms-date']))->content())->toBe(storybook('show', ['ids' => ['forms-date']]))
+        ->and((new ShowStories)->handle(new Request(['id' => 'nope']))->isError())->toBeTrue()
+        ->and((string) (new ShowInstructions)->handle(new Request)->content())->toBe(storybook('instructions'))
+        ->and((string) (new TestStories)->handle(new Request(['ids' => ['forms-date'], 'a11y' => false]))->content())->toStartWith('# 3 passing, 0 failing');
+});
+
 it('reads the theme from Vite\'s dev server while `npm run dev` runs, then deletes its copy', function (): void {
     file_put_contents(public_path('hot'), 'http://dev.test:5173');
     $this->app->instance(Illuminate\Foundation\Vite::class, new Illuminate\Foundation\Vite);
@@ -150,7 +158,7 @@ it('lets an add-on add its rules and sample columns, once each', function (): vo
     file_put_contents($rules, '# An add-on\'s rules');
     app(StoryRegistry::class)->addRules($rules)->addRules($rules);
 
-    expect(substr_count((string) (new Josephdlmd\FilamentStorybook\Mcp\ShowInstructions)->handle(new Request)->content(), '# An add-on\'s rules'))->toBe(1);
+    expect(substr_count(storybook('instructions'), '# An add-on\'s rules'))->toBe(1);
 
     unlink($rules);
 

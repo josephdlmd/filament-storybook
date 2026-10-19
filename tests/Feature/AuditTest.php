@@ -358,7 +358,7 @@ it('settles only what the owner approved, by check id, target and field, and fai
         ['check' => 'forms.read-only-saved', 'target' => 'EditInvoice', 'field' => 'total', 'reason' => 'The total is checked again on posting.', 'approved' => 'owner, 2026-10-15'],
         ['check' => 'forms.email', 'target' => 'EditInvoice', 'reason' => 'Fixed since.', 'approved' => 'owner, 2026-10-01'],
         ['check' => 'forms.toggle', 'target' => 'EditInvoice'],
-        ['check' => 'story.toggle', 'target' => 'forms-x.default', 'reason' => 'A story check, for storybook-test.', 'approved' => 'owner, 2026-10-19'],
+        ['check' => 'story.toggle', 'target' => 'forms-x.default', 'reason' => 'A story check, for storybook:test.', 'approved' => 'owner, 2026-10-19'],
     ]]);
     $lines = [
         '- `EditInvoice` `forms.read-only-saved`: the read-only field `total` is still saved.',

@@ -14,7 +14,7 @@ use ReflectionParameter;
  */
 class StoryRegistry
 {
-    /** @var list<string> Rules docs an add-on adds (filament-storybook-ph's), which storybook-instructions returns after the package's. */
+    /** @var list<string> Rules docs an add-on adds (filament-storybook-ph's), which storybook:instructions returns after the package's. */
     protected array $rules = [];
 
     /** Adds an add-on's rules doc, from its service provider. */

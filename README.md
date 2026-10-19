@@ -8,9 +8,9 @@ Storybook's promise for Laravel: agents get structured UI context (patterns, sto
 | Renderer + iframe | `StoryCanvas`: each story in its own Livewire component, with real state and actions, and a screen in each of its five states (loading, empty, populated, error, forbidden), one tab each |
 | Docs page + sidebar | The **Storybook** panel page: live story beside its PHP snippet, grouped by title |
 | `components.json` manifest | `StoryRegistry::manifest()`: imports, snippets and docblocks, read by reflection |
-| `docs-list` / `docs-show` | `storybook-list` and `storybook-show`, with an API section of the real signatures of the methods each story uses |
-| `test-run` + a11y addon | `storybook-test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule checks (each fails by its id unless the owner settled it), and WCAG 2.2 AA issues from axe-core |
-| `get-storybook-story-instructions` | `storybook-instructions`: the rules for writing a story and the test-and-fix loop |
+| `docs-list` / `docs-show` | `storybook:list` and `storybook:show`, with an API section of the real signatures of the methods each story uses |
+| `test-run` + a11y addon | `storybook:test`: renders stories through the real canvas, reports failures with the story line to fix, house-rule checks (each fails by its id unless the owner settled it), and WCAG 2.2 AA issues from axe-core |
+| `get-storybook-story-instructions` | `storybook:instructions`: the rules for writing a story and the test-and-fix loop |
 | (no equivalent) | `storybook-audit`: renders one panel at a time (`panel`, for an app with several, failing when one lacks the plugin) and its real resource pages, including a resource's custom page of one record, their related lists, the panel's own pages (following one that sends the user back to itself with a query as it opens) and the dashboard's widgets, and reads the menu, signed in as a panel user, and reports render errors, rule breaks (red delete triggers, unconfirmed deletes, Filament's "Are you sure" text, a delete called Remove or the reverse, buttons labelled OK, Yes, Done, Submit or Confirm, Title Case labels, headings and page titles, label colons, more than one primary action, more than two inline row actions, filters hidden in a dropdown, empty states with no next step, toggles in saved forms, untypeable dates, uploads without limits, error messages that don't say what to do, money not right-aligned, placeholders, hidden labels, line-item columns that don't match their fields, rows that reorder only by dragging, read-only fields that are still saved, a View page that shows a disabled form, related lists in tabs, widgets that refresh themselves, a menu deeper than two levels, Title Case menu groups, a sidebar that shrinks to icons only) and WCAG 2.2 AA issues |
 | Storybook Test | A Pest test that renders every story in CI |
 | AGENTS.md instructions | `resources/boost/guidelines/core.blade.php`, loaded by Boost |
@@ -40,7 +40,8 @@ php artisan storybook:install
 The installer:
 - adds the plugin to the default panel;
 - registers the package with Boost and refreshes the agent guidelines;
-- writes the standard `tests/Feature/StoriesTest.php`, which renders every story, fails if Boost stops serving the tools, and runs `storybook-test` and `storybook-audit` in strict mode;
+- lets agents run `php artisan storybook:*` without asking, in `.claude/settings.json`;
+- writes the standard `tests/Feature/StoriesTest.php`, which renders every story, fails if Boost stops serving the tools, and runs `storybook:test` and `storybook-audit` in strict mode;
 - publishes the house CSS and ignores it in git;
 - installs the accessibility check packages.
 
@@ -58,20 +59,22 @@ It's safe to run again. Then:
 
 ### Accessibility checks
 
-`storybook-test` runs axe-core on every story that renders, in headless Chromium with the panel's theme CSS, so contrast is judged on real colours. It needs Node and, in the app:
+`storybook:test` runs axe-core on every story that renders, in headless Chromium with the panel's theme CSS, so contrast is judged on real colours. It needs Node and, in the app:
 
 ```bash
 npm install --save-dev playwright-core axe-core
 npx playwright-core install chromium
 ```
 
-Without them, `storybook-test` and `storybook-audit` fail with `a11y.unchecked`: strict mode has no skipped checks. Set `STORYBOOK_CHROMIUM` to use another Chromium binary.
+Without them, `storybook:test` and `storybook-audit` fail with `a11y.unchecked`: strict mode has no skipped checks. Set `STORYBOOK_CHROMIUM` to use another Chromium binary.
 
 ## The agent loop
 
-1. `storybook-list`, then `storybook-show`: the agent copies an approved snippet and passes only the arguments its API section shows.
-2. No pattern fits: `storybook-instructions`, then it writes a story in `app/Stories`.
-3. `storybook-test` for stories and `storybook-audit` for the screens built from them: failures, failed house-rule checks and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
+Agents run the commands through Bash, in the checkout they work in; `storybook:install` allows `php artisan storybook:*` in `.claude/settings.json`. The Boost MCP tools of the same names stay for one release as a fallback.
+
+1. `storybook:list`, then `storybook:show`: the agent copies an approved snippet and passes only the arguments its API section shows.
+2. No pattern fits: `storybook:instructions`, then it writes a story in `app/Stories`.
+3. `storybook:test` for stories and `storybook-audit` for the screens built from them: failures, failed house-rule checks and accessibility issues come back with what to fix. Failures name the story line that caused them, for example `Error: Call to a member function upper() on string at app/Stories/StatusStories.php:29`. It fixes and re-runs until everything passes.
 
 ## Write a story
 
@@ -113,13 +116,13 @@ public function default(Table $table): Table
 
 `Tables/List table`, `Forms/Record form` and `Records/View page` ship as the shared screen patterns, `Forms/Line items` as the lines of an invoice, bill or order, `Records/Details` as a record's summary of facts, `Records/Key figures` as the few figures at the top of a page of one task, `Records/Previous and next` for going through a series of records, and `Records/Locked` as a record that can no longer change. For invoices, orders and payments, `Forms/Document totals`, `Records/Document lifecycle`, `Actions/Void`, `Actions/Record payment` and `Forms/Record picker` (with a + to add a record not in the list yet) cover the totals, posting, voiding, payments against the balance and picking a customer, supplier or item, with the money, numbering and statuses in package classes the app calls (`DocumentTotals`, `DocumentNumber`, `DocumentStatus`, `PaymentStatus`). `Tables/Bulk actions`, `Actions/Archive`, `Actions/Invite a user`, `Forms/Contact details` (email, phone and a Philippine address), `Forms/Percentage` and `Forms/Settings page` cover the everyday flows of an internal tool; the invitation email and the page where an invited user sets their password are classes to copy. `Actions/Download PDF` prints any other document in one shared, tagged A4 layout with spatie/laravel-pdf (Browsershot driver, which needs puppeteer and a Chrome on the server) and the app's details in `config/company.php` (name, address and the email address documents are sent from). `Actions/Email document` sends a posted document's PDF to the billing contact, queued, with a notification when it has gone; `PrintedDocument` also builds the payment acknowledgement and the customer's statement of account with its ageing. `Actions/Create next document` turns a quotation into an order, an order into deliveries (in parts) and a delivery into its invoice, with `Fulfilment` to copy. `Records/Stock` and `Actions/Adjust stock` keep stock at weighted average cost, never below zero, with `Stock` to copy. `Actions/Download supplier statement` prints what is owed to one supplier, to check against theirs, and `Actions/Credit limit` holds an order that would take a customer over their limit for approval, with `CreditLimit` to copy. `Reports/Sales`, `Reports/Collections`, `Reports/Receivables ageing` and `Reports/Purchases and payables` are report pages: filters, a totals row, a PDF and a CSV or Excel export, each with its exporter to copy. House CSS and a house script cover what Filament has no setting for: the fields in a line-item table keep their labels for screen readers under the column headers, read-only fields look read-only, a closed menu is out of the keyboard's reach, small buttons in fields are 24px, copyable values and row actions work and are named for the keyboard and screen readers, a field's helper text and error are read with it, and focus moves to the next row when a dialog's row is deleted. The package registers both as Filament assets and `php artisan filament:upgrade` publishes them. They load on every panel page, since the patterns depend on them, as do the defaults listed below.
 
-**Philippine books:** VAT, withholding, TINs and BIR forms are in [filament-storybook-ph](https://github.com/josephdlmd/filament-storybook-ph), an add-on an app that keeps Philippine books requires alongside this package (`composer require josephdlmd/filament-storybook-ph:^0.1`, after adding its repository as its README says). It layers on the core patterns: its stories show what it adds (VAT on documents and reports, the tax withheld from payments, TINs, the 2307, SAWT and QAP, the paper receipt), and `storybook-instructions` returns its rules after these.
+**Philippine books:** VAT, withholding, TINs and BIR forms are in [filament-storybook-ph](https://github.com/josephdlmd/filament-storybook-ph), an add-on an app that keeps Philippine books requires alongside this package (`composer require josephdlmd/filament-storybook-ph:^0.1`, after adding its repository as its README says). It layers on the core patterns: its stories show what it adds (VAT on documents and reports, the tax withheld from payments, TINs, the 2307, SAWT and QAP, the paper receipt), and `storybook:instructions` returns its rules after these.
 
 ## Where the rules come from
 
 Storybook supplies the workshop, not the rules: a design system's guidelines say what good looks like, with their evidence, and Storybook hosts them beside the code. Here that is **[docs/rules.md](docs/rules.md)**: every rule the patterns and tools apply, with its source and date, how to do it in Filament, and how it is checked, plus the rules that were dropped and why.
 
-The base design system is **Carbon** (IBM's system for enterprise products). Form wording and error messages follow **GOV.UK**, and **WCAG 2.2 AA** always wins. A rule that follows Carbon needs no further evidence; anything beyond or against Carbon carries its own current source, and the rulebook lists where we differ from Carbon and why. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook-instructions` gives agents the whole rulebook.
+The base design system is **Carbon** (IBM's system for enterprise products). Form wording and error messages follow **GOV.UK**, and **WCAG 2.2 AA** always wins. A rule that follows Carbon needs no further evidence; anything beyond or against Carbon carries its own current source, and the rulebook lists where we differ from Carbon and why. House preferences and older research were removed. Real-app references from Mobbin confirm or question a rule but never justify one. `storybook:instructions` gives agents the whole rulebook.
 
 ### Strict mode and settled exceptions
 
@@ -174,7 +177,7 @@ One thing a plugin can't reach: Filament title-cases the model in each resource'
 
 ## Render every story in the app's tests
 
-`storybook:install` writes the standard `tests/Feature/StoriesTest.php` ([stubs/StoriesTest.php](stubs/StoriesTest.php)). The first test renders every story. The second fails the build if a Boost update ever stops giving agents the tools: they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file. The last two run `storybook-test` and `storybook-audit`, accessibility included, and fail on anything the owner hasn't settled (see Strict mode). For the audit, the test runs the app's database seeder (so one of its users may open each panel), lets every policy allow, makes one record per resource with its model's factory, and audits every panel; a page it still can't open fails, so give the model a factory, seed what it needs, or ask the owner to settle it. CI needs the built assets and a Playwright Chromium (`npx playwright-core install chromium`). Every app has the same file, so don't edit it there; change the stub.
+`storybook:install` writes the standard `tests/Feature/StoriesTest.php` ([stubs/StoriesTest.php](stubs/StoriesTest.php)). The first test renders every story. The second fails the build if a Boost update ever stops giving agents the tools: they reach Boost through the `boost.mcp.tools.include` setting, which isn't in Boost's config file. The last two run `storybook:test` and `storybook-audit`, accessibility included, and fail on anything the owner hasn't settled (see Strict mode). For the audit, the test runs the app's database seeder (so one of its users may open each panel), lets every policy allow, makes one record per resource with its model's factory, and audits every panel; a page it still can't open fails, so give the model a factory, seed what it needs, or ask the owner to settle it. CI needs the built assets and a Playwright Chromium (`npx playwright-core install chromium`). Every app has the same file, so don't edit it there; change the stub.
 
 ## Agent eval
 
