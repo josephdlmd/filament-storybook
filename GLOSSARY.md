@@ -76,3 +76,7 @@ _Avoid_: Warning, lint, suggestion
 **Settled exception**:
 A place where an app breaks a check because the owner accepted it, recorded with the reason and the owner's approval. It is listed but does not fail. Accessibility checks have none, and an exception that no longer matches anything fails.
 _Avoid_: Override, waiver, ignore
+
+**Agent command**:
+A Storybook command an agent runs in the app it is working on: list, show, instructions, test or audit. It answers for the checkout it runs in.
+_Avoid_: MCP tool, tool, server
